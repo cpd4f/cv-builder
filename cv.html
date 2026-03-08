@@ -10,6 +10,12 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
     <style>
       :root {
         --bg: #ffffff;
@@ -19,9 +25,7 @@
         --panel-text: #f7f9fb;
         --rule: #dadde0;
       }
-
       * { box-sizing: border-box; }
-
       body {
         margin: 0;
         font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
@@ -30,136 +34,59 @@
         line-height: 1.35;
         font-size: 11pt;
       }
-
-      .page {
-        max-width: 1200px;
-        margin: 0 auto;
-        background: #fff;
-      }
-
-      .header {
-        padding: 22mm 16mm 8mm;
-        border-bottom: 1px solid var(--rule);
-      }
-
-      .header h1 {
-        margin: 0;
-        font-size: 22pt;
-        font-weight: 800;
-        letter-spacing: 0.2px;
-      }
-
-      .header h2 {
-        margin: 2mm 0 0;
-        font-size: 14pt;
-        font-weight: 700;
-      }
-
-      .header-summary {
-        margin-top: 5mm;
-        font-size: 10.5pt;
-        color: var(--muted);
-      }
+      .page { max-width: 1200px; margin: 0 auto; background: #fff; }
+      .header { padding: 22mm 16mm 8mm; border-bottom: 1px solid var(--rule); }
+      .header h1 { margin: 0; font-size: 22pt; font-weight: 800; letter-spacing: 0.2px; }
+      .header h2 { margin: 2mm 0 0; font-size: 14pt; font-weight: 700; }
+      .header-summary { margin-top: 5mm; font-size: 10.5pt; color: var(--muted); }
 
       .contact-bar {
         display: grid;
         grid-template-columns: repeat(3, minmax(120px, 1fr));
         background: var(--panel);
         color: var(--panel-text);
+        padding: 14px 16mm;
       }
-
       .contact-item {
-        padding: 8px 12px;
+        padding: 8px 0;
         border-right: 1px solid #4b555f;
         font-size: 10pt;
         overflow-wrap: anywhere;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
+      .contact-item i { width: 14px; text-align: center; }
+      .contact-item:first-child { padding-right: 16px; }
+      .contact-item:last-child { border-right: 0; padding-left: 16px; }
 
-      .contact-item:last-child { border-right: 0; }
-
-      .content {
-        display: grid;
-        grid-template-columns: 1.55fr 0.75fr;
-        gap: 12mm;
-        padding: 12mm 16mm 16mm;
-      }
-
+      .content { display: grid; grid-template-columns: 1.55fr 0.75fr; gap: 12mm; padding: 12mm 16mm 16mm; }
       .section { margin-bottom: 10mm; }
-
-      .section h3 {
-        margin: 0 0 4mm;
-        font-size: 13.5pt;
-        font-weight: 800;
-      }
-
-      .entry {
-        margin-bottom: 6mm;
-        break-inside: avoid;
-      }
-
-      .entry-title {
-        margin: 0;
-        font-size: 11.5pt;
-        font-weight: 700;
-      }
-
-      .entry-meta {
-        margin: 1.5mm 0 2mm;
-        color: var(--muted);
-        font-size: 9.8pt;
-      }
-
-      .entry-date {
-        margin-top: 2mm;
-        color: var(--muted);
-        font-size: 9.2pt;
-      }
-
-      .entry-content {
-        margin: 0;
-        color: #131619;
-      }
-
+      .section h3 { margin: 0 0 4mm; font-size: 13.5pt; font-weight: 800; }
+      .entry { margin-bottom: 6mm; break-inside: avoid; }
+      .entry-title { margin: 0; font-size: 11.5pt; font-weight: 700; }
+      .entry-meta { margin: 1.5mm 0 2mm; color: var(--muted); font-size: 9.8pt; }
+      .entry-date { margin-top: 2mm; color: var(--muted); font-size: 9.2pt; }
+      .entry-content { margin: 0; color: #131619; }
       .entry-content p { margin: 0 0 2.6mm; }
-      .entry-content ul,
-      .entry-content ol { margin: 0 0 2.8mm 4.2mm; padding-left: 4mm; }
+      .entry-content ul, .entry-content ol { margin: 0 0 2.8mm 4.2mm; padding-left: 4mm; }
       .entry-content li { margin: 0 0 1.2mm; }
 
-      .error {
-        margin: 20px;
-        background: #fceaea;
-        border: 1px solid #f0c5c5;
-        color: #8b1111;
-        border-radius: 8px;
-        padding: 12px;
-      }
+      .error { margin: 20px; background: #fceaea; border: 1px solid #f0c5c5; color: #8b1111; border-radius: 8px; padding: 12px; }
 
       @media (max-width: 920px) {
         .content { grid-template-columns: 1fr; gap: 6mm; }
-        .contact-bar { grid-template-columns: 1fr; }
-        .contact-item { border-right: 0; border-bottom: 1px solid #4b555f; }
+        .contact-bar { grid-template-columns: 1fr; padding: 10px 20px; }
+        .contact-item { border-right: 0; border-bottom: 1px solid #4b555f; padding: 8px 0; }
+        .contact-item:first-child, .contact-item:last-child { padding-left: 0; padding-right: 0; }
         .contact-item:last-child { border-bottom: 0; }
       }
 
       @media print {
-        @page {
-          size: A4;
-          margin: 0;
-        }
-
-        body {
-          font-size: 10.5pt;
-          -webkit-print-color-adjust: exact;
-          print-color-adjust: exact;
-        }
-
-        .page {
-          max-width: none;
-          margin: 0;
-        }
-
-        .section,
-        .entry { break-inside: avoid-page; }
+        @page { size: A4; margin: 0; }
+        body { font-size: 10.5pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .page { max-width: none; margin: 0; }
+        .section, .entry { break-inside: avoid-page; }
       }
     </style>
   </head>
@@ -178,44 +105,30 @@
       const query = new URLSearchParams(window.location.search);
       const slug = (query.get("cv") || "").trim().toLowerCase();
 
-      function key(value) {
-        return String(value || "").trim().toLowerCase();
-      }
-
+      function key(value) { return String(value || "").trim().toLowerCase(); }
       function parseDateValue(value) {
         if (!value) return Number.NEGATIVE_INFINITY;
         const timestamp = Date.parse(String(value));
         return Number.isNaN(timestamp) ? Number.NEGATIVE_INFINITY : timestamp;
       }
-
       function sortItems(items) {
         return [...items].sort((a, b) => {
           const byStart = parseDateValue(b.start) - parseDateValue(a.start);
           if (byStart !== 0) return byStart;
-
           const byEnd = parseDateValue(b.end) - parseDateValue(a.end);
           if (byEnd !== 0) return byEnd;
-
           const aManual = Number.isFinite(Number(a.manualsort)) ? Number(a.manualsort) : Number.MAX_SAFE_INTEGER;
           const bManual = Number.isFinite(Number(b.manualsort)) ? Number(b.manualsort) : Number.MAX_SAFE_INTEGER;
           return aManual - bManual;
         });
       }
-
       function titleCase(value) {
-        return String(value || "")
-          .split(/\s+/)
-          .filter(Boolean)
-          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-          .join(" ");
+        return String(value || "").split(/\s+/).filter(Boolean).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
       }
-
       function markdownToHtml(markdown) {
         const raw = String(markdown || "").trim();
         if (!raw) return "";
-        if (window.marked) {
-          return window.marked.parse(raw, { breaks: true });
-        }
+        if (window.marked) return window.marked.parse(raw, { breaks: true });
         return raw.replace(/\n/g, "<br />");
       }
 
@@ -228,6 +141,14 @@
         `;
       }
 
+      function contactIconClass(title) {
+        const t = String(title || "").trim().toLowerCase();
+        if (t === "email") return "fa-solid fa-envelope";
+        if (t === "website") return "fa-solid fa-link";
+        if (t === "phone") return "fa-solid fa-phone";
+        return "fa-solid fa-circle-info";
+      }
+
       function renderContact(items) {
         const host = document.getElementById("contact");
         const entries = items.filter((item) => String(item?.content || "").trim() !== "");
@@ -235,12 +156,11 @@
           host.style.display = "none";
           return;
         }
-
         host.innerHTML = "";
         entries.forEach((item) => {
           const el = document.createElement("div");
           el.className = "contact-item";
-          el.textContent = `${item.title || ""} ${item.content || ""}`;
+          el.innerHTML = `<i class="${contactIconClass(item.title)}" aria-hidden="true"></i><span>${item.content || ""}</span>`;
           host.appendChild(el);
         });
       }
@@ -248,48 +168,59 @@
       function renderEntry(item) {
         const wrap = document.createElement("article");
         wrap.className = "entry";
-
         if (item.title) {
           const title = document.createElement("h4");
           title.className = "entry-title";
           title.textContent = item.title;
           wrap.appendChild(title);
         }
-
         if (item.subtitle || item.location) {
           const meta = document.createElement("div");
           meta.className = "entry-meta";
           meta.textContent = [item.subtitle, item.location].filter(Boolean).join(" • ");
           wrap.appendChild(meta);
         }
-
         if (item.content) {
           const content = document.createElement("div");
           content.className = "entry-content";
           content.innerHTML = markdownToHtml(item.content);
           wrap.appendChild(content);
         }
-
         if (item.start || item.end || item.dispdate) {
           const date = document.createElement("div");
           date.className = "entry-date";
           date.textContent = item.dispdate || [item.start, item.end].filter(Boolean).join(" → ");
           wrap.appendChild(date);
         }
-
         return wrap;
       }
 
       function renderSection(host, sectionName, items) {
         const section = document.createElement("section");
         section.className = "section";
-
         const heading = document.createElement("h3");
         heading.textContent = sectionName;
         section.appendChild(heading);
-
         sortItems(items).forEach((item) => section.appendChild(renderEntry(item)));
         host.appendChild(section);
+      }
+
+      function renderSecondPageRail(host, items) {
+        sortItems(items).forEach((item) => {
+          if (!item.title) return;
+          const section = document.createElement("section");
+          section.className = "section";
+          const heading = document.createElement("h3");
+          heading.textContent = item.title;
+          section.appendChild(heading);
+          if (item.content) {
+            const body = document.createElement("div");
+            body.className = "entry-content";
+            body.innerHTML = markdownToHtml(item.content);
+            section.appendChild(body);
+          }
+          host.appendChild(section);
+        });
       }
 
       function groupBySection(items) {
@@ -314,10 +245,10 @@
           { key: "work experience", title: "Work Experience" },
           { key: "technical + it", title: "Technical + IT" }
         ];
-
         const railConfig = [
-          { key: "topline skills", title: "Topline Skills" },
-          { key: "second page rail", title: "Second Page Rail" }
+          { key: "topline skills", title: "Skills" },
+          { key: "education", title: "Education" },
+          { key: "second page rail", title: null }
         ];
 
         mainConfig.forEach((cfg) => {
@@ -328,11 +259,18 @@
 
         railConfig.forEach((cfg) => {
           const sectionItems = grouped.get(cfg.key) || [];
-          if (sectionItems.length) renderSection(railHost, cfg.title, sectionItems);
+          if (!sectionItems.length) {
+            grouped.delete(cfg.key);
+            return;
+          }
+          if (cfg.key === "second page rail") {
+            renderSecondPageRail(railHost, sectionItems);
+          } else {
+            renderSection(railHost, cfg.title, sectionItems);
+          }
           grouped.delete(cfg.key);
         });
 
-        // Any extra sections go to main column in alpha order for resilience.
         [...grouped.keys()].sort().forEach((extraKey) => {
           renderSection(mainHost, titleCase(extraKey), grouped.get(extraKey));
         });
@@ -343,18 +281,13 @@
           document.body.innerHTML = '<div class="error">Missing <code>?cv=&lt;slug&gt;</code> query parameter.</div>';
           return;
         }
-
         try {
           const response = await fetch(`data/cv/${encodeURIComponent(slug)}.json`, { cache: "no-store" });
-          if (!response.ok) {
-            throw new Error(`Unable to load data/cv/${slug}.json (HTTP ${response.status})`);
-          }
-
+          if (!response.ok) throw new Error(`Unable to load data/cv/${slug}.json (HTTP ${response.status})`);
           const cv = await response.json();
           const items = Array.isArray(cv.items) ? cv.items : [];
           const header = items.find((item) => key(item.section) === "header") || {};
           const contacts = items.filter((item) => key(item.section) === "contact");
-
           renderHeader(header);
           renderContact(contacts);
           renderColumns(items);
