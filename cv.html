@@ -7,100 +7,219 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap"
       rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
     />
     <style>
       :root {
-        --bg: #ffffff;
-        --text: #000000;
-        --muted: #3d4248;
-        --panel: #2c3237;
-        --panel-text: #f7f9fb;
-        --rule: #dadde0;
+        --font-scale: 1;
+        --paper-width: 210mm;
+        --paper-height: 297mm;
+        --paper-padding: 20mm;
       }
       * { box-sizing: border-box; }
       body {
         margin: 0;
-        font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
-        color: var(--text);
-        background: var(--bg);
-        line-height: 1.35;
-        font-size: 11pt;
+        font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        color: #000;
+        background: linear-gradient(140deg, #cfd4dc 0%, #eef1f5 45%, #d3d8df 100%);
       }
-      .page { max-width: 1200px; margin: 0 auto; background: #fff; }
-      .header { padding: 22mm 16mm 8mm; border-bottom: 1px solid var(--rule); }
-      .header h1 { margin: 0; font-size: 22pt; font-weight: 800; letter-spacing: 0.2px; }
-      .header h2 { margin: 2mm 0 0; font-size: 14pt; font-weight: 700; }
-      .header-summary { margin-top: 5mm; font-size: 10.5pt; color: var(--muted); }
 
-      .contact-bar {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(120px, 1fr));
-        background: var(--panel);
-        color: var(--panel-text);
-        padding: 14px 16mm;
-      }
-      .contact-item {
-        padding: 8px 0;
-        border-right: 1px solid #4b555f;
-        font-size: 10pt;
-        overflow-wrap: anywhere;
+      .app-shell {
+        min-height: 100vh;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 8px;
+        padding: 28px 12px 36px;
+        gap: 14px;
       }
-      .contact-item i { width: 14px; text-align: center; }
-      .contact-item:first-child { padding-right: 16px; }
-      .contact-item:last-child { border-right: 0; padding-left: 16px; }
 
-      .content { display: grid; grid-template-columns: 1.55fr 0.75fr; gap: 12mm; padding: 12mm 16mm 16mm; }
-      .section { margin-bottom: 10mm; }
-      .section h3 { margin: 0 0 4mm; font-size: 13.5pt; font-weight: 800; }
-      .entry { margin-bottom: 6mm; break-inside: avoid; }
-      .entry-title { margin: 0; font-size: 11.5pt; font-weight: 700; }
-      .entry-meta { margin: 1.5mm 0 2mm; color: var(--muted); font-size: 9.8pt; }
-      .entry-date { margin-top: 2mm; color: var(--muted); font-size: 9.2pt; }
-      .entry-content { margin: 0; color: #131619; }
-      .entry-content p { margin: 0 0 2.6mm; }
-      .entry-content ul, .entry-content ol { margin: 0 0 2.8mm 4.2mm; padding-left: 4mm; }
-      .entry-content li { margin: 0 0 1.2mm; }
+      .actions {
+        width: min(900px, 96vw);
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+      .btn {
+        border: 0;
+        border-radius: 999px;
+        background: #1f2937;
+        color: #fff;
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(31, 41, 55, 0.3);
+      }
+      .btn:hover { background: #111827; }
 
-      .error { margin: 20px; background: #fceaea; border: 1px solid #f0c5c5; color: #8b1111; border-radius: 8px; padding: 12px; }
+      .papers { display: flex; flex-direction: column; gap: 18px; align-items: center; }
+      .paper {
+        width: min(var(--paper-width), 96vw);
+        min-height: var(--paper-height);
+        background: #fff;
+        box-shadow: 0 8px 25px rgba(15, 23, 42, 0.2), 0 2px 8px rgba(15, 23, 42, 0.16);
+        border-radius: 3px;
+        padding: var(--paper-padding);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+      }
 
-      @media (max-width: 920px) {
-        .content { grid-template-columns: 1fr; gap: 6mm; }
-        .contact-bar { grid-template-columns: 1fr; padding: 10px 20px; }
-        .contact-item { border-right: 0; border-bottom: 1px solid #4b555f; padding: 8px 0; }
-        .contact-item:first-child, .contact-item:last-child { padding-left: 0; padding-right: 0; }
-        .contact-item:last-child { border-bottom: 0; }
+      .cv-header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .cv-name {
+        margin: 0;
+        font-size: calc(28pt * var(--font-scale));
+        font-weight: 800;
+        letter-spacing: 0.02em;
+      }
+      .cv-subtitle {
+        margin-top: 6px;
+        font-size: calc(14pt * var(--font-scale));
+        font-weight: 500;
+      }
+      .cv-summary {
+        margin: 10px auto 0;
+        max-width: 92%;
+        font-size: calc(11pt * var(--font-scale));
+        line-height: 1.45;
+        text-align: left;
+      }
+
+      .contact-line {
+        text-align: center;
+        font-size: calc(11pt * var(--font-scale));
+        margin-bottom: 20px;
+      }
+      .contact-line a { color: inherit; text-decoration: none; }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1.8fr 1fr;
+        gap: 24px;
+        align-items: start;
+      }
+
+      .section { margin-bottom: 22px; break-inside: avoid; }
+      .section-title {
+        margin: 0 0 8px;
+        font-size: calc(13pt * var(--font-scale));
+        font-weight: 700;
+      }
+      .entry { margin-bottom: 16px; break-inside: avoid; }
+      .role {
+        margin: 0;
+        font-size: calc(12pt * var(--font-scale));
+        font-weight: 700;
+      }
+      .org {
+        margin: 2px 0 0;
+        font-size: calc(11.5pt * var(--font-scale));
+        font-weight: 500;
+      }
+      .meta {
+        margin: 4px 0 0;
+        font-size: calc(10.5pt * var(--font-scale));
+      }
+      .content {
+        margin-top: 8px;
+        font-size: calc(11pt * var(--font-scale));
+        line-height: 1.45;
+      }
+      .content p { margin: 0 0 8px; }
+      .content ul { margin: 0; padding-left: 10px; list-style: none; }
+      .content li {
+        margin: 0 0 5px;
+        position: relative;
+        padding-left: 12px;
+      }
+      .content li::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+      }
+
+      .qr-wrap {
+        position: absolute;
+        right: var(--paper-padding);
+        bottom: var(--paper-padding);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+      }
+      .qr-caption { font-size: 9pt; }
+      #qr-code { width: 68px; height: 68px; }
+
+      .error {
+        margin: 24px;
+        padding: 14px;
+        border-radius: 8px;
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      @media (max-width: 960px) {
+        .grid { grid-template-columns: 1fr; }
+        .actions { justify-content: center; flex-wrap: wrap; }
       }
 
       @media print {
         @page { size: A4; margin: 0; }
-        body { font-size: 10.5pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .page { max-width: none; margin: 0; }
-        .section, .entry { break-inside: avoid-page; }
+        body { background: #fff; }
+        .app-shell { padding: 0; gap: 0; }
+        .actions { display: none; }
+        .papers { gap: 0; }
+        .paper {
+          width: 210mm;
+          min-height: 297mm;
+          margin: 0;
+          box-shadow: none;
+          border-radius: 0;
+          break-after: page;
+        }
+        .paper:last-child { break-after: auto; }
       }
     </style>
   </head>
   <body>
-    <main class="page">
-      <header class="header" id="header"></header>
-      <section class="contact-bar" id="contact"></section>
-      <section class="content">
-        <div id="main-col"></div>
-        <div id="rail-col"></div>
-      </section>
-    </main>
+    <div class="app-shell">
+      <div class="actions">
+        <button class="btn" id="download-btn">Download</button>
+        <button class="btn" id="print-btn">Print</button>
+        <button class="btn" id="share-btn">Share</button>
+      </div>
+
+      <div class="papers">
+        <main class="paper" id="page1">
+          <header class="cv-header" id="header"></header>
+          <div class="contact-line" id="contact"></div>
+          <section class="grid">
+            <div id="main-col-1"></div>
+            <aside id="rail-col-1"></aside>
+          </section>
+        </main>
+
+        <main class="paper" id="page2">
+          <section class="grid">
+            <div id="main-col-2"></div>
+            <aside id="rail-col-2"></aside>
+          </section>
+          <div class="qr-wrap">
+            <div id="qr-code"></div>
+            <div class="qr-caption">colemanpdavis.com</div>
+          </div>
+        </main>
+      </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script>
       const query = new URLSearchParams(window.location.search);
       const slug = (query.get("cv") || "").trim().toLowerCase();
@@ -123,7 +242,11 @@
         });
       }
       function titleCase(value) {
-        return String(value || "").split(/\s+/).filter(Boolean).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
+        return String(value || "")
+          .split(/\s+/)
+          .filter(Boolean)
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(" ");
       }
       function markdownToHtml(markdown) {
         const raw = String(markdown || "").trim();
@@ -132,77 +255,113 @@
         return raw.replace(/\n/g, "<br />");
       }
 
+      function formatApDate(value) {
+        const input = String(value || "").trim();
+        if (!input) return "";
+        const date = new Date(input);
+        if (Number.isNaN(date.getTime())) return input;
+        const months = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
+        return `${months[date.getMonth()]} ${date.getFullYear()}`;
+      }
+
+      function renderDateLine(item) {
+        if (item.dispdate) return String(item.dispdate);
+        const start = formatApDate(item.start);
+        const end = formatApDate(item.end);
+        if (start && end) return `${start} – ${end}`;
+        if (start) return `Since ${start}`;
+        if (end) return end;
+        return "";
+      }
+
+      function applyDensityScale(itemsCount) {
+        const scale = itemsCount > 22 ? 0.92 : itemsCount > 16 ? 0.96 : 1;
+        document.documentElement.style.setProperty("--font-scale", String(scale));
+      }
+
       function renderHeader(item) {
-        const host = document.getElementById("header");
-        host.innerHTML = `
-          <h1>${item?.title || "CV"}</h1>
-          <h2>${item?.subtitle || ""}</h2>
-          <div class="header-summary">${markdownToHtml(item?.content || "")}</div>
+        document.getElementById("header").innerHTML = `
+          <h1 class="cv-name">${item?.title || "CV"}</h1>
+          <div class="cv-subtitle">${item?.subtitle || ""}</div>
+          <div class="cv-summary">${markdownToHtml(item?.content || "")}</div>
         `;
       }
 
-      function contactIconClass(title) {
-        const t = String(title || "").trim().toLowerCase();
-        if (t === "email") return "fa-solid fa-envelope";
-        if (t === "website") return "fa-solid fa-link";
-        if (t === "phone") return "fa-solid fa-phone";
-        return "fa-solid fa-circle-info";
-      }
-
       function renderContact(items) {
-        const host = document.getElementById("contact");
-        const entries = items.filter((item) => String(item?.content || "").trim() !== "");
-        if (!entries.length) {
-          host.style.display = "none";
-          return;
-        }
-        host.innerHTML = "";
-        entries.forEach((item) => {
-          const el = document.createElement("div");
-          el.className = "contact-item";
-          el.innerHTML = `<i class="${contactIconClass(item.title)}" aria-hidden="true"></i><span>${item.content || ""}</span>`;
-          host.appendChild(el);
-        });
+        const values = items
+          .filter((item) => String(item?.content || "").trim())
+          .map((item) => `${item.title}: ${item.content}`);
+        document.getElementById("contact").textContent = values.join("  •  ");
       }
 
       function renderEntry(item) {
         const wrap = document.createElement("article");
         wrap.className = "entry";
+
         if (item.title) {
-          const title = document.createElement("h4");
-          title.className = "entry-title";
-          title.textContent = item.title;
-          wrap.appendChild(title);
+          const h = document.createElement("h4");
+          h.className = "role";
+          h.textContent = item.title;
+          wrap.appendChild(h);
         }
-        if (item.subtitle || item.location) {
+
+        if (item.subtitle) {
+          const org = document.createElement("div");
+          org.className = "org";
+          org.textContent = item.subtitle;
+          wrap.appendChild(org);
+        }
+
+        const metaLine = [renderDateLine(item), item.location].filter(Boolean).join(" · ");
+        if (metaLine) {
           const meta = document.createElement("div");
-          meta.className = "entry-meta";
-          meta.textContent = [item.subtitle, item.location].filter(Boolean).join(" • ");
+          meta.className = "meta";
+          meta.textContent = metaLine;
           wrap.appendChild(meta);
         }
+
         if (item.content) {
           const content = document.createElement("div");
-          content.className = "entry-content";
+          content.className = "content";
           content.innerHTML = markdownToHtml(item.content);
           wrap.appendChild(content);
         }
-        if (item.start || item.end || item.dispdate) {
-          const date = document.createElement("div");
-          date.className = "entry-date";
-          date.textContent = item.dispdate || [item.start, item.end].filter(Boolean).join(" → ");
-          wrap.appendChild(date);
-        }
+
         return wrap;
       }
 
-      function renderSection(host, sectionName, items) {
+      function renderSection(host, title, items) {
+        if (!items?.length) return;
         const section = document.createElement("section");
         section.className = "section";
-        const heading = document.createElement("h3");
-        heading.textContent = sectionName;
-        section.appendChild(heading);
+        section.innerHTML = `<h3 class="section-title">${title}</h3>`;
         sortItems(items).forEach((item) => section.appendChild(renderEntry(item)));
         host.appendChild(section);
+      }
+
+      function splitWorkExperience(workItems) {
+        const probe = document.createElement("div");
+        probe.style.position = "absolute";
+        probe.style.visibility = "hidden";
+        probe.style.width = "530px";
+        probe.style.pointerEvents = "none";
+        document.body.appendChild(probe);
+
+        const pageLimit = 540;
+        const first = [];
+        const second = [];
+        sortItems(workItems).forEach((item) => {
+          const candidate = renderEntry(item);
+          probe.appendChild(candidate);
+          const height = probe.scrollHeight;
+          if (height <= pageLimit || !first.length) {
+            first.push(item);
+          } else {
+            second.push(item);
+          }
+        });
+        probe.remove();
+        return { first, second };
       }
 
       function renderSecondPageRail(host, items) {
@@ -210,14 +369,12 @@
           if (!item.title) return;
           const section = document.createElement("section");
           section.className = "section";
-          const heading = document.createElement("h3");
-          heading.textContent = item.title;
-          section.appendChild(heading);
+          section.innerHTML = `<h3 class="section-title">${item.title}</h3>`;
           if (item.content) {
-            const body = document.createElement("div");
-            body.className = "entry-content";
-            body.innerHTML = markdownToHtml(item.content);
-            section.appendChild(body);
+            const content = document.createElement("div");
+            content.className = "content";
+            content.innerHTML = markdownToHtml(item.content);
+            section.appendChild(content);
           }
           host.appendChild(section);
         });
@@ -234,45 +391,76 @@
         return grouped;
       }
 
-      function renderColumns(items) {
+      function renderPages(items) {
         const grouped = groupBySection(items);
-        const mainHost = document.getElementById("main-col");
-        const railHost = document.getElementById("rail-col");
-        mainHost.innerHTML = "";
-        railHost.innerHTML = "";
+        const main1 = document.getElementById("main-col-1");
+        const main2 = document.getElementById("main-col-2");
+        const rail1 = document.getElementById("rail-col-1");
+        const rail2 = document.getElementById("rail-col-2");
 
-        const mainConfig = [
-          { key: "work experience", title: "Work Experience" },
-          { key: "technical + it", title: "Technical + IT" }
-        ];
-        const railConfig = [
-          { key: "topline skills", title: "Skills" },
-          { key: "education", title: "Education" },
-          { key: "second page rail", title: null }
-        ];
+        [main1, main2, rail1, rail2].forEach((el) => (el.innerHTML = ""));
 
-        mainConfig.forEach((cfg) => {
-          const sectionItems = grouped.get(cfg.key) || [];
-          if (sectionItems.length) renderSection(mainHost, cfg.title, sectionItems);
-          grouped.delete(cfg.key);
+        const work = grouped.get("work experience") || [];
+        const tech = grouped.get("technical + it") || [];
+        const skills = grouped.get("topline skills") || [];
+        const education = grouped.get("education") || [];
+        const secondRail = grouped.get("second page rail") || [];
+
+        const split = splitWorkExperience(work);
+        renderSection(main1, "Work Experience", split.first);
+        renderSection(main1, "Technical + IT", tech);
+        renderSection(rail1, "Skills", skills);
+
+        if (split.second.length) renderSection(main2, "Work Experience (Continued)", split.second);
+        renderSection(rail2, "Education", education);
+        renderSecondPageRail(rail2, secondRail);
+
+        grouped.delete("work experience");
+        grouped.delete("technical + it");
+        grouped.delete("topline skills");
+        grouped.delete("education");
+        grouped.delete("second page rail");
+
+        [...grouped.keys()].sort().forEach((extraKey) => renderSection(main2, titleCase(extraKey), grouped.get(extraKey)));
+      }
+
+      function setupActions(personName) {
+        document.getElementById("print-btn").addEventListener("click", () => window.print());
+
+        document.getElementById("share-btn").addEventListener("click", async () => {
+          const url = window.location.href;
+          const message = `Check out the CV of ${personName || "Coleman Davis"}: ${url}`;
+          await navigator.clipboard.writeText(message);
+          alert("Copied CV link to clipboard.");
         });
 
-        railConfig.forEach((cfg) => {
-          const sectionItems = grouped.get(cfg.key) || [];
-          if (!sectionItems.length) {
-            grouped.delete(cfg.key);
-            return;
-          }
-          if (cfg.key === "second page rail") {
-            renderSecondPageRail(railHost, sectionItems);
-          } else {
-            renderSection(railHost, cfg.title, sectionItems);
-          }
-          grouped.delete(cfg.key);
-        });
+        document.getElementById("download-btn").addEventListener("click", async () => {
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+          const pages = [document.getElementById("page1"), document.getElementById("page2")];
 
-        [...grouped.keys()].sort().forEach((extraKey) => {
-          renderSection(mainHost, titleCase(extraKey), grouped.get(extraKey));
+          for (let i = 0; i < pages.length; i += 1) {
+            const canvas = await html2canvas(pages[i], { scale: 2, backgroundColor: "#ffffff" });
+            const img = canvas.toDataURL("image/png");
+            if (i > 0) pdf.addPage();
+            pdf.addImage(img, "PNG", 0, 0, 210, 297, undefined, "FAST");
+          }
+
+          pdf.save(`${slug || "cv"}.pdf`);
+        });
+      }
+
+      function renderQr() {
+        const el = document.getElementById("qr-code");
+        if (!window.QRCode || !el) return;
+        el.innerHTML = "";
+        new window.QRCode(el, {
+          text: "https://colemanpdavis.com",
+          width: 68,
+          height: 68,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: window.QRCode.CorrectLevel.M
         });
       }
 
@@ -281,16 +469,22 @@
           document.body.innerHTML = '<div class="error">Missing <code>?cv=&lt;slug&gt;</code> query parameter.</div>';
           return;
         }
+
         try {
           const response = await fetch(`data/cv/${encodeURIComponent(slug)}.json`, { cache: "no-store" });
           if (!response.ok) throw new Error(`Unable to load data/cv/${slug}.json (HTTP ${response.status})`);
           const cv = await response.json();
           const items = Array.isArray(cv.items) ? cv.items : [];
+
+          applyDensityScale(items.length);
           const header = items.find((item) => key(item.section) === "header") || {};
           const contacts = items.filter((item) => key(item.section) === "contact");
+
           renderHeader(header);
           renderContact(contacts);
-          renderColumns(items);
+          renderPages(items);
+          renderQr();
+          setupActions(header.title);
         } catch (error) {
           document.body.innerHTML = `<div class="error">${error.message}</div>`;
         }
