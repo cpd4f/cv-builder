@@ -198,6 +198,7 @@
         display: grid;
         grid-template-columns: 1.8fr 1fr;
         gap: 12mm;
+        margin-top: 12mm;
       }
       .pdf-section { margin-bottom: 22px; break-inside: avoid; }
       .pdf-entry { margin-bottom: 16px; break-inside: avoid; }
@@ -256,13 +257,19 @@
       }
       function sortItems(items) {
         return [...items].sort((a, b) => {
+          const aManual = String(a.manualsort || "").trim();
+          const bManual = String(b.manualsort || "").trim();
+          if (aManual && bManual && aManual !== bManual) {
+            return aManual.localeCompare(bManual, undefined, { numeric: true, sensitivity: "base" });
+          }
+          if (aManual && !bManual) return -1;
+          if (!aManual && bManual) return 1;
+
           const byStart = parseDateValue(b.start) - parseDateValue(a.start);
           if (byStart !== 0) return byStart;
           const byEnd = parseDateValue(b.end) - parseDateValue(a.end);
           if (byEnd !== 0) return byEnd;
-          const aManual = Number.isFinite(Number(a.manualsort)) ? Number(a.manualsort) : Number.MAX_SAFE_INTEGER;
-          const bManual = Number.isFinite(Number(b.manualsort)) ? Number(b.manualsort) : Number.MAX_SAFE_INTEGER;
-          return aManual - bManual;
+          return 0;
         });
       }
       function titleCase(value) {
@@ -529,7 +536,7 @@
         buildPdfHeader(page1, headerItem, contacts);
 
         const grid1 = document.createElement("section");
-        grid1.className = "pdf-grid content";
+        grid1.className = "pdf-grid";
         const main1 = document.createElement("div");
         const rail1 = document.createElement("aside");
         grid1.append(main1, rail1);
@@ -555,7 +562,7 @@
         const page2 = document.createElement("div");
         page2.className = "pdf-page";
         const grid2 = document.createElement("section");
-        grid2.className = "pdf-grid content";
+        grid2.className = "pdf-grid";
         const main2 = document.createElement("div");
         const rail2 = document.createElement("aside");
         grid2.append(main2, rail2);
@@ -627,7 +634,7 @@
 
         for (let i = 0; i < pages.length; i += 1) {
           const canvas = await html2canvas(pages[i], {
-            scale: 2,
+            scale: 1,
             backgroundColor: "#ffffff",
             useCORS: true
           });
