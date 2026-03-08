@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CV Viewer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --text: #000000;
+        --muted: #3d4248;
+        --panel: #2c3237;
+        --panel-text: #f7f9fb;
+        --rule: #dadde0;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+        color: var(--text);
+        background: linear-gradient(140deg, #d6dbe2 0%, #edf1f4 45%, #d2d8df 100%);
+        line-height: 1.35;
+        font-size: 11pt;
+      }
+
+      .shell {
+        padding: 22px 12px 34px;
+      }
+
+      .actions {
+        max-width: 1200px;
+        margin: 0 auto 12px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+      .btn {
+        border: 0;
+        border-radius: 999px;
+        background: #1f2937;
+        color: #fff;
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(31, 41, 55, 0.25);
+      }
+      .btn:hover { background: #111827; }
+
+      .page {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 4px;
+        box-shadow: 0 8px 28px rgba(15, 23, 42, 0.2), 0 2px 8px rgba(15, 23, 42, 0.12);
+      }
+
+      .header { padding: 22mm 16mm 8mm; border-bottom: 1px solid var(--rule); }
+      .header h1 {
+        margin: 0;
+        font-size: 28pt;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        text-align: left;
+      }
+      .header h2 {
+        margin: 2mm 0 0;
+        font-size: 14pt;
+        font-weight: 500;
+        text-align: left;
+      }
+      .header-summary {
+        margin-top: 5mm;
+        font-size: 11pt;
+        line-height: 1.45;
+      }
+
+      .contact-bar {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(120px, 1fr));
+        background: var(--panel);
+        color: var(--panel-text);
+        padding: 18px 16mm;
+      }
+      .contact-item {
+        padding: 8px 0;
+        border-right: 1px solid #4b555f;
+        font-size: 11pt;
+        overflow-wrap: anywhere;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .contact-item i { width: 14px; text-align: center; }
+      .contact-item:first-child { padding-right: 16px; }
+      .contact-item:last-child { border-right: 0; padding-left: 16px; }
+
+      .content {
+        display: grid;
+        grid-template-columns: 1.55fr 0.75fr;
+        gap: 12mm;
+        padding: 12mm 16mm 16mm;
+      }
+      .section { margin-bottom: 22px; }
+      .section h3 {
+        margin: 0 0 8px;
+        font-size: 13pt;
+        font-weight: 700;
+      }
+      .entry { margin-bottom: 16px; }
+      .entry-title {
+        margin: 0;
+        font-size: 12pt;
+        font-weight: 700;
+      }
+      .entry-meta {
+        margin: 2px 0 0;
+        font-size: 11.5pt;
+        font-weight: 500;
+      }
+      .entry-date {
+        margin-top: 4px;
+        font-size: 10.5pt;
+        color: var(--muted);
+      }
+      .entry-content {
+        margin-top: 8px;
+        font-size: 11pt;
+        line-height: 1.45;
+      }
+      .entry-content p { margin: 0 0 8px; }
+      .entry-content ul, .entry-content ol {
+        margin: 0;
+        padding-left: 0;
+        list-style: none;
+      }
+      .entry-content li {
+        margin: 0 0 5px;
+        padding-left: 12px;
+        position: relative;
+      }
+      .entry-content li::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+      }
+
+      .error {
+        margin: 20px;
+        background: #fceaea;
+        border: 1px solid #f0c5c5;
+        color: #8b1111;
+        border-radius: 8px;
+        padding: 12px;
+      }
+
+      #pdf-render-root {
+        position: fixed;
+        top: -10000px;
+        left: -10000px;
+        width: 210mm;
+        opacity: 0;
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      .pdf-page {
+        width: 210mm;
+        min-height: 297mm;
+        background: #fff;
+        color: #000;
+        padding: 20mm;
+        page-break-after: always;
+        position: relative;
+      }
+      .pdf-page:last-child { page-break-after: auto; }
+      .pdf-grid {
+        display: grid;
+        grid-template-columns: 1.8fr 1fr;
+        gap: 12mm;
+      }
+      .pdf-section { margin-bottom: 22px; break-inside: avoid; }
+      .pdf-entry { margin-bottom: 16px; break-inside: avoid; }
+      .pdf-qr {
+        position: absolute;
+        right: 20mm;
+        bottom: 20mm;
+        text-align: right;
+        font-size: 9pt;
+      }
+      .pdf-qr-code { width: 68px; height: 68px; margin-left: auto; }
+
+      @media (max-width: 920px) {
+        .actions { justify-content: center; flex-wrap: wrap; }
+        .content { grid-template-columns: 1fr; gap: 6mm; }
+        .contact-bar { grid-template-columns: 1fr; }
+        .contact-item { border-right: 0; border-bottom: 1px solid #4b555f; }
+        .contact-item:last-child { border-bottom: 0; padding-left: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="actions">
+        <button class="btn" id="download-btn">Download</button>
+        <button class="btn" id="print-btn">Print</button>
+        <button class="btn" id="share-btn">Share</button>
+      </div>
+
+      <main class="page">
+        <header class="header" id="header"></header>
+        <section class="contact-bar" id="contact"></section>
+        <section class="content">
+          <div id="main-col"></div>
+          <div id="rail-col"></div>
+        </section>
+      </main>
+    </div>
+
+    <div id="pdf-render-root"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script>
+      const query = new URLSearchParams(window.location.search);
+      const slug = (query.get("cv") || "").trim().toLowerCase();
+      let currentCv = null;
+
+      function key(value) { return String(value || "").trim().toLowerCase(); }
+      function parseDateValue(value) {
+        if (!value) return Number.NEGATIVE_INFINITY;
+        const timestamp = Date.parse(String(value));
+        return Number.isNaN(timestamp) ? Number.NEGATIVE_INFINITY : timestamp;
+      }
+      function sortItems(items) {
+        return [...items].sort((a, b) => {
+          const byStart = parseDateValue(b.start) - parseDateValue(a.start);
+          if (byStart !== 0) return byStart;
+          const byEnd = parseDateValue(b.end) - parseDateValue(a.end);
+          if (byEnd !== 0) return byEnd;
+          const aManual = Number.isFinite(Number(a.manualsort)) ? Number(a.manualsort) : Number.MAX_SAFE_INTEGER;
+          const bManual = Number.isFinite(Number(b.manualsort)) ? Number(b.manualsort) : Number.MAX_SAFE_INTEGER;
+          return aManual - bManual;
+        });
+      }
+      function titleCase(value) {
+        return String(value || "").split(/\s+/).filter(Boolean).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
+      }
+      function markdownToHtml(markdown) {
+        const raw = String(markdown || "").trim();
+        if (!raw) return "";
+        if (window.marked) return window.marked.parse(raw, { breaks: true });
+        return raw.replace(/\n/g, "<br />");
+      }
+
+      function formatApDate(value) {
+        const input = String(value || "").trim();
+        if (!input) return "";
+        const date = new Date(input);
+        if (Number.isNaN(date.getTime())) return input;
+        const months = ["Jan.", "Feb.", "Mar.", "Apr.", "May", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec."];
+        return `${months[date.getMonth()]} ${date.getFullYear()}`;
+      }
+
+      function displayDate(item) {
+        if (item.dispdate) return String(item.dispdate);
+        const start = formatApDate(item.start);
+        const end = formatApDate(item.end);
+        if (start && end) return `${start} – ${end}`;
+        if (start) return `Since ${start}`;
+        return end;
+      }
+
+      function contactIconClass(title) {
+        const t = String(title || "").trim().toLowerCase();
+        if (t === "email") return "fa-solid fa-envelope";
+        if (t === "website") return "fa-solid fa-link";
+        if (t === "phone") return "fa-solid fa-phone";
+        return "fa-solid fa-circle-info";
+      }
+
+      function renderHeader(item) {
+        const host = document.getElementById("header");
+        host.innerHTML = `
+          <h1>${item?.title || "CV"}</h1>
+          <h2>${item?.subtitle || ""}</h2>
+          <div class="header-summary">${markdownToHtml(item?.content || "")}</div>
+        `;
+      }
+
+      function renderContact(items) {
+        const host = document.getElementById("contact");
+        const entries = items.filter((item) => String(item?.content || "").trim() !== "");
+        if (!entries.length) {
+          host.style.display = "none";
+          return;
+        }
+        host.innerHTML = "";
+        entries.forEach((item) => {
+          const el = document.createElement("div");
+          el.className = "contact-item";
+          el.innerHTML = `<i class="${contactIconClass(item.title)}" aria-hidden="true"></i><span>${item.content || ""}</span>`;
+          host.appendChild(el);
+        });
+      }
+
+      function renderEntry(item, classPrefix = "") {
+        const wrap = document.createElement("article");
+        wrap.className = `${classPrefix}entry`.trim();
+
+        if (item.title) {
+          const title = document.createElement("h4");
+          title.className = "entry-title";
+          title.textContent = item.title;
+          wrap.appendChild(title);
+        }
+        if (item.subtitle || item.location) {
+          const meta = document.createElement("div");
+          meta.className = "entry-meta";
+          meta.textContent = [item.subtitle, item.location].filter(Boolean).join(" • ");
+          wrap.appendChild(meta);
+        }
+        if (item.start || item.end || item.dispdate) {
+          const date = document.createElement("div");
+          date.className = "entry-date";
+          date.textContent = displayDate(item);
+          wrap.appendChild(date);
+        }
+        if (item.content) {
+          const content = document.createElement("div");
+          content.className = "entry-content";
+          content.innerHTML = markdownToHtml(item.content);
+          wrap.appendChild(content);
+        }
+        return wrap;
+      }
+
+      function renderSection(host, sectionName, items) {
+        if (!items.length) return;
+        const section = document.createElement("section");
+        section.className = "section";
+        const heading = document.createElement("h3");
+        heading.textContent = sectionName;
+        section.appendChild(heading);
+        sortItems(items).forEach((item) => section.appendChild(renderEntry(item)));
+        host.appendChild(section);
+      }
+
+      function renderSecondPageRail(host, items) {
+        sortItems(items).forEach((item) => {
+          if (!item.title) return;
+          const section = document.createElement("section");
+          section.className = "section";
+          const heading = document.createElement("h3");
+          heading.textContent = item.title;
+          section.appendChild(heading);
+          if (item.content) {
+            const body = document.createElement("div");
+            body.className = "entry-content";
+            body.innerHTML = markdownToHtml(item.content);
+            section.appendChild(body);
+          }
+          host.appendChild(section);
+        });
+      }
+
+      function groupBySection(items) {
+        const grouped = new Map();
+        items.forEach((item) => {
+          const section = key(item.section);
+          if (!section || section === "header" || section === "contact") return;
+          if (!grouped.has(section)) grouped.set(section, []);
+          grouped.get(section).push(item);
+        });
+        return grouped;
+      }
+
+      function renderWebColumns(items) {
+        const grouped = groupBySection(items);
+        const mainHost = document.getElementById("main-col");
+        const railHost = document.getElementById("rail-col");
+        mainHost.innerHTML = "";
+        railHost.innerHTML = "";
+
+        const mainConfig = [
+          { key: "work experience", title: "Work Experience" },
+          { key: "technical + it", title: "Technical + IT" }
+        ];
+        const railConfig = [
+          { key: "topline skills", title: "Skills" },
+          { key: "education", title: "Education" },
+          { key: "second page rail", title: null }
+        ];
+
+        mainConfig.forEach((cfg) => {
+          const sectionItems = grouped.get(cfg.key) || [];
+          if (sectionItems.length) renderSection(mainHost, cfg.title, sectionItems);
+          grouped.delete(cfg.key);
+        });
+
+        railConfig.forEach((cfg) => {
+          const sectionItems = grouped.get(cfg.key) || [];
+          if (!sectionItems.length) {
+            grouped.delete(cfg.key);
+            return;
+          }
+          if (cfg.key === "second page rail") {
+            renderSecondPageRail(railHost, sectionItems);
+          } else {
+            renderSection(railHost, cfg.title, sectionItems);
+          }
+          grouped.delete(cfg.key);
+        });
+
+        [...grouped.keys()].sort().forEach((extraKey) => {
+          renderSection(mainHost, titleCase(extraKey), grouped.get(extraKey));
+        });
+      }
+
+      function mmToPx(mm) {
+        const probe = document.createElement("div");
+        probe.style.width = `${mm}mm`;
+        probe.style.position = "absolute";
+        probe.style.visibility = "hidden";
+        document.body.appendChild(probe);
+        const px = probe.getBoundingClientRect().width;
+        probe.remove();
+        return px;
+      }
+
+      function buildPdfHeader(page, headerItem, contactItems) {
+        const header = document.createElement("header");
+        header.className = "header";
+        header.innerHTML = `
+          <h1>${headerItem?.title || "CV"}</h1>
+          <h2>${headerItem?.subtitle || ""}</h2>
+          <div class="header-summary">${markdownToHtml(headerItem?.content || "")}</div>
+        `;
+        page.appendChild(header);
+
+        const contact = document.createElement("section");
+        contact.className = "contact-bar";
+        const entries = contactItems.filter((item) => String(item?.content || "").trim());
+        entries.forEach((item) => {
+          const el = document.createElement("div");
+          el.className = "contact-item";
+          el.innerHTML = `<i class="${contactIconClass(item.title)}" aria-hidden="true"></i><span>${item.content || ""}</span>`;
+          contact.appendChild(el);
+        });
+        page.appendChild(contact);
+      }
+
+      function sectionWithEntries(sectionTitle, items) {
+        const section = document.createElement("section");
+        section.className = "pdf-section section";
+        section.innerHTML = `<h3>${sectionTitle}</h3>`;
+        sortItems(items).forEach((item) => {
+          section.appendChild(renderEntry(item, "pdf-"));
+        });
+        return section;
+      }
+
+      function sectionHeightForItems(sectionTitle, items) {
+        const root = document.getElementById("pdf-render-root");
+        const scratch = document.createElement("div");
+        scratch.className = "pdf-page";
+        scratch.style.position = "absolute";
+        scratch.style.visibility = "hidden";
+        const grid = document.createElement("section");
+        grid.className = "pdf-grid";
+        const main = document.createElement("div");
+        const rail = document.createElement("aside");
+        grid.append(main, rail);
+        scratch.append(grid);
+        root.appendChild(scratch);
+        const section = sectionWithEntries(sectionTitle, items);
+        main.appendChild(section);
+        const h = section.getBoundingClientRect().height;
+        scratch.remove();
+        return h;
+      }
+
+      function splitWorkItemsForPdf(workItems, availableHeightPx) {
+        const sorted = sortItems(workItems);
+        const first = [];
+        const second = [];
+        let used = 0;
+        for (const item of sorted) {
+          const h = sectionHeightForItems("Work Experience", [item]);
+          if ((used + h <= availableHeightPx || !first.length)) {
+            first.push(item);
+            used += h;
+          } else {
+            second.push(item);
+          }
+        }
+        return { first, second };
+      }
+
+      function createPdfDom(cv) {
+        const root = document.getElementById("pdf-render-root");
+        root.innerHTML = "";
+
+        const items = Array.isArray(cv.items) ? cv.items : [];
+        const headerItem = items.find((item) => key(item.section) === "header") || {};
+        const contacts = items.filter((item) => key(item.section) === "contact");
+        const grouped = groupBySection(items);
+
+        const page1 = document.createElement("div");
+        page1.className = "pdf-page";
+        buildPdfHeader(page1, headerItem, contacts);
+
+        const grid1 = document.createElement("section");
+        grid1.className = "pdf-grid content";
+        const main1 = document.createElement("div");
+        const rail1 = document.createElement("aside");
+        grid1.append(main1, rail1);
+        page1.appendChild(grid1);
+        root.appendChild(page1);
+
+        const work = grouped.get("work experience") || [];
+        const tech = grouped.get("technical + it") || [];
+        const skills = grouped.get("topline skills") || [];
+
+        const main1Available = mmToPx(297 - 40) - grid1.getBoundingClientRect().top + page1.getBoundingClientRect().top;
+        const rail1Height = sectionHeightForItems("Skills", skills);
+        const techHeight = sectionHeightForItems("Technical + IT", tech);
+        const workSpace = Math.max(120, Math.min(main1Available - techHeight - 24, main1Available - rail1Height));
+
+        const { first: workFirst, second: workSecond } = splitWorkItemsForPdf(work, workSpace);
+
+        if (workFirst.length) main1.appendChild(sectionWithEntries("Work Experience", workFirst));
+        if (tech.length) main1.appendChild(sectionWithEntries("Technical + IT", tech));
+        if (skills.length) rail1.appendChild(sectionWithEntries("Skills", skills));
+
+        const page2 = document.createElement("div");
+        page2.className = "pdf-page";
+        const grid2 = document.createElement("section");
+        grid2.className = "pdf-grid content";
+        const main2 = document.createElement("div");
+        const rail2 = document.createElement("aside");
+        grid2.append(main2, rail2);
+        page2.appendChild(grid2);
+
+        if (workSecond.length) main2.appendChild(sectionWithEntries("Work Experience", workSecond));
+
+        const education = grouped.get("education") || [];
+        const secondRail = grouped.get("second page rail") || [];
+        if (education.length) rail2.appendChild(sectionWithEntries("Education", education));
+
+        if (secondRail.length) {
+          sortItems(secondRail).forEach((item) => {
+            if (!item.title) return;
+            const block = document.createElement("section");
+            block.className = "pdf-section section";
+            block.innerHTML = `<h3>${item.title}</h3>`;
+            if (item.content) {
+              const body = document.createElement("div");
+              body.className = "entry-content";
+              body.innerHTML = markdownToHtml(item.content);
+              block.appendChild(body);
+            }
+            rail2.appendChild(block);
+          });
+        }
+
+        grouped.delete("work experience");
+        grouped.delete("technical + it");
+        grouped.delete("topline skills");
+        grouped.delete("education");
+        grouped.delete("second page rail");
+
+        [...grouped.keys()].sort().forEach((extraKey) => {
+          main2.appendChild(sectionWithEntries(titleCase(extraKey), grouped.get(extraKey)));
+        });
+
+        const qrWrap = document.createElement("div");
+        qrWrap.className = "pdf-qr";
+        qrWrap.innerHTML = '<div class="pdf-qr-code" id="pdf-qr-code"></div><div>colemanpdavis.com</div>';
+        page2.appendChild(qrWrap);
+
+        root.appendChild(page2);
+
+        if (window.QRCode) {
+          new window.QRCode(document.getElementById("pdf-qr-code"), {
+            text: "https://colemanpdavis.com",
+            width: 68,
+            height: 68,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: window.QRCode.CorrectLevel.M
+          });
+        }
+
+        return [page1, page2];
+      }
+
+      async function generatePdf(cv) {
+        const pages = createPdfDom(cv);
+        await document.fonts.ready;
+        await new Promise((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(resolve));
+        });
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+
+        for (let i = 0; i < pages.length; i += 1) {
+          const canvas = await html2canvas(pages[i], {
+            scale: 2,
+            backgroundColor: "#ffffff",
+            useCORS: true
+          });
+          const img = canvas.toDataURL("image/png");
+          if (i > 0) pdf.addPage();
+          pdf.addImage(img, "PNG", 0, 0, 210, 297, undefined, "FAST");
+        }
+
+        return pdf;
+      }
+
+      function setupActions(cv) {
+        const personName = cv.items?.find((item) => key(item.section) === "header")?.title || "Coleman Davis";
+
+        document.getElementById("share-btn").addEventListener("click", async () => {
+          const url = window.location.href;
+          const message = `Check out the CV of ${personName}: ${url}`;
+          await navigator.clipboard.writeText(message);
+          alert("Copied CV link to clipboard.");
+        });
+
+        document.getElementById("download-btn").addEventListener("click", async () => {
+          const pdf = await generatePdf(cv);
+          pdf.save(`${slug || "cv"}.pdf`);
+        });
+
+        document.getElementById("print-btn").addEventListener("click", async () => {
+          const pdf = await generatePdf(cv);
+          const blob = pdf.output("blob");
+          const blobUrl = URL.createObjectURL(blob);
+          const frame = document.createElement("iframe");
+          frame.style.position = "fixed";
+          frame.style.right = "0";
+          frame.style.bottom = "0";
+          frame.style.width = "0";
+          frame.style.height = "0";
+          frame.style.border = "0";
+          frame.src = blobUrl;
+          document.body.appendChild(frame);
+          frame.onload = () => {
+            frame.contentWindow?.focus();
+            frame.contentWindow?.print();
+            setTimeout(() => {
+              URL.revokeObjectURL(blobUrl);
+              frame.remove();
+            }, 2000);
+          };
+        });
+      }
+
+      async function init() {
+        if (!slug) {
+          document.body.innerHTML = '<div class="error">Missing <code>?cv=&lt;slug&gt;</code> query parameter.</div>';
+          return;
+        }
+        try {
+          const response = await fetch(`data/cv/${encodeURIComponent(slug)}.json`, { cache: "no-store" });
+          if (!response.ok) throw new Error(`Unable to load data/cv/${slug}.json (HTTP ${response.status})`);
+          const cv = await response.json();
+          currentCv = cv;
+          const items = Array.isArray(cv.items) ? cv.items : [];
+          const header = items.find((item) => key(item.section) === "header") || {};
+          const contacts = items.filter((item) => key(item.section) === "contact");
+          renderHeader(header);
+          renderContact(contacts);
+          renderWebColumns(items);
+          setupActions(cv);
+        } catch (error) {
+          document.body.innerHTML = `<div class="error">${error.message}</div>`;
+        }
+      }
+
+      init();
+    </script>
+  </body>
+</html>
