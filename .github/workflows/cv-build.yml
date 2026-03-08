@@ -21,12 +21,42 @@ jobs:
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          ISSUE_AUTHOR_URL: ${{ github.event.issue.user.html_url }}
         run: |
-          if [[ "$ISSUE_TITLE" == CV_UPDATE* && "$ISSUE_AUTHOR" == "$EXPECTED_ISSUE_AUTHOR" ]]; then
+          normalize_user() {
+            local value
+            value="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+            value="${value#@}"
+            value="${value#https://github.com/}"
+            value="${value#http://github.com/}"
+            value="${value%/}"
+            printf '%s' "$value"
+          }
+
+          expected="$(normalize_user "$EXPECTED_ISSUE_AUTHOR")"
+          actual_login="$(normalize_user "$ISSUE_AUTHOR")"
+          actual_from_url="$(normalize_user "$ISSUE_AUTHOR_URL")"
+
+          title_ok=false
+          author_ok=false
+
+          issue_title_upper="$(printf '%s' "$ISSUE_TITLE" | tr '[:lower:]' '[:upper:]')"
+          if [[ "$issue_title_upper" == CV_UPDATE* ]]; then
+            title_ok=true
+          fi
+
+          if [[ "$actual_login" == "$expected" || "$actual_from_url" == "$expected" ]]; then
+            author_ok=true
+          fi
+
+          if [[ "$title_ok" == true && "$author_ok" == true ]]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           else
             echo "should_run=false" >> "$GITHUB_OUTPUT"
             echo "Skipping: title/author guard did not pass."
+            echo "Expected author: $expected"
+            echo "Actual issue author login: $actual_login"
+            echo "Actual issue author url-derived: $actual_from_url"
           fi
 
       - name: Stop early when not applicable

@@ -18,7 +18,7 @@ function setOutput(name, value) {
 
 function parseRecordId(title, body) {
   const titleTokens = String(title).trim().split(/\s+/).filter(Boolean);
-  if (titleTokens[0] === "CV_UPDATE" && titleTokens[1]?.startsWith("rec")) {
+  if (String(titleTokens[0] || "").toUpperCase() === "CV_UPDATE" && titleTokens[1]?.startsWith("rec")) {
     return titleTokens[1];
   }
 
