@@ -94,19 +94,32 @@ function pushContact(items, title, value) {
   }
 }
 
+
+function escapeFormulaString(value) {
+  return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
 async function fetchCvRecord(recordId) {
   const tableRef = CVS_TABLE_ID || CVS_TABLE_NAME;
   const url = `https://api.airtable.com/v0/${encodeURIComponent(AIRTABLE_BASE_ID)}/${encodeURIComponent(tableRef)}/${encodeURIComponent(recordId)}`;
   return airtableGetJson(url, "fetchCvRecord");
 }
 
-async function fetchCvItems(recordId) {
+async function fetchCvItems(recordId, linkedItemIds = []) {
   const out = [];
   let offset = "";
 
+  const useLinkedIds = Array.isArray(linkedItemIds) && linkedItemIds.length > 0;
+  const idFormula = useLinkedIds
+    ? `OR(${linkedItemIds.map((id) => `RECORD_ID()="${escapeFormulaString(id)}"`).join(",")})`
+    : `FIND("${escapeFormulaString(recordId)}", ARRAYJOIN({Parent-CV}))`;
+
+  const filterByFormula = `AND({Publish}=TRUE(), ${idFormula})`;
+  logDebug("CV Items filter strategy", { useLinkedIds, linkedItemCount: linkedItemIds.length, filterByFormula });
+
   do {
     const params = new URLSearchParams({
-      filterByFormula: `AND({Publish}=TRUE(), FIND(\",${recordId},\", \",\" & ARRAYJOIN({CVs}, \",\") & \",\"))`,
+      filterByFormula,
       pageSize: "100",
       "sort[0][field]": "Manual sort",
       "sort[0][direction]": "asc"
@@ -119,7 +132,11 @@ async function fetchCvItems(recordId) {
 
     out.push(...(data.records || []));
     offset = data.offset || "";
-    logDebug("Fetched CV Items page", { count: (data.records || []).length, hasMore: Boolean(offset) });
+    logDebug("Fetched CV Items page", {
+      count: (data.records || []).length,
+      hasMore: Boolean(offset),
+      strategy: useLinkedIds ? "linked-cv-items" : "parent-cv-fallback"
+    });
   } while (offset);
 
   return out;
@@ -209,7 +226,10 @@ async function main() {
   pushContact(items, "Website", fields["Contact: Personal Website"]);
   pushContact(items, "Phone", fields["Contact: Phone Number"]);
 
-  const cvItems = await fetchCvItems(recordId);
+  const linkedCvItems = Array.isArray(fields["CV Items"]) ? fields["CV Items"] : [];
+  logDebug("CV linked item ids from CV record", { count: linkedCvItems.length });
+
+  const cvItems = await fetchCvItems(recordId, linkedCvItems);
   logDebug("Total CV items fetched", cvItems.length);
 
   cvItems
