@@ -1,0 +1,142 @@
+name: Build CV JSON from Airtable Issue
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  build-cv:
+    runs-on: ubuntu-latest
+    env:
+      EXPECTED_ISSUE_AUTHOR: cpd4f # Change this if your GitHub username differs
+      AIRTABLE_BASE_ID: YOUR_AIRTABLE_BASE_ID # Set your Airtable base id here
+
+    steps:
+      - name: Check guard conditions
+        id: guard
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          ISSUE_AUTHOR_URL: ${{ github.event.issue.user.html_url }}
+        run: |
+          normalize_user() {
+            local value
+            value="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+            value="${value#@}"
+            value="${value#https://github.com/}"
+            value="${value#http://github.com/}"
+            value="${value%/}"
+            printf '%s' "$value"
+          }
+
+          expected="$(normalize_user "$EXPECTED_ISSUE_AUTHOR")"
+          actual_login="$(normalize_user "$ISSUE_AUTHOR")"
+          actual_from_url="$(normalize_user "$ISSUE_AUTHOR_URL")"
+
+          title_ok=false
+          author_ok=false
+
+          issue_title_upper="$(printf '%s' "$ISSUE_TITLE" | tr '[:lower:]' '[:upper:]')"
+          if [[ "$issue_title_upper" == CV_UPDATE* ]]; then
+            title_ok=true
+          fi
+
+          if [[ "$actual_login" == "$expected" || "$actual_from_url" == "$expected" ]]; then
+            author_ok=true
+          fi
+
+          if [[ "$title_ok" == true && "$author_ok" == true ]]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping: title/author guard did not pass."
+            echo "Expected author: $expected"
+            echo "Actual issue author login: $actual_login"
+            echo "Actual issue author url-derived: $actual_from_url"
+          fi
+
+      - name: Stop early when not applicable
+        if: steps.guard.outputs.should_run != 'true'
+        run: exit 0
+
+      - name: Check out repo
+        if: steps.guard.outputs.should_run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        if: steps.guard.outputs.should_run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build CV JSON from Airtable
+        if: steps.guard.outputs.should_run == 'true'
+        id: build
+        env:
+          AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
+          AIRTABLE_BASE_ID: ${{ env.AIRTABLE_BASE_ID }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: node scripts/build-cv-json.js
+
+      - name: Commit changes
+        if: steps.guard.outputs.should_run == 'true' && success()
+        id: commit
+        env:
+          SLUG: ${{ steps.build.outputs.slug }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data/cv
+          if git diff --cached --quiet; then
+            echo "committed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "Update CV JSON: ${SLUG}"
+            git push
+            echo "committed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment success
+        if: steps.guard.outputs.should_run == 'true' && success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const slug = `${{ steps.build.outputs.slug }}`;
+            const action = `${{ steps.build.outputs.action }}`;
+            const committed = `${{ steps.commit.outputs.committed }}`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `✅ CV pipeline completed for \`${slug}\` (${action}). Commit pushed: ${committed}.`
+            });
+
+      - name: Close issue on success
+        if: steps.guard.outputs.should_run == 'true' && success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: 'closed'
+            });
+
+      - name: Comment failure
+        if: steps.guard.outputs.should_run == 'true' && failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const error = `${{ steps.build.outputs.error }}`;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `❌ CV pipeline failed${error ? `: ${error}` : ''}. Please review workflow logs: ${runUrl}`
+            });
