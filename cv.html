@@ -73,13 +73,13 @@
         font-size: 28pt;
         font-weight: 800;
         letter-spacing: 0.02em;
-        text-align: center;
+        text-align: left;
       }
       .header h2 {
         margin: 2mm 0 0;
         font-size: 14pt;
         font-weight: 500;
-        text-align: center;
+        text-align: left;
       }
       .header-summary {
         margin-top: 5mm;
@@ -171,8 +171,9 @@
         top: -10000px;
         left: -10000px;
         width: 210mm;
-        visibility: hidden;
+        opacity: 0;
         pointer-events: none;
+        z-index: -1;
       }
 
       .pdf-page {
@@ -610,6 +611,11 @@
 
       async function generatePdf(cv) {
         const pages = createPdfDom(cv);
+        await document.fonts.ready;
+        await new Promise((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(resolve));
+        });
+
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
 
@@ -644,7 +650,8 @@
 
         document.getElementById("print-btn").addEventListener("click", async () => {
           const pdf = await generatePdf(cv);
-          const blobUrl = pdf.output("bloburl");
+          const blob = pdf.output("blob");
+          const blobUrl = URL.createObjectURL(blob);
           const frame = document.createElement("iframe");
           frame.style.position = "fixed";
           frame.style.right = "0";
