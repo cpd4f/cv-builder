@@ -4,122 +4,197 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CV Viewer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
-        --bg: #0b0f14;
-        --surface: #121820;
-        --surface-alt: #2f3842;
-        --text: #d5dbe3;
-        --muted: #9eaab8;
-        --heading: #f0f4fa;
-        --accent: #dde7f3;
+        --bg: #ffffff;
+        --text: #000000;
+        --muted: #3d4248;
+        --panel: #2c3237;
+        --panel-text: #f7f9fb;
+        --rule: #dadde0;
       }
+
       * { box-sizing: border-box; }
+
       body {
         margin: 0;
-        font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
-        background: var(--bg);
+        font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
         color: var(--text);
-        line-height: 1.45;
+        background: var(--bg);
+        line-height: 1.35;
+        font-size: 11pt;
       }
-      .page { max-width: 1200px; margin: 0 auto; min-height: 100vh; }
-      .hero {
-        min-height: 230px;
-        background: linear-gradient(180deg, #06080c 0%, #0b0f14 100%);
-        padding: 56px 56px 32px;
+
+      .page {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: #fff;
       }
-      .hero h1 { margin: 0; font-size: 46px; color: var(--heading); letter-spacing: .2px; }
-      .hero h2 { margin: 8px 0 0; font-size: 40px; color: #f7fbff; font-weight: 700; }
+
+      .header {
+        padding: 22mm 16mm 8mm;
+        border-bottom: 1px solid var(--rule);
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 22pt;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+      }
+
+      .header h2 {
+        margin: 2mm 0 0;
+        font-size: 14pt;
+        font-weight: 700;
+      }
+
+      .header-summary {
+        margin-top: 5mm;
+        font-size: 10.5pt;
+        color: var(--muted);
+      }
+
       .contact-bar {
         display: grid;
-        grid-template-columns: repeat(3, minmax(180px, 1fr));
-        background: var(--surface-alt);
-        border-top: 1px solid #424c57;
-        border-bottom: 1px solid #424c57;
+        grid-template-columns: repeat(3, minmax(120px, 1fr));
+        background: var(--panel);
+        color: var(--panel-text);
       }
+
       .contact-item {
-        padding: 14px 20px;
-        color: #ebf0f7;
-        text-decoration: none;
-        border-right: 1px solid #424c57;
+        padding: 8px 12px;
+        border-right: 1px solid #4b555f;
+        font-size: 10pt;
         overflow-wrap: anywhere;
       }
+
       .contact-item:last-child { border-right: 0; }
-      .content { padding: 36px 56px 56px; display: grid; grid-template-columns: 1.25fr .75fr; gap: 56px; }
-      .section { margin-bottom: 34px; }
-      .section h3 {
-        margin: 0 0 14px;
-        color: var(--accent);
-        font-size: 40px;
-        letter-spacing: .2px;
+
+      .content {
+        display: grid;
+        grid-template-columns: 1.55fr 0.75fr;
+        gap: 12mm;
+        padding: 12mm 16mm 16mm;
       }
-      .entry { margin-bottom: 24px; }
-      .entry-title { margin: 0; font-size: 34px; color: #f6f9ff; }
-      .entry-meta { color: var(--muted); font-size: 22px; margin: 4px 0 10px; }
+
+      .section { margin-bottom: 10mm; }
+
+      .section h3 {
+        margin: 0 0 4mm;
+        font-size: 13.5pt;
+        font-weight: 800;
+      }
+
+      .entry {
+        margin-bottom: 6mm;
+        break-inside: avoid;
+      }
+
+      .entry-title {
+        margin: 0;
+        font-size: 11.5pt;
+        font-weight: 700;
+      }
+
+      .entry-meta {
+        margin: 1.5mm 0 2mm;
+        color: var(--muted);
+        font-size: 9.8pt;
+      }
+
+      .entry-date {
+        margin-top: 2mm;
+        color: var(--muted);
+        font-size: 9.2pt;
+      }
+
       .entry-content {
         margin: 0;
-        white-space: pre-wrap;
-        font-size: 26px;
-        color: #d7e0ea;
+        color: #131619;
       }
-      .entry-date { color: var(--muted); font-size: 20px; margin-top: 6px; }
-      .chip { display: inline-block; border: 1px solid #4a5665; border-radius: 99px; padding: 3px 10px; font-size: 16px; margin-left: 8px; }
-      .empty { color: var(--muted); padding: 24px 0; }
-      .error { color: #ffd3d3; background: #3a1e1e; padding: 14px; border-radius: 8px; }
-      @media (max-width: 900px) {
-        .hero { padding: 36px 20px 20px; min-height: 160px; }
-        .hero h1 { font-size: 36px; }
-        .hero h2 { font-size: 30px; }
+
+      .entry-content p { margin: 0 0 2.6mm; }
+      .entry-content ul,
+      .entry-content ol { margin: 0 0 2.8mm 4.2mm; padding-left: 4mm; }
+      .entry-content li { margin: 0 0 1.2mm; }
+
+      .error {
+        margin: 20px;
+        background: #fceaea;
+        border: 1px solid #f0c5c5;
+        color: #8b1111;
+        border-radius: 8px;
+        padding: 12px;
+      }
+
+      @media (max-width: 920px) {
+        .content { grid-template-columns: 1fr; gap: 6mm; }
         .contact-bar { grid-template-columns: 1fr; }
-        .contact-item { border-right: 0; border-bottom: 1px solid #424c57; }
+        .contact-item { border-right: 0; border-bottom: 1px solid #4b555f; }
         .contact-item:last-child { border-bottom: 0; }
-        .content { padding: 24px 20px 40px; grid-template-columns: 1fr; gap: 20px; }
-        .section h3 { font-size: 30px; }
-        .entry-title { font-size: 24px; }
-        .entry-content { font-size: 20px; }
+      }
+
+      @media print {
+        @page {
+          size: A4;
+          margin: 0;
+        }
+
+        body {
+          font-size: 10.5pt;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        .page {
+          max-width: none;
+          margin: 0;
+        }
+
+        .section,
+        .entry { break-inside: avoid-page; }
       }
     </style>
   </head>
   <body>
     <main class="page">
-      <header class="hero" id="hero"></header>
+      <header class="header" id="header"></header>
       <section class="contact-bar" id="contact"></section>
       <section class="content">
-        <div id="left-col"></div>
-        <div id="right-col"></div>
+        <div id="main-col"></div>
+        <div id="rail-col"></div>
       </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
-      const rightColumnSections = new Set([
-        "skills",
-        "education",
-        "work eligibility",
-        "languages",
-        "soft skills",
-        "references"
-      ]);
-
       const query = new URLSearchParams(window.location.search);
       const slug = (query.get("cv") || "").trim().toLowerCase();
 
-      function toSectionKey(value) {
+      function key(value) {
         return String(value || "").trim().toLowerCase();
       }
 
       function parseDateValue(value) {
         if (!value) return Number.NEGATIVE_INFINITY;
-        const n = Date.parse(String(value));
-        return Number.isNaN(n) ? Number.NEGATIVE_INFINITY : n;
+        const timestamp = Date.parse(String(value));
+        return Number.isNaN(timestamp) ? Number.NEGATIVE_INFINITY : timestamp;
       }
 
-      function sortSectionItems(items) {
+      function sortItems(items) {
         return [...items].sort((a, b) => {
-          const startDiff = parseDateValue(b.start) - parseDateValue(a.start);
-          if (startDiff !== 0) return startDiff;
+          const byStart = parseDateValue(b.start) - parseDateValue(a.start);
+          if (byStart !== 0) return byStart;
 
-          const endDiff = parseDateValue(b.end) - parseDateValue(a.end);
-          if (endDiff !== 0) return endDiff;
+          const byEnd = parseDateValue(b.end) - parseDateValue(a.end);
+          if (byEnd !== 0) return byEnd;
 
           const aManual = Number.isFinite(Number(a.manualsort)) ? Number(a.manualsort) : Number.MAX_SAFE_INTEGER;
           const bManual = Number.isFinite(Number(b.manualsort)) ? Number(b.manualsort) : Number.MAX_SAFE_INTEGER;
@@ -127,46 +202,59 @@
         });
       }
 
-      function renderHero(headerItem) {
-        const hero = document.getElementById("hero");
-        hero.innerHTML = `
-          <h1>${headerItem?.title || "CV"}</h1>
-          <h2>${headerItem?.subtitle || ""}</h2>
-          <p class="entry-content" style="margin-top:18px;max-width:900px;">${headerItem?.content || ""}</p>
+      function titleCase(value) {
+        return String(value || "")
+          .split(/\s+/)
+          .filter(Boolean)
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(" ");
+      }
+
+      function markdownToHtml(markdown) {
+        const raw = String(markdown || "").trim();
+        if (!raw) return "";
+        if (window.marked) {
+          return window.marked.parse(raw, { breaks: true });
+        }
+        return raw.replace(/\n/g, "<br />");
+      }
+
+      function renderHeader(item) {
+        const host = document.getElementById("header");
+        host.innerHTML = `
+          <h1>${item?.title || "CV"}</h1>
+          <h2>${item?.subtitle || ""}</h2>
+          <div class="header-summary">${markdownToHtml(item?.content || "")}</div>
         `;
       }
 
-      function renderContact(contactItems) {
+      function renderContact(items) {
         const host = document.getElementById("contact");
-        if (!contactItems.length) {
-          host.innerHTML = "";
+        const entries = items.filter((item) => String(item?.content || "").trim() !== "");
+        if (!entries.length) {
           host.style.display = "none";
           return;
         }
+
         host.innerHTML = "";
-        contactItems.forEach((item) => {
+        entries.forEach((item) => {
           const el = document.createElement("div");
           el.className = "contact-item";
-          el.textContent = `${item.title || ""}: ${item.content || ""}`;
+          el.textContent = `${item.title || ""} ${item.content || ""}`;
           host.appendChild(el);
         });
-      }
-
-      function sectionTitle(sectionKey) {
-        return sectionKey
-          .split(/\s+/)
-          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-          .join(" ");
       }
 
       function renderEntry(item) {
         const wrap = document.createElement("article");
         wrap.className = "entry";
 
-        const title = document.createElement("h4");
-        title.className = "entry-title";
-        title.textContent = item.title || "";
-        wrap.appendChild(title);
+        if (item.title) {
+          const title = document.createElement("h4");
+          title.className = "entry-title";
+          title.textContent = item.title;
+          wrap.appendChild(title);
+        }
 
         if (item.subtitle || item.location) {
           const meta = document.createElement("div");
@@ -176,9 +264,9 @@
         }
 
         if (item.content) {
-          const content = document.createElement("p");
+          const content = document.createElement("div");
           content.className = "entry-content";
-          content.textContent = item.content;
+          content.innerHTML = markdownToHtml(item.content);
           wrap.appendChild(content);
         }
 
@@ -186,81 +274,92 @@
           const date = document.createElement("div");
           date.className = "entry-date";
           date.textContent = item.dispdate || [item.start, item.end].filter(Boolean).join(" → ");
-          if (item.manualsort !== undefined && item.manualsort !== null && item.manualsort !== "") {
-            const chip = document.createElement("span");
-            chip.className = "chip";
-            chip.textContent = `#${item.manualsort}`;
-            date.appendChild(chip);
-          }
           wrap.appendChild(date);
         }
 
         return wrap;
       }
 
-      function renderSections(items) {
-        const sections = new Map();
+      function renderSection(host, sectionName, items) {
+        const section = document.createElement("section");
+        section.className = "section";
+
+        const heading = document.createElement("h3");
+        heading.textContent = sectionName;
+        section.appendChild(heading);
+
+        sortItems(items).forEach((item) => section.appendChild(renderEntry(item)));
+        host.appendChild(section);
+      }
+
+      function groupBySection(items) {
+        const grouped = new Map();
         items.forEach((item) => {
-          const key = toSectionKey(item.section);
-          if (!key) return;
-          if (!sections.has(key)) sections.set(key, []);
-          sections.get(key).push(item);
+          const section = key(item.section);
+          if (!section || section === "header" || section === "contact") return;
+          if (!grouped.has(section)) grouped.set(section, []);
+          grouped.get(section).push(item);
+        });
+        return grouped;
+      }
+
+      function renderColumns(items) {
+        const grouped = groupBySection(items);
+        const mainHost = document.getElementById("main-col");
+        const railHost = document.getElementById("rail-col");
+        mainHost.innerHTML = "";
+        railHost.innerHTML = "";
+
+        const mainConfig = [
+          { key: "work experience", title: "Work Experience" },
+          { key: "technical + it", title: "Technical + IT" }
+        ];
+
+        const railConfig = [
+          { key: "topline skills", title: "Topline Skills" },
+          { key: "second page rail", title: "Second Page Rail" }
+        ];
+
+        mainConfig.forEach((cfg) => {
+          const sectionItems = grouped.get(cfg.key) || [];
+          if (sectionItems.length) renderSection(mainHost, cfg.title, sectionItems);
+          grouped.delete(cfg.key);
         });
 
-        const left = document.getElementById("left-col");
-        const right = document.getElementById("right-col");
-        left.innerHTML = "";
-        right.innerHTML = "";
+        railConfig.forEach((cfg) => {
+          const sectionItems = grouped.get(cfg.key) || [];
+          if (sectionItems.length) renderSection(railHost, cfg.title, sectionItems);
+          grouped.delete(cfg.key);
+        });
 
-        if (!sections.size) {
-          left.innerHTML = '<p class="empty">No section items found in this CV JSON.</p>';
-          return;
-        }
-
-        [...sections.entries()].forEach(([sectionKey, sectionItems]) => {
-          const sorted = sortSectionItems(sectionItems);
-          const block = document.createElement("section");
-          block.className = "section";
-
-          const heading = document.createElement("h3");
-          heading.textContent = sectionTitle(sectionKey);
-          block.appendChild(heading);
-
-          sorted.forEach((item) => block.appendChild(renderEntry(item)));
-
-          if (rightColumnSections.has(sectionKey)) {
-            right.appendChild(block);
-          } else {
-            left.appendChild(block);
-          }
+        // Any extra sections go to main column in alpha order for resilience.
+        [...grouped.keys()].sort().forEach((extraKey) => {
+          renderSection(mainHost, titleCase(extraKey), grouped.get(extraKey));
         });
       }
 
       async function init() {
         if (!slug) {
-          document.getElementById("hero").innerHTML = '<div class="error">Missing <code>?cv=&lt;slug&gt;</code> query parameter.</div>';
-          document.getElementById("contact").style.display = "none";
+          document.body.innerHTML = '<div class="error">Missing <code>?cv=&lt;slug&gt;</code> query parameter.</div>';
           return;
         }
 
         try {
-          const res = await fetch(`data/cv/${encodeURIComponent(slug)}.json`, { cache: "no-store" });
-          if (!res.ok) throw new Error(`Unable to load data/cv/${slug}.json (HTTP ${res.status})`);
-          const cv = await res.json();
-          const allItems = Array.isArray(cv.items) ? cv.items : [];
-          const headerItem = allItems.find((item) => toSectionKey(item.section) === "header") || {};
-          const contactItems = allItems.filter((item) => toSectionKey(item.section) === "contact");
-          const sectionItems = allItems.filter((item) => {
-            const key = toSectionKey(item.section);
-            return key && key !== "header" && key !== "contact";
-          });
+          const response = await fetch(`data/cv/${encodeURIComponent(slug)}.json`, { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(`Unable to load data/cv/${slug}.json (HTTP ${response.status})`);
+          }
 
-          renderHero(headerItem);
-          renderContact(contactItems);
-          renderSections(sectionItems);
-        } catch (err) {
-          document.getElementById("hero").innerHTML = `<div class="error">${err.message}</div>`;
-          document.getElementById("contact").style.display = "none";
+          const cv = await response.json();
+          const items = Array.isArray(cv.items) ? cv.items : [];
+          const header = items.find((item) => key(item.section) === "header") || {};
+          const contacts = items.filter((item) => key(item.section) === "contact");
+
+          renderHeader(header);
+          renderContact(contacts);
+          renderColumns(items);
+        } catch (error) {
+          document.body.innerHTML = `<div class="error">${error.message}</div>`;
         }
       }
 
