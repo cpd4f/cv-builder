@@ -181,9 +181,17 @@
         min-height: 297mm;
         background: #fff;
         color: #000;
-        padding: 20mm;
+        padding: 12mm;
         page-break-after: always;
         position: relative;
+      }
+      .pdf-page .header { padding: 10mm 0 6mm; }
+      .pdf-page .header-summary { margin-top: 4mm; }
+      .pdf-page .contact-bar {
+        margin-left: -12mm;
+        margin-right: -12mm;
+        padding-left: 12mm;
+        padding-right: 12mm;
       }
       .pdf-page:last-child { page-break-after: auto; }
       .pdf-grid {
@@ -195,8 +203,8 @@
       .pdf-entry { margin-bottom: 16px; break-inside: avoid; }
       .pdf-qr {
         position: absolute;
-        right: 20mm;
-        bottom: 20mm;
+        right: 12mm;
+        bottom: 12mm;
         text-align: right;
         font-size: 9pt;
       }
@@ -474,40 +482,36 @@
         return section;
       }
 
-      function sectionHeightForItems(sectionTitle, items) {
+      function splitWorkItemsForPdf(workItems, availableHeightPx) {
+        const sorted = sortItems(workItems);
         const root = document.getElementById("pdf-render-root");
         const scratch = document.createElement("div");
         scratch.className = "pdf-page";
         scratch.style.position = "absolute";
-        scratch.style.visibility = "hidden";
-        const grid = document.createElement("section");
-        grid.className = "pdf-grid";
-        const main = document.createElement("div");
-        const rail = document.createElement("aside");
-        grid.append(main, rail);
-        scratch.append(grid);
-        root.appendChild(scratch);
-        const section = sectionWithEntries(sectionTitle, items);
-        main.appendChild(section);
-        const h = section.getBoundingClientRect().height;
-        scratch.remove();
-        return h;
-      }
+        scratch.style.opacity = "0";
 
-      function splitWorkItemsForPdf(workItems, availableHeightPx) {
-        const sorted = sortItems(workItems);
+        const section = document.createElement("section");
+        section.className = "pdf-section section";
+        section.innerHTML = "<h3>Work Experience</h3>";
+        scratch.appendChild(section);
+        root.appendChild(scratch);
+
         const first = [];
         const second = [];
-        let used = 0;
+
         for (const item of sorted) {
-          const h = sectionHeightForItems("Work Experience", [item]);
-          if ((used + h <= availableHeightPx || !first.length)) {
+          const entry = renderEntry(item, "pdf-");
+          section.appendChild(entry);
+          const currentHeight = section.getBoundingClientRect().height;
+          if (currentHeight <= availableHeightPx || first.length === 0) {
             first.push(item);
-            used += h;
           } else {
+            entry.remove();
             second.push(item);
           }
         }
+
+        scratch.remove();
         return { first, second };
       }
 
@@ -536,15 +540,16 @@
         const tech = grouped.get("technical + it") || [];
         const skills = grouped.get("topline skills") || [];
 
-        const main1Available = mmToPx(297 - 40) - grid1.getBoundingClientRect().top + page1.getBoundingClientRect().top;
-        const rail1Height = sectionHeightForItems("Skills", skills);
-        const techHeight = sectionHeightForItems("Technical + IT", tech);
-        const workSpace = Math.max(120, Math.min(main1Available - techHeight - 24, main1Available - rail1Height));
+        const pageHeightPx = mmToPx(297);
+        const pageTop = page1.getBoundingClientRect().top;
+        const gridTop = grid1.getBoundingClientRect().top;
+        const bottomPaddingPx = mmToPx(12);
+        const availableMainHeight = pageHeightPx - (gridTop - pageTop) - bottomPaddingPx;
+        const workSpace = Math.max(140, availableMainHeight);
 
         const { first: workFirst, second: workSecond } = splitWorkItemsForPdf(work, workSpace);
 
         if (workFirst.length) main1.appendChild(sectionWithEntries("Work Experience", workFirst));
-        if (tech.length) main1.appendChild(sectionWithEntries("Technical + IT", tech));
         if (skills.length) rail1.appendChild(sectionWithEntries("Skills", skills));
 
         const page2 = document.createElement("div");
@@ -556,7 +561,8 @@
         grid2.append(main2, rail2);
         page2.appendChild(grid2);
 
-        if (workSecond.length) main2.appendChild(sectionWithEntries("Work Experience", workSecond));
+        if (workSecond.length) main2.appendChild(sectionWithEntries("Work Experience (Cont.)", workSecond));
+        if (tech.length) main2.appendChild(sectionWithEntries("Technical + IT", tech));
 
         const education = grouped.get("education") || [];
         const secondRail = grouped.get("second page rail") || [];
