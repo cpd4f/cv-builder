@@ -103,17 +103,14 @@ body {
   float: left;
 }
 
-.main-col {
-  width: calc(65% - 3.5mm);
-  margin-right: 7mm;
-}
-
 .rail-col {
-  width: calc(35% - 3.5mm);
+  float: right;
+  width: 34%;
 }
 
-.main-col { width: 65%; }
-.rail-col { width: 35%; }
+.main-col {
+  margin-right: calc(34% + 7mm);
+}
 
 .section {
   margin-bottom: 10px;
