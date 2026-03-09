@@ -1,5 +1,13 @@
 {
   "name": "cv-publisher",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "build:json": "node scripts/build-cv-json.js",
+    "pdf:build": "vivliostyle build cv-print.html?cv=coleman-davis -o dist/coleman-davis.pdf",
+    "pdf:preview": "vivliostyle preview cv-print.html?cv=coleman-davis"
+  },
+  "devDependencies": {
+    "@vivliostyle/cli": "^8.15.1"
+  }
 }
