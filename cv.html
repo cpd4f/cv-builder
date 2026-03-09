@@ -177,38 +177,67 @@
       }
 
       .pdf-page {
+        --pdf-margin: 10mm;
         width: 210mm;
-        min-height: 297mm;
+        height: 297mm;
         background: #fff;
         color: #000;
-        padding: 12mm;
+        padding: var(--pdf-margin);
         page-break-after: always;
-        position: relative;
-      }
-      .pdf-page .header { padding: 10mm 0 6mm; }
-      .pdf-page .header-summary { margin-top: 4mm; }
-      .pdf-page .contact-bar {
-        margin-left: -12mm;
-        margin-right: -12mm;
-        padding-left: 12mm;
-        padding-right: 12mm;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        font-size: 12px;
       }
       .pdf-page:last-child { page-break-after: auto; }
+      .pdf-page .header { padding: 0 0 5mm; }
+      .pdf-page .header-summary { margin-top: 3.5mm; }
+      .pdf-page .contact-bar {
+        margin-left: calc(-1 * var(--pdf-margin));
+        margin-right: calc(-1 * var(--pdf-margin));
+        padding: 4mm var(--pdf-margin);
+      }
       .pdf-grid {
+        flex: 1;
+        margin-top: 7mm;
         display: grid;
-        grid-template-columns: 1.8fr 1fr;
-        gap: 12mm;
+        grid-template-columns: 1.75fr 1fr;
+        gap: 8mm;
+        min-height: 0;
       }
-      .pdf-section { margin-bottom: 22px; break-inside: avoid; }
-      .pdf-entry { margin-bottom: 16px; break-inside: avoid; }
-      .pdf-qr {
-        position: absolute;
-        right: 12mm;
-        bottom: 12mm;
-        text-align: right;
-        font-size: 9pt;
+      .pdf-main, .pdf-rail {
+        min-height: 0;
+        overflow: hidden;
       }
-      .pdf-qr-code { width: 68px; height: 68px; margin-left: auto; }
+      .pdf-main {
+        font-size: 12px;
+      }
+      .pdf-rail {
+        font-size: 10.5px;
+      }
+      .pdf-rail .section h3 {
+        font-size: 12px;
+      }
+      .pdf-rail .entry-title {
+        font-size: 11px;
+      }
+      .pdf-rail .entry-meta {
+        font-size: 10px;
+      }
+      .pdf-rail .entry-content {
+        font-size: 10px;
+      }
+      .pdf-section { margin-bottom: 16px; break-inside: avoid; }
+      .pdf-page .section h3 { font-size: 14px; }
+      .pdf-page .entry-title { font-size: 13px; }
+      .pdf-page .entry-meta { font-size: 12px; }
+      .pdf-page .entry-date { font-size: 12px; }
+      .pdf-page .entry-content { font-size: 12px; line-height: 1.38; }
+      .pdf-page .pdf-rail .section h3 { font-size: 12px; }
+      .pdf-page .pdf-rail .entry-content { font-size: 10px; }
+      .pdf-page .pdf-rail .entry-meta { font-size: 10px; }
+      .pdf-page .pdf-rail .entry-title { font-size: 11px; }
+      .pdf-entry { margin-bottom: 12px; break-inside: avoid; }
 
       @media (max-width: 920px) {
         .actions { justify-content: center; flex-wrap: wrap; }
@@ -240,9 +269,8 @@
     <div id="pdf-render-root"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
       const query = new URLSearchParams(window.location.search);
       const slug = (query.get("cv") || "").trim().toLowerCase();
@@ -256,13 +284,19 @@
       }
       function sortItems(items) {
         return [...items].sort((a, b) => {
+          const aManual = String(a.manualsort || "").trim();
+          const bManual = String(b.manualsort || "").trim();
+          if (aManual && bManual && aManual !== bManual) {
+            return aManual.localeCompare(bManual, undefined, { numeric: true, sensitivity: "base" });
+          }
+          if (aManual && !bManual) return -1;
+          if (!aManual && bManual) return 1;
+
           const byStart = parseDateValue(b.start) - parseDateValue(a.start);
           if (byStart !== 0) return byStart;
           const byEnd = parseDateValue(b.end) - parseDateValue(a.end);
           if (byEnd !== 0) return byEnd;
-          const aManual = Number.isFinite(Number(a.manualsort)) ? Number(a.manualsort) : Number.MAX_SAFE_INTEGER;
-          const bManual = Number.isFinite(Number(b.manualsort)) ? Number(b.manualsort) : Number.MAX_SAFE_INTEGER;
-          return aManual - bManual;
+          return 0;
         });
       }
       function titleCase(value) {
@@ -439,17 +473,6 @@
         });
       }
 
-      function mmToPx(mm) {
-        const probe = document.createElement("div");
-        probe.style.width = `${mm}mm`;
-        probe.style.position = "absolute";
-        probe.style.visibility = "hidden";
-        document.body.appendChild(probe);
-        const px = probe.getBoundingClientRect().width;
-        probe.remove();
-        return px;
-      }
-
       function buildPdfHeader(page, headerItem, contactItems) {
         const header = document.createElement("header");
         header.className = "header";
@@ -472,6 +495,24 @@
         page.appendChild(contact);
       }
 
+      function createPdfPage({ headerItem, contacts, includeHeader = false }) {
+        const page = document.createElement("div");
+        page.className = "pdf-page";
+
+        if (includeHeader) buildPdfHeader(page, headerItem, contacts);
+
+        const grid = document.createElement("section");
+        grid.className = "pdf-grid";
+        const main = document.createElement("div");
+        main.className = "pdf-main";
+        const rail = document.createElement("aside");
+        rail.className = "pdf-rail";
+        grid.append(main, rail);
+        page.appendChild(grid);
+
+        return { page, main, rail };
+      }
+
       function sectionWithEntries(sectionTitle, items) {
         const section = document.createElement("section");
         section.className = "pdf-section section";
@@ -482,161 +523,236 @@
         return section;
       }
 
-      function splitWorkItemsForPdf(workItems, availableHeightPx) {
-        const sorted = sortItems(workItems);
+      function appendSecondPageRail(host, items) {
+        sortItems(items).forEach((item) => {
+          if (!item.title) return;
+          const block = document.createElement("section");
+          block.className = "pdf-section section";
+          block.innerHTML = `<h3>${item.title}</h3>`;
+          if (item.content) {
+            const body = document.createElement("div");
+            body.className = "entry-content";
+            body.innerHTML = markdownToHtml(item.content);
+            block.appendChild(body);
+          }
+          host.appendChild(block);
+        });
+      }
+
+      function splitWorkForFirstPage(workItems, headerItem, contacts, skillsItems) {
+        const orderedWork = sortItems(workItems);
+        if (!orderedWork.length) return { firstPage: [], overflow: [] };
+
         const root = document.getElementById("pdf-render-root");
-        const scratch = document.createElement("div");
-        scratch.className = "pdf-page";
-        scratch.style.position = "absolute";
-        scratch.style.opacity = "0";
+        const draft = createPdfPage({ headerItem, contacts, includeHeader: true });
+        root.appendChild(draft.page);
+
+        if (skillsItems.length) {
+          draft.rail.appendChild(sectionWithEntries("Skills", skillsItems));
+        }
 
         const section = document.createElement("section");
         section.className = "pdf-section section";
         section.innerHTML = "<h3>Work Experience</h3>";
-        scratch.appendChild(section);
-        root.appendChild(scratch);
+        draft.main.appendChild(section);
 
-        const first = [];
-        const second = [];
+        const maxMainHeight = draft.main.clientHeight;
+        const firstPage = [];
+        const overflow = [];
+        let overflowStarted = false;
 
-        for (const item of sorted) {
+        orderedWork.forEach((item) => {
+          if (overflowStarted) {
+            overflow.push(item);
+            return;
+          }
+
           const entry = renderEntry(item, "pdf-");
           section.appendChild(entry);
-          const currentHeight = section.getBoundingClientRect().height;
-          if (currentHeight <= availableHeightPx || first.length === 0) {
-            first.push(item);
+          const fits = draft.main.scrollHeight <= maxMainHeight;
+          if (fits || firstPage.length === 0) {
+            firstPage.push(item);
           } else {
             entry.remove();
-            second.push(item);
+            overflow.push(item);
+            overflowStarted = true;
           }
-        }
+        });
 
-        scratch.remove();
-        return { first, second };
+        draft.page.remove();
+        return { firstPage, overflow };
       }
 
-      function createPdfDom(cv) {
-        const root = document.getElementById("pdf-render-root");
-        root.innerHTML = "";
-
+      function createPdfPlan(cv) {
         const items = Array.isArray(cv.items) ? cv.items : [];
         const headerItem = items.find((item) => key(item.section) === "header") || {};
         const contacts = items.filter((item) => key(item.section) === "contact");
         const grouped = groupBySection(items);
 
-        const page1 = document.createElement("div");
-        page1.className = "pdf-page";
-        buildPdfHeader(page1, headerItem, contacts);
-
-        const grid1 = document.createElement("section");
-        grid1.className = "pdf-grid content";
-        const main1 = document.createElement("div");
-        const rail1 = document.createElement("aside");
-        grid1.append(main1, rail1);
-        page1.appendChild(grid1);
-        root.appendChild(page1);
-
         const work = grouped.get("work experience") || [];
-        const tech = grouped.get("technical + it") || [];
         const skills = grouped.get("topline skills") || [];
-
-        const pageHeightPx = mmToPx(297);
-        const pageTop = page1.getBoundingClientRect().top;
-        const gridTop = grid1.getBoundingClientRect().top;
-        const bottomPaddingPx = mmToPx(12);
-        const availableMainHeight = pageHeightPx - (gridTop - pageTop) - bottomPaddingPx;
-        const workSpace = Math.max(140, availableMainHeight);
-
-        const { first: workFirst, second: workSecond } = splitWorkItemsForPdf(work, workSpace);
-
-        if (workFirst.length) main1.appendChild(sectionWithEntries("Work Experience", workFirst));
-        if (skills.length) rail1.appendChild(sectionWithEntries("Skills", skills));
-
-        const page2 = document.createElement("div");
-        page2.className = "pdf-page";
-        const grid2 = document.createElement("section");
-        grid2.className = "pdf-grid content";
-        const main2 = document.createElement("div");
-        const rail2 = document.createElement("aside");
-        grid2.append(main2, rail2);
-        page2.appendChild(grid2);
-
-        if (workSecond.length) main2.appendChild(sectionWithEntries("Work Experience (Cont.)", workSecond));
-        if (tech.length) main2.appendChild(sectionWithEntries("Technical + IT", tech));
-
+        const technical = grouped.get("technical + it") || [];
         const education = grouped.get("education") || [];
         const secondRail = grouped.get("second page rail") || [];
-        if (education.length) rail2.appendChild(sectionWithEntries("Education", education));
-
-        if (secondRail.length) {
-          sortItems(secondRail).forEach((item) => {
-            if (!item.title) return;
-            const block = document.createElement("section");
-            block.className = "pdf-section section";
-            block.innerHTML = `<h3>${item.title}</h3>`;
-            if (item.content) {
-              const body = document.createElement("div");
-              body.className = "entry-content";
-              body.innerHTML = markdownToHtml(item.content);
-              block.appendChild(body);
-            }
-            rail2.appendChild(block);
-          });
-        }
 
         grouped.delete("work experience");
-        grouped.delete("technical + it");
         grouped.delete("topline skills");
+        grouped.delete("technical + it");
         grouped.delete("education");
         grouped.delete("second page rail");
 
-        [...grouped.keys()].sort().forEach((extraKey) => {
-          main2.appendChild(sectionWithEntries(titleCase(extraKey), grouped.get(extraKey)));
-        });
+        const { firstPage: workFirstPage, overflow: workOverflow } = splitWorkForFirstPage(work, headerItem, contacts, skills);
+        const extras = [...grouped.keys()].sort().map((extraKey) => ({
+          title: titleCase(extraKey),
+          items: grouped.get(extraKey)
+        }));
 
-        const qrWrap = document.createElement("div");
-        qrWrap.className = "pdf-qr";
-        qrWrap.innerHTML = '<div class="pdf-qr-code" id="pdf-qr-code"></div><div>colemanpdavis.com</div>';
-        page2.appendChild(qrWrap);
-
-        root.appendChild(page2);
-
-        if (window.QRCode) {
-          new window.QRCode(document.getElementById("pdf-qr-code"), {
-            text: "https://colemanpdavis.com",
-            width: 68,
-            height: 68,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: window.QRCode.CorrectLevel.M
-          });
-        }
-
-        return [page1, page2];
+        return {
+          headerItem,
+          contacts,
+          workFirstPage,
+          workOverflow,
+          skills,
+          technical,
+          education,
+          secondRail,
+          extras
+        };
       }
 
-      async function generatePdf(cv) {
-        const pages = createPdfDom(cv);
-        await document.fonts.ready;
-        await new Promise((resolve) => {
-          requestAnimationFrame(() => requestAnimationFrame(resolve));
+      function markdownToPdfBlocks(markdown, options = {}) {
+        const textSize = options.size || 12;
+        const bulletSize = options.bulletSize || textSize;
+        const lines = String(markdown || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+        const blocks = [];
+
+        lines.forEach((line) => {
+          if (line.startsWith("- ")) {
+            blocks.push({ ul: [line.slice(2).trim()], fontSize: bulletSize, margin: [0, 0, 0, 2] });
+            return;
+          }
+          const headingMatch = line.match(/^\*\*(.+)\*\*:?$/);
+          if (headingMatch) {
+            blocks.push({ text: headingMatch[1].trim(), bold: true, fontSize: textSize + 0.5, margin: [0, 4, 0, 2] });
+            return;
+          }
+          blocks.push({ text: line.replace(/\*\*/g, ""), fontSize: textSize, margin: [0, 0, 0, 2] });
         });
 
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+        return blocks.length ? blocks : [{ text: "", fontSize: textSize }];
+      }
 
-        for (let i = 0; i < pages.length; i += 1) {
-          const canvas = await html2canvas(pages[i], {
-            scale: 2,
-            backgroundColor: "#ffffff",
-            useCORS: true
+      function buildPdfEntry(item, opts = {}) {
+        const size = opts.size || 12;
+        const titleSize = opts.titleSize || 13;
+        const metaSize = opts.metaSize || 12;
+        const dateSize = opts.dateSize || 12;
+        const stack = [];
+
+        if (item.title) stack.push({ text: item.title, bold: true, fontSize: titleSize, margin: [0, 0, 0, 1] });
+        const meta = [item.subtitle, item.location].filter(Boolean).join(" • ");
+        if (meta) stack.push({ text: meta, fontSize: metaSize, margin: [0, 0, 0, 1] });
+        if (item.start || item.end || item.dispdate) stack.push({ text: displayDate(item), fontSize: dateSize, color: "#3d4248", margin: [0, 0, 0, 3] });
+
+        if (item.content) stack.push(...markdownToPdfBlocks(item.content, { size, bulletSize: size }));
+
+        return { unbreakable: true, margin: [0, 0, 0, 8], stack };
+      }
+
+      function buildPdfSection(title, items, opts = {}) {
+        const section = [{ text: title, fontSize: opts.sectionSize || 14, bold: true, margin: [0, 0, 0, 6] }];
+        sortItems(items).forEach((item) => section.push(buildPdfEntry(item, opts)));
+        return section;
+      }
+
+      function buildSecondRailBlocks(items, opts = {}) {
+        const blocks = [];
+        sortItems(items).forEach((item) => {
+          if (!item.title) return;
+          blocks.push({ text: item.title, fontSize: opts.sectionSize || 12, bold: true, margin: [0, 0, 0, 4] });
+          if (item.content) blocks.push(...markdownToPdfBlocks(item.content, { size: opts.size || 10 }));
+          blocks.push({ text: "", margin: [0, 0, 0, 4] });
+        });
+        return blocks;
+      }
+
+      function createPdfDefinition(cv) {
+        const plan = createPdfPlan(cv);
+        const contactLine = plan.contacts
+          .filter((item) => String(item?.content || "").trim())
+          .map((item) => item.content)
+          .join("      |      ");
+
+        const page1Main = [];
+        if (plan.workFirstPage.length) page1Main.push(...buildPdfSection("Work Experience", plan.workFirstPage, { sectionSize: 14, titleSize: 13, metaSize: 12, dateSize: 12, size: 12 }));
+
+        const page1Rail = [];
+        if (plan.skills.length) page1Rail.push(...buildPdfSection("Skills", plan.skills, { sectionSize: 12, titleSize: 11, metaSize: 10, dateSize: 10, size: 10 }));
+
+        const page2Main = [];
+        if (plan.workOverflow.length) page2Main.push(...buildPdfSection("Work Experience (Cont.)", plan.workOverflow, { sectionSize: 14, titleSize: 13, metaSize: 12, dateSize: 12, size: 12 }));
+        if (plan.technical.length) page2Main.push(...buildPdfSection("Technical + IT", plan.technical, { sectionSize: 14, titleSize: 13, metaSize: 12, dateSize: 12, size: 12 }));
+        plan.extras.forEach((extra) => page2Main.push(...buildPdfSection(extra.title, extra.items, { sectionSize: 14, titleSize: 13, metaSize: 12, dateSize: 12, size: 12 })));
+
+        const page2Rail = [];
+        if (plan.education.length) page2Rail.push(...buildPdfSection("Education", plan.education, { sectionSize: 12, titleSize: 11, metaSize: 10, dateSize: 10, size: 10 }));
+        if (plan.secondRail.length) page2Rail.push(...buildSecondRailBlocks(plan.secondRail, { sectionSize: 12, size: 10 }));
+
+        return {
+          pageSize: "A4",
+          pageMargins: [28, 24, 28, 24],
+          defaultStyle: {
+            font: "Roboto",
+            fontSize: 12,
+            lineHeight: 1.25
+          },
+          content: [
+            {
+              stack: [
+                { text: plan.headerItem?.title || "CV", fontSize: 34, bold: true, margin: [0, 0, 0, 3] },
+                { text: plan.headerItem?.subtitle || "", fontSize: 20, margin: [0, 0, 0, 8] },
+                ...markdownToPdfBlocks(plan.headerItem?.content || "", { size: 12 }),
+                {
+                  canvas: [{ type: "rect", x: -28, y: 0, w: 595.28, h: 24, color: "#2c3237" }],
+                  margin: [0, 10, 0, -24]
+                },
+                { text: contactLine, color: "#f7f9fb", margin: [0, 4, 0, 0], fontSize: 11, bold: true }
+              ]
+            },
+            {
+              margin: [0, 14, 0, 0],
+              columns: [
+                { width: "63%", stack: page1Main },
+                { width: "37%", stack: page1Rail }
+              ],
+              columnGap: 20
+            },
+            {
+              pageBreak: "before",
+              columns: [
+                { width: "63%", stack: page2Main },
+                { width: "37%", stack: page2Rail }
+              ],
+              columnGap: 20
+            }
+          ]
+        };
+      }
+
+      function generatePdf(cv) {
+        const definition = createPdfDefinition(cv);
+        return new Promise((resolve, reject) => {
+          if (!window.pdfMake) {
+            reject(new Error("PDF engine failed to load."));
+            return;
+          }
+          window.pdfMake.createPdf(definition).getBlob((blob) => {
+            resolve({
+              blob,
+              save: (name) => window.pdfMake.createPdf(definition).download(name)
+            });
           });
-          const img = canvas.toDataURL("image/png");
-          if (i > 0) pdf.addPage();
-          pdf.addImage(img, "PNG", 0, 0, 210, 297, undefined, "FAST");
-        }
-
-        return pdf;
+        });
       }
 
       function setupActions(cv) {
@@ -656,7 +772,7 @@
 
         document.getElementById("print-btn").addEventListener("click", async () => {
           const pdf = await generatePdf(cv);
-          const blob = pdf.output("blob");
+          const blob = pdf.blob;
           const blobUrl = URL.createObjectURL(blob);
           const frame = document.createElement("iframe");
           frame.style.position = "fixed";
