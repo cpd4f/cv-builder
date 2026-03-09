@@ -48,35 +48,7 @@ jobs:
         run: npm run build:json || true
 
       - name: Build PDF files for all CV JSON slugs
-        shell: bash
-        run: |
-          set -euo pipefail
-          trap 'rm -f cv-print-*.html' EXIT
-          mkdir -p dist
-
-          mapfile -t slugs < <(find data/cv -maxdepth 1 -type f -name '*.json' -printf '%f\n' | sed 's/\.json$//' | sort -u)
-
-          if [ ${#slugs[@]} -eq 0 ]; then
-            echo "No CV JSON files found in data/cv"
-            exit 1
-          fi
-
-          for slug in "${slugs[@]}"; do
-            temp_entry="cv-print-${slug}.html"
-            node -e '
-              const fs = require("fs");
-              const [slug, tplPath, jsonPath, outPath] = process.argv.slice(1);
-              const template = fs.readFileSync(tplPath, "utf8");
-              const json = fs.readFileSync(jsonPath, "utf8");
-              const injected = `${template}
-<script>window.__CV_SLUG__ = ${JSON.stringify(slug)}; window.__CV_DATA__ = ${json};</script>
-`;
-              fs.writeFileSync(outPath, injected);
-            ' "$slug" cv-print.html "data/cv/${slug}.json" "$temp_entry"
-            echo "Building PDF for slug: $slug"
-            npx vivliostyle build "$temp_entry" -o "dist/${slug}.pdf"
-            rm -f "$temp_entry"
-          done
+        run: npm run pdf:build
 
 
       - name: Commit generated JSON + PDFs (issue trigger)
@@ -84,8 +56,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -f cv-print-*.html
-
           if [ -z "$(git status --porcelain data/cv dist)" ]; then
             echo "No JSON/PDF changes to commit."
             exit 0
@@ -103,7 +73,7 @@ jobs:
           for attempt in 1 2 3; do
             echo "Push attempt ${attempt} to ${branch}"
             git fetch origin "$branch"
-            git rebase "origin/${branch}" || (git rebase --abort && false)
+            git pull --rebase --autostash origin "$branch" || (git rebase --abort && false)
             if git push origin "HEAD:${branch}"; then
               echo "Push succeeded"
               exit 0
