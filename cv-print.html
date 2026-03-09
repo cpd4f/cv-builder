@@ -26,14 +26,9 @@
     <script src="cv-render.js"></script>
     <script>
       const query = new URLSearchParams(window.location.search);
-      const slug = (query.get("cv") || location.hash.replace(/^#/, "") || "").trim().toLowerCase();
+      const slug = (query.get("cv") || location.hash.replace(/^#/, "") || "coleman-davis").trim().toLowerCase();
 
       async function init() {
-        if (!slug) {
-          document.body.innerHTML = '<div style="padding:20px;color:#8b1111">Missing <code>?cv=&lt;slug&gt;</code>.</div>';
-          return;
-        }
-
         try {
           const response = await fetch(`data/cv/${encodeURIComponent(slug)}.json`, { cache: "no-store" });
           if (!response.ok) throw new Error(`Unable to load data/cv/${slug}.json (HTTP ${response.status})`);
