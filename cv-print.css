@@ -11,7 +11,7 @@
 
 @page {
   size: A4;
-  margin: 0;
+  margin: var(--page-margin);
 }
 
 html,
@@ -28,7 +28,6 @@ body {
 
 .cv-print {
   width: 100%;
-  padding: var(--page-margin);
 }
 
 .header {
@@ -162,6 +161,11 @@ body {
 .rail-col .entry-date,
 .rail-col .entry-content { font-size: 12px; }
 
+.rail-break-before {
+  break-before: page;
+  page-break-before: always;
+}
+
 
 .print-actions {
   display: none;
@@ -198,10 +202,16 @@ body {
     margin: 0 auto;
     background: #fff;
     box-shadow: 0 8px 28px rgba(15, 23, 42, 0.2), 0 2px 8px rgba(15, 23, 42, 0.12);
+    padding: var(--page-margin);
   }
 }
 
 @media print {
+  body {
+    padding: 0;
+    margin: 0;
+  }
+
   .print-actions {
     display: none !important;
   }

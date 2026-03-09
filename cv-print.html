@@ -34,6 +34,41 @@
       const pathSlug = (location.pathname.match(/cv-print-([a-z0-9-_]+)\.html$/i)?.[1] || "").trim().toLowerCase();
       const slug = (query.get("cv") || pathSlug || location.hash.replace(/^#/, "") || "coleman-davis").trim().toLowerCase();
 
+
+      function mmToPx(mm) {
+        const probe = document.createElement("div");
+        probe.style.width = `${mm}mm`;
+        probe.style.position = "absolute";
+        probe.style.visibility = "hidden";
+        document.body.appendChild(probe);
+        const px = probe.getBoundingClientRect().width;
+        probe.remove();
+        return px;
+      }
+
+      function applyRailEducationBreakIfSkillsFit() {
+        const railHost = document.getElementById("rail-col");
+        if (!railHost) return;
+
+        const sections = [...railHost.querySelectorAll(':scope > .section')];
+        const skillsSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'skills');
+        const educationSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'education');
+
+        if (!skillsSection || !educationSection) return;
+
+        const firstPageHeightPx = mmToPx(297);
+        const pageMarginPx = mmToPx(12);
+        const usablePageHeightPx = firstPageHeightPx - (pageMarginPx * 2);
+
+        const railTop = railHost.getBoundingClientRect().top;
+        const skillsBottom = skillsSection.getBoundingClientRect().bottom;
+        const skillsHeightWithinRail = skillsBottom - railTop;
+
+        if (skillsHeightWithinRail <= usablePageHeightPx) {
+          educationSection.classList.add('rail-break-before');
+        }
+      }
+
       async function init() {
         try {
           const response = await fetch(`data/cv/${encodeURIComponent(slug)}.json`, { cache: "no-store" });
@@ -87,6 +122,8 @@
           [...grouped.keys()].sort().forEach((extraKey) => {
             window.CvRender.renderSection(mainHost, extraKey.replace(/\b\w/g, (c) => c.toUpperCase()), grouped.get(extraKey), { hideEntryTitleWhenSameAsSection: false });
           });
+
+          applyRailEducationBreakIfSkillsFit();
         } catch (error) {
           document.body.innerHTML = `<div style="padding:20px;color:#8b1111">${error.message}</div>`;
         }
@@ -116,8 +153,10 @@
         }
       }
 
-      document.getElementById("print-btn").addEventListener("click", openPrintDialog);
-      document.getElementById("download-btn").addEventListener("click", () => downloadPdfForSlug(slug));
+      const printBtn = document.getElementById("print-btn");
+      const downloadBtn = document.getElementById("download-btn");
+      if (printBtn) printBtn.addEventListener("click", openPrintDialog);
+      if (downloadBtn) downloadBtn.addEventListener("click", () => downloadPdfForSlug(slug));
 
       init();
     </script>
