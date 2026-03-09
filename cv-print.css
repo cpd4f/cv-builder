@@ -88,18 +88,28 @@ body {
 
 .content {
   margin-top: 6mm;
-  display: table;
   width: 100%;
-  table-layout: fixed;
-  border-collapse: separate;
-  border-spacing: 7mm 0;
+}
+
+.content::after {
+  content: "";
+  display: block;
+  clear: both;
 }
 
 .main-col,
 .rail-col {
   min-width: 0;
-  display: table-cell;
-  vertical-align: top;
+  float: left;
+}
+
+.main-col {
+  width: calc(65% - 3.5mm);
+  margin-right: 7mm;
+}
+
+.rail-col {
+  width: calc(35% - 3.5mm);
 }
 
 .main-col { width: 65%; }
