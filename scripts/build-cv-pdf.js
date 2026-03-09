@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { execFileSync } from "child_process";
+import { pathToFileURL } from "url";
 
 function escapeHtml(value) {
   return String(value || "")
@@ -15,6 +16,15 @@ function key(value) {
   return String(value || "").trim().toLowerCase();
 }
 
+function inlineMarkdownToHtml(text) {
+  const escaped = escapeHtml(text);
+  return escaped
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/`(.+?)`/g, "<code>$1</code>")
+    .replace(/\[(.+?)\]\((https?:[^\s)]+)\)/g, '<a href="$2">$1</a>');
+}
+
 function markdownToHtml(markdown) {
   const raw = String(markdown || "").trim();
   if (!raw) return "";
@@ -25,7 +35,8 @@ function markdownToHtml(markdown) {
 
   const flushList = () => {
     if (!listItems.length) return;
-    chunks.push(`<ul>${listItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`);
+    const items = listItems.map((item) => `<li>${inlineMarkdownToHtml(item)}</li>`).join("");
+    chunks.push(`<ul>${items}</ul>`);
     listItems = [];
   };
 
@@ -38,7 +49,7 @@ function markdownToHtml(markdown) {
     }
     flushList();
     if (!trimmed) continue;
-    chunks.push(`<p>${escapeHtml(trimmed)}</p>`);
+    chunks.push(`<p>${inlineMarkdownToHtml(trimmed)}</p>`);
   }
 
   flushList();
@@ -133,7 +144,7 @@ function renderContact(contacts) {
   return `<section class=\"contact-bar\" id=\"contact\">${entries.map((item) => `<div class=\"contact-item\"><span>${escapeHtml(item.content)}</span></div>`).join("")}</section>`;
 }
 
-function renderDocument(cv) {
+function renderDocument(cv, cssHref) {
   const items = Array.isArray(cv.items) ? cv.items : [];
   const header = items.find((item) => key(item.section) === "header") || {};
   const contacts = items.filter((item) => key(item.section) === "contact");
@@ -157,11 +168,7 @@ function renderDocument(cv) {
 
   const railSections = [];
   railSections.push(renderSection("Skills", skillsItems));
-  if (skillsItems.length && educationItems.length) {
-    railSections.push(renderSection("Education", educationItems, { breakBefore: true }));
-  } else {
-    railSections.push(renderSection("Education", educationItems));
-  }
+  railSections.push(renderSection("Education", educationItems, { breakBefore: Boolean(skillsItems.length && educationItems.length) }));
   grouped.delete("topline skills");
   grouped.delete("education");
 
@@ -169,7 +176,7 @@ function renderDocument(cv) {
   grouped.delete("second page rail");
   for (const item of sortItems(secondRail)) {
     if (!item.title) continue;
-    railSections.push(`<section class=\"section\"><h3>${escapeHtml(item.title)}</h3><div class=\"entry-content\">${markdownToHtml(item.content)}</div></section>`);
+    railSections.push(`<section class=\"section\"><h3>${escapeHtml(item.title)}</h3><div class=\"entry-content\">${markdownToHtml(item.content || "")}</div></section>`);
   }
 
   const extraKeys = [...grouped.keys()].sort();
@@ -184,7 +191,10 @@ function renderDocument(cv) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CV Print</title>
-    <link rel="stylesheet" href="cv-print.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="${cssHref}" />
   </head>
   <body>
     <main class="cv-print" id="cv-print-root">
@@ -203,14 +213,14 @@ function renderDocument(cv) {
 </html>`;
 }
 
-function buildPdfForSlug(slug) {
+function buildPdfForSlug(slug, cssHref) {
   const jsonPath = path.join("data", "cv", `${slug}.json`);
   const outputPath = path.join("dist", `${slug}.pdf`);
   const tmpPath = path.join(".tmp", `cv-print-${slug}.html`);
 
   const cv = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
   fs.mkdirSync(path.dirname(tmpPath), { recursive: true });
-  fs.writeFileSync(tmpPath, renderDocument(cv), "utf8");
+  fs.writeFileSync(tmpPath, renderDocument(cv, cssHref), "utf8");
 
   execFileSync("npx", ["vivliostyle", "build", tmpPath, "-o", outputPath], { stdio: "inherit" });
 }
@@ -219,20 +229,20 @@ function main() {
   fs.mkdirSync("dist", { recursive: true });
   fs.mkdirSync(".tmp", { recursive: true });
 
+  const cssHref = pathToFileURL(path.resolve("cv-print.css")).href;
+
   try {
     const slugs = fs
-    .readdirSync(path.join("data", "cv"))
-    .filter((file) => file.endsWith(".json"))
-    .map((file) => file.replace(/\.json$/, ""))
-    .sort();
+      .readdirSync(path.join("data", "cv"))
+      .filter((file) => file.endsWith(".json"))
+      .map((file) => file.replace(/\.json$/, ""))
+      .sort();
 
-    if (!slugs.length) {
-      throw new Error("No CV JSON files found in data/cv");
-    }
+    if (!slugs.length) throw new Error("No CV JSON files found in data/cv");
 
     for (const slug of slugs) {
       console.log(`[build-cv-pdf] Building PDF for slug: ${slug}`);
-      buildPdfForSlug(slug);
+      buildPdfForSlug(slug, cssHref);
     }
   } finally {
     fs.rmSync(".tmp", { recursive: true, force: true });
