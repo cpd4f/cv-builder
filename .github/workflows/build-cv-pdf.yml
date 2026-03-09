@@ -1,0 +1,43 @@
+name: Build CV PDF
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "cv-print.html"
+      - "cv-print.css"
+      - "cv-render.js"
+      - "data/cv/**"
+      - "scripts/**"
+      - "package.json"
+      - "vivliostyle.config.js"
+      - ".github/workflows/build-cv-pdf.yml"
+
+jobs:
+  build-pdf:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build JSON (if needed)
+        run: npm run build:json || true
+
+      - name: Build PDF with Vivliostyle
+        run: npx vivliostyle build --config vivliostyle.config.js
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coleman-davis-pdf
+          path: dist/coleman-davis.pdf
