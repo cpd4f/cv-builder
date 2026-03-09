@@ -177,7 +177,7 @@
       }
 
       .pdf-page {
-        --pdf-margin: 8mm;
+        --pdf-margin: 9mm;
         width: 210mm;
         height: 297mm;
         background: #fff;
@@ -238,6 +238,30 @@
       .pdf-page .pdf-rail .entry-meta { font-size: 8.8px; }
       .pdf-page .pdf-rail .entry-title { font-size: 9.5px; }
       .pdf-entry { margin-bottom: 12px; break-inside: avoid; }
+
+
+      @media print {
+        body {
+          background: #fff;
+          font-size: 10px;
+        }
+        .shell {
+          padding: 0;
+        }
+        .actions {
+          display: none;
+        }
+        .page {
+          max-width: none;
+          box-shadow: none;
+          border-radius: 0;
+        }
+        .header h1 {
+          margin: 0;
+          font-size: 18px;
+          line-height: 1.1;
+        }
+      }
 
       @media (max-width: 920px) {
         .actions { justify-content: center; flex-wrap: wrap; }
@@ -739,20 +763,12 @@
         };
       }
 
-      function generatePdf(cv) {
-        const definition = createPdfDefinition(cv);
-        return new Promise((resolve, reject) => {
-          if (!window.pdfMake) {
-            reject(new Error("PDF engine failed to load."));
-            return;
-          }
-          window.pdfMake.createPdf(definition).getBlob((blob) => {
-            resolve({
-              blob,
-              save: (name) => window.pdfMake.createPdf(definition).download(name)
-            });
-          });
+      async function openPrintDialog() {
+        await document.fonts.ready;
+        await new Promise((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(resolve));
         });
+        window.print();
       }
 
       function setupActions(cv) {
@@ -766,31 +782,12 @@
         });
 
         document.getElementById("download-btn").addEventListener("click", async () => {
-          const pdf = await generatePdf(cv);
-          pdf.save(`${slug || "cv"}.pdf`);
+          alert("Use your browser print dialog and choose Save as PDF for a text-based export.");
+          await openPrintDialog();
         });
 
         document.getElementById("print-btn").addEventListener("click", async () => {
-          const pdf = await generatePdf(cv);
-          const blob = pdf.blob;
-          const blobUrl = URL.createObjectURL(blob);
-          const frame = document.createElement("iframe");
-          frame.style.position = "fixed";
-          frame.style.right = "0";
-          frame.style.bottom = "0";
-          frame.style.width = "0";
-          frame.style.height = "0";
-          frame.style.border = "0";
-          frame.src = blobUrl;
-          document.body.appendChild(frame);
-          frame.onload = () => {
-            frame.contentWindow?.focus();
-            frame.contentWindow?.print();
-            setTimeout(() => {
-              URL.revokeObjectURL(blobUrl);
-              frame.remove();
-            }, 2000);
-          };
+          await openPrintDialog();
         });
       }
 
