@@ -1,0 +1,91 @@
+name: Build CV PDF
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "cv-print.html"
+      - "cv-print.css"
+      - "cv-render.js"
+      - "data/cv/**"
+      - "scripts/**"
+      - "package.json"
+      - "vivliostyle.config.js"
+      - ".github/workflows/build-cv-pdf.yml"
+  issues:
+    types: [opened, edited, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  build-pdf:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build JSON for all published CVs (issue trigger)
+        if: github.event_name == 'issues'
+        env:
+          AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          BUILD_ALL_CVS: "true"
+        run: npm run build:json
+
+      - name: Build JSON (best effort on push/manual)
+        if: github.event_name != 'issues'
+        run: npm run build:json || true
+
+      - name: Build PDF files for all CV JSON slugs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+
+          mapfile -t slugs < <(find data/cv -maxdepth 1 -type f -name '*.json' -printf '%f\n' | sed 's/\.json$//' | sort -u)
+
+          if [ ${#slugs[@]} -eq 0 ]; then
+            echo "No CV JSON files found in data/cv"
+            exit 1
+          fi
+
+          for slug in "${slugs[@]}"; do
+            temp_entry="cv-print-${slug}.html"
+            cp cv-print.html "$temp_entry"
+            echo "Building PDF for slug: $slug"
+            npx vivliostyle build "$temp_entry" -o "dist/${slug}.pdf"
+            rm -f "$temp_entry"
+          done
+
+
+      - name: Commit generated PDFs (issue trigger)
+        if: github.event_name == 'issues'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- dist; then
+            echo "No PDF changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dist/*.pdf
+          git commit -m "chore: update generated CV PDFs"
+          git push
+
+      - name: Upload PDF artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cv-pdfs
+          path: dist/*.pdf
