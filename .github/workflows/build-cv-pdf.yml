@@ -51,6 +51,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          trap 'rm -f cv-print-*.html' EXIT
           mkdir -p dist
 
           mapfile -t slugs < <(find data/cv -maxdepth 1 -type f -name '*.json' -printf '%f\n' | sed 's/\.json$//' | sort -u)
@@ -69,27 +70,31 @@ jobs:
           done
 
 
-      - name: Commit generated PDFs (issue trigger)
+      - name: Commit generated JSON + PDFs (issue trigger)
         if: github.event_name == 'issues'
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "$(git status --porcelain dist)" ]; then
-            echo "No PDF changes to commit."
+          rm -f cv-print-*.html
+
+          if [ -z "$(git status --porcelain data/cv dist)" ]; then
+            echo "No JSON/PDF changes to commit."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/cv/*.json
           git add -f dist/*.pdf
-          git commit -m "chore: update generated CV PDFs"
+          git commit -m "chore: update generated CV JSON and PDFs"
 
           branch="${GITHUB_REF_NAME:-main}"
           if [ -z "$branch" ]; then branch="main"; fi
 
           for attempt in 1 2 3; do
             echo "Push attempt ${attempt} to ${branch}"
-            git pull --rebase origin "$branch" || true
+            git fetch origin "$branch"
+            git rebase "origin/${branch}" || (git rebase --abort && false)
             if git push origin "HEAD:${branch}"; then
               echo "Push succeeded"
               exit 0
@@ -97,7 +102,7 @@ jobs:
             sleep 2
           done
 
-          echo "Failed to push PDF commit after retries"
+          echo "Failed to push JSON/PDF commit after retries"
           exit 1
 
       - name: Upload PDF artifacts
