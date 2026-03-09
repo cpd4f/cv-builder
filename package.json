@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build:json": "node scripts/build-cv-json.js",
-    "pdf:build": "vivliostyle build cv-print.html -o dist/coleman-davis.pdf",
+    "pdf:build": "node scripts/build-cv-pdf.js",
     "pdf:preview": "vivliostyle preview cv-print.html"
   },
   "devDependencies": {
