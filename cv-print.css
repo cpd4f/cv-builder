@@ -88,16 +88,22 @@ body {
 
 .content {
   margin-top: 6mm;
-  display: grid;
-  grid-template-columns: 1.75fr 0.95fr;
-  gap: 7mm;
-  align-items: start;
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 7mm 0;
 }
 
 .main-col,
 .rail-col {
   min-width: 0;
+  display: table-cell;
+  vertical-align: top;
 }
+
+.main-col { width: 65%; }
+.rail-col { width: 35%; }
 
 .section {
   margin-bottom: 10px;
