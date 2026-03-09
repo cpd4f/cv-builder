@@ -134,10 +134,21 @@
       }
 
       async function downloadPdfForSlug(slugValue) {
-        const distPath = `dist/${encodeURIComponent(slugValue)}.pdf`;
+        const candidates = [
+          `dist/${encodeURIComponent(slugValue)}.pdf`,
+          `./dist/${encodeURIComponent(slugValue)}.pdf`
+        ];
+
         try {
-          const response = await fetch(distPath, { cache: "no-store" });
-          if (!response.ok) throw new Error("No prebuilt PDF found");
+          let response = null;
+          for (const path of candidates) {
+            const res = await fetch(path, { cache: "no-store" });
+            if (res.ok) {
+              response = res;
+              break;
+            }
+          }
+          if (!response) throw new Error("No prebuilt PDF found");
           const blob = await response.blob();
           const url = URL.createObjectURL(blob);
           const anchor = document.createElement("a");

@@ -93,7 +93,12 @@ body {
 
 .section {
   margin-bottom: 10px;
-  break-inside: avoid;
+}
+
+div#main-col > section,
+aside#rail-col > section.section {
+  break-inside: auto;
+  page-break-inside: auto;
 }
 
 .section h3 {
