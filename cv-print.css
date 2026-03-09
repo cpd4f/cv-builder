@@ -14,6 +14,14 @@
   margin: var(--page-margin);
 }
 
+@page :left {
+  margin-top: var(--page-margin);
+}
+
+@page :right {
+  margin-top: var(--page-margin);
+}
+
 html,
 body {
   margin: 0;
@@ -153,6 +161,8 @@ aside#rail-col > section.section {
   margin: 0 0 2px;
   padding-left: 11px;
   position: relative;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 .entry-content li::before {
   content: "•";
