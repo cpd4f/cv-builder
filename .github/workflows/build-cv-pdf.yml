@@ -63,7 +63,16 @@ jobs:
 
           for slug in "${slugs[@]}"; do
             temp_entry="cv-print-${slug}.html"
-            cp cv-print.html "$temp_entry"
+            node -e '
+              const fs = require("fs");
+              const [slug, tplPath, jsonPath, outPath] = process.argv.slice(1);
+              const template = fs.readFileSync(tplPath, "utf8");
+              const json = fs.readFileSync(jsonPath, "utf8");
+              const injected = `${template}
+<script>window.__CV_SLUG__ = ${JSON.stringify(slug)}; window.__CV_DATA__ = ${json};</script>
+`;
+              fs.writeFileSync(outPath, injected);
+            ' "$slug" cv-print.html "data/cv/${slug}.json" "$temp_entry"
             echo "Building PDF for slug: $slug"
             npx vivliostyle build "$temp_entry" -o "dist/${slug}.pdf"
             rm -f "$temp_entry"

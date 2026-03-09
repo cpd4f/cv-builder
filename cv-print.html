@@ -32,7 +32,8 @@
     <script>
       const query = new URLSearchParams(window.location.search);
       const pathSlug = (location.pathname.match(/cv-print-([a-z0-9-_]+)\.html$/i)?.[1] || "").trim().toLowerCase();
-      const slug = (query.get("cv") || pathSlug || location.hash.replace(/^#/, "") || "coleman-davis").trim().toLowerCase();
+      const injectedSlug = String(window.__CV_SLUG__ || "").trim().toLowerCase();
+      const slug = (query.get("cv") || injectedSlug || pathSlug || location.hash.replace(/^#/, "") || "coleman-davis").trim().toLowerCase();
 
 
       function mmToPx(mm) {
@@ -69,11 +70,19 @@
         }
       }
 
+      async function loadCvData() {
+        if (window.__CV_DATA__ && typeof window.__CV_DATA__ === "object") {
+          return window.__CV_DATA__;
+        }
+
+        const response = await fetch(`data/cv/${encodeURIComponent(slug)}.json`, { cache: "no-store" });
+        if (!response.ok) throw new Error(`Unable to load data/cv/${slug}.json (HTTP ${response.status})`);
+        return response.json();
+      }
+
       async function init() {
         try {
-          const response = await fetch(`data/cv/${encodeURIComponent(slug)}.json`, { cache: "no-store" });
-          if (!response.ok) throw new Error(`Unable to load data/cv/${slug}.json (HTTP ${response.status})`);
-          const cv = await response.json();
+          const cv = await loadCvData();
           const items = Array.isArray(cv.items) ? cv.items : [];
 
           const header = items.find((item) => window.CvRender.key(item.section) === "header") || {};
