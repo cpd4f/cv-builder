@@ -187,7 +187,7 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        font-size: 10pt;
+        font-size: 12px;
       }
       .pdf-page:last-child { page-break-after: auto; }
       .pdf-page .header { padding: 0 0 5mm; }
@@ -210,32 +210,33 @@
         overflow: hidden;
       }
       .pdf-main {
-        font-size: 10pt;
+        font-size: 12px;
       }
       .pdf-rail {
-        font-size: 9.25pt;
+        font-size: 10.5px;
       }
       .pdf-rail .section h3 {
-        font-size: 12pt;
+        font-size: 12px;
       }
       .pdf-rail .entry-title {
-        font-size: 11pt;
+        font-size: 11px;
       }
       .pdf-rail .entry-meta {
-        font-size: 10.1pt;
+        font-size: 10px;
       }
       .pdf-rail .entry-content {
-        font-size: 9.8pt;
+        font-size: 10px;
       }
       .pdf-section { margin-bottom: 16px; break-inside: avoid; }
-      .pdf-page .section h3 { font-size: 12.5pt; }
-      .pdf-page .entry-title { font-size: 11.25pt; }
-      .pdf-page .entry-meta { font-size: 10.5pt; }
-      .pdf-page .entry-date { font-size: 10pt; }
-      .pdf-page .entry-content { font-size: 10.25pt; line-height: 1.4; }
-      .pdf-page .pdf-rail .entry-content { font-size: 9.8pt; }
-      .pdf-page .pdf-rail .entry-meta { font-size: 10.1pt; }
-      .pdf-page .pdf-rail .entry-title { font-size: 11pt; }
+      .pdf-page .section h3 { font-size: 14px; }
+      .pdf-page .entry-title { font-size: 13px; }
+      .pdf-page .entry-meta { font-size: 12px; }
+      .pdf-page .entry-date { font-size: 12px; }
+      .pdf-page .entry-content { font-size: 12px; line-height: 1.38; }
+      .pdf-page .pdf-rail .section h3 { font-size: 12px; }
+      .pdf-page .pdf-rail .entry-content { font-size: 10px; }
+      .pdf-page .pdf-rail .entry-meta { font-size: 10px; }
+      .pdf-page .pdf-rail .entry-title { font-size: 11px; }
       .pdf-entry { margin-bottom: 12px; break-inside: avoid; }
 
       @media (max-width: 920px) {
@@ -268,9 +269,8 @@
     <div id="pdf-render-root"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
       const query = new URLSearchParams(window.location.search);
       const slug = (query.get("cv") || "").trim().toLowerCase();
@@ -583,10 +583,7 @@
         return { firstPage, overflow };
       }
 
-      function createPdfDom(cv) {
-        const root = document.getElementById("pdf-render-root");
-        root.innerHTML = "";
-
+      function createPdfPlan(cv) {
         const items = Array.isArray(cv.items) ? cv.items : [];
         const headerItem = items.find((item) => key(item.section) === "header") || {};
         const contacts = items.filter((item) => key(item.section) === "contact");
@@ -604,67 +601,158 @@
         grouped.delete("education");
         grouped.delete("second page rail");
 
-        const page1Parts = createPdfPage({ headerItem, contacts, includeHeader: true });
         const { firstPage: workFirstPage, overflow: workOverflow } = splitWorkForFirstPage(work, headerItem, contacts, skills);
+        const extras = [...grouped.keys()].sort().map((extraKey) => ({
+          title: titleCase(extraKey),
+          items: grouped.get(extraKey)
+        }));
 
-        if (workFirstPage.length) {
-          page1Parts.main.appendChild(sectionWithEntries("Work Experience", workFirstPage));
-        }
-        if (skills.length) {
-          page1Parts.rail.appendChild(sectionWithEntries("Skills", skills));
-        }
-        root.appendChild(page1Parts.page);
-
-        const page2Parts = createPdfPage({ headerItem, contacts, includeHeader: false });
-        if (workOverflow.length) {
-          page2Parts.main.appendChild(sectionWithEntries("Work Experience (Cont.)", workOverflow));
-        }
-        if (technical.length) {
-          page2Parts.main.appendChild(sectionWithEntries("Technical + IT", technical));
-        }
-        [...grouped.keys()].sort().forEach((extraKey) => {
-          page2Parts.main.appendChild(sectionWithEntries(titleCase(extraKey), grouped.get(extraKey)));
-        });
-
-        if (education.length) {
-          page2Parts.rail.appendChild(sectionWithEntries("Education", education));
-        }
-        if (secondRail.length) {
-          appendSecondPageRail(page2Parts.rail, secondRail);
-        }
-        if (secondRail.length) {
-          appendSecondPageRail(page2Parts.rail, secondRail);
-        }
-
-        root.appendChild(page2Parts.page);
-
-        root.appendChild(page2Parts.page);
-
-        return [page1Parts.page, page2Parts.page];
+        return {
+          headerItem,
+          contacts,
+          workFirstPage,
+          workOverflow,
+          skills,
+          technical,
+          education,
+          secondRail,
+          extras
+        };
       }
 
-      async function generatePdf(cv) {
-        const pages = createPdfDom(cv);
-        await document.fonts.ready;
-        await new Promise((resolve) => {
-          requestAnimationFrame(() => requestAnimationFrame(resolve));
+      function markdownToPdfBlocks(markdown, options = {}) {
+        const textSize = options.size || 12;
+        const bulletSize = options.bulletSize || textSize;
+        const lines = String(markdown || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+        const blocks = [];
+
+        lines.forEach((line) => {
+          if (line.startsWith("- ")) {
+            blocks.push({ ul: [line.slice(2).trim()], fontSize: bulletSize, margin: [0, 0, 0, 2] });
+            return;
+          }
+          const headingMatch = line.match(/^\*\*(.+)\*\*:?$/);
+          if (headingMatch) {
+            blocks.push({ text: headingMatch[1].trim(), bold: true, fontSize: textSize + 0.5, margin: [0, 4, 0, 2] });
+            return;
+          }
+          blocks.push({ text: line.replace(/\*\*/g, ""), fontSize: textSize, margin: [0, 0, 0, 2] });
         });
 
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+        return blocks.length ? blocks : [{ text: "", fontSize: textSize }];
+      }
 
-        for (let i = 0; i < pages.length; i += 1) {
-          const canvas = await html2canvas(pages[i], {
-            scale: 1,
-            backgroundColor: "#ffffff",
-            useCORS: true
+      function buildPdfEntry(item, opts = {}) {
+        const size = opts.size || 12;
+        const titleSize = opts.titleSize || 13;
+        const metaSize = opts.metaSize || 12;
+        const dateSize = opts.dateSize || 12;
+        const stack = [];
+
+        if (item.title) stack.push({ text: item.title, bold: true, fontSize: titleSize, margin: [0, 0, 0, 1] });
+        const meta = [item.subtitle, item.location].filter(Boolean).join(" • ");
+        if (meta) stack.push({ text: meta, fontSize: metaSize, margin: [0, 0, 0, 1] });
+        if (item.start || item.end || item.dispdate) stack.push({ text: displayDate(item), fontSize: dateSize, color: "#3d4248", margin: [0, 0, 0, 3] });
+
+        if (item.content) stack.push(...markdownToPdfBlocks(item.content, { size, bulletSize: size }));
+
+        return { unbreakable: true, margin: [0, 0, 0, 8], stack };
+      }
+
+      function buildPdfSection(title, items, opts = {}) {
+        const section = [{ text: title, fontSize: opts.sectionSize || 14, bold: true, margin: [0, 0, 0, 6] }];
+        sortItems(items).forEach((item) => section.push(buildPdfEntry(item, opts)));
+        return section;
+      }
+
+      function buildSecondRailBlocks(items, opts = {}) {
+        const blocks = [];
+        sortItems(items).forEach((item) => {
+          if (!item.title) return;
+          blocks.push({ text: item.title, fontSize: opts.sectionSize || 12, bold: true, margin: [0, 0, 0, 4] });
+          if (item.content) blocks.push(...markdownToPdfBlocks(item.content, { size: opts.size || 10 }));
+          blocks.push({ text: "", margin: [0, 0, 0, 4] });
+        });
+        return blocks;
+      }
+
+      function createPdfDefinition(cv) {
+        const plan = createPdfPlan(cv);
+        const contactLine = plan.contacts
+          .filter((item) => String(item?.content || "").trim())
+          .map((item) => item.content)
+          .join("      |      ");
+
+        const page1Main = [];
+        if (plan.workFirstPage.length) page1Main.push(...buildPdfSection("Work Experience", plan.workFirstPage, { sectionSize: 14, titleSize: 13, metaSize: 12, dateSize: 12, size: 12 }));
+
+        const page1Rail = [];
+        if (plan.skills.length) page1Rail.push(...buildPdfSection("Skills", plan.skills, { sectionSize: 12, titleSize: 11, metaSize: 10, dateSize: 10, size: 10 }));
+
+        const page2Main = [];
+        if (plan.workOverflow.length) page2Main.push(...buildPdfSection("Work Experience (Cont.)", plan.workOverflow, { sectionSize: 14, titleSize: 13, metaSize: 12, dateSize: 12, size: 12 }));
+        if (plan.technical.length) page2Main.push(...buildPdfSection("Technical + IT", plan.technical, { sectionSize: 14, titleSize: 13, metaSize: 12, dateSize: 12, size: 12 }));
+        plan.extras.forEach((extra) => page2Main.push(...buildPdfSection(extra.title, extra.items, { sectionSize: 14, titleSize: 13, metaSize: 12, dateSize: 12, size: 12 })));
+
+        const page2Rail = [];
+        if (plan.education.length) page2Rail.push(...buildPdfSection("Education", plan.education, { sectionSize: 12, titleSize: 11, metaSize: 10, dateSize: 10, size: 10 }));
+        if (plan.secondRail.length) page2Rail.push(...buildSecondRailBlocks(plan.secondRail, { sectionSize: 12, size: 10 }));
+
+        return {
+          pageSize: "A4",
+          pageMargins: [28, 24, 28, 24],
+          defaultStyle: {
+            font: "Roboto",
+            fontSize: 12,
+            lineHeight: 1.25
+          },
+          content: [
+            {
+              stack: [
+                { text: plan.headerItem?.title || "CV", fontSize: 34, bold: true, margin: [0, 0, 0, 3] },
+                { text: plan.headerItem?.subtitle || "", fontSize: 20, margin: [0, 0, 0, 8] },
+                ...markdownToPdfBlocks(plan.headerItem?.content || "", { size: 12 }),
+                {
+                  canvas: [{ type: "rect", x: -28, y: 0, w: 595.28, h: 24, color: "#2c3237" }],
+                  margin: [0, 10, 0, -24]
+                },
+                { text: contactLine, color: "#f7f9fb", margin: [0, 4, 0, 0], fontSize: 11, bold: true }
+              ]
+            },
+            {
+              margin: [0, 14, 0, 0],
+              columns: [
+                { width: "63%", stack: page1Main },
+                { width: "37%", stack: page1Rail }
+              ],
+              columnGap: 20
+            },
+            {
+              pageBreak: "before",
+              columns: [
+                { width: "63%", stack: page2Main },
+                { width: "37%", stack: page2Rail }
+              ],
+              columnGap: 20
+            }
+          ]
+        };
+      }
+
+      function generatePdf(cv) {
+        const definition = createPdfDefinition(cv);
+        return new Promise((resolve, reject) => {
+          if (!window.pdfMake) {
+            reject(new Error("PDF engine failed to load."));
+            return;
+          }
+          window.pdfMake.createPdf(definition).getBlob((blob) => {
+            resolve({
+              blob,
+              save: (name) => window.pdfMake.createPdf(definition).download(name)
+            });
           });
-          const img = canvas.toDataURL("image/png");
-          if (i > 0) pdf.addPage();
-          pdf.addImage(img, "PNG", 0, 0, 210, 297, undefined, "FAST");
-        }
-
-        return pdf;
+        });
       }
 
       function setupActions(cv) {
@@ -684,7 +772,7 @@
 
         document.getElementById("print-btn").addEventListener("click", async () => {
           const pdf = await generatePdf(cv);
-          const blob = pdf.output("blob");
+          const blob = pdf.blob;
           const blobUrl = URL.createObjectURL(blob);
           const frame = document.createElement("iframe");
           frame.style.position = "fixed";
