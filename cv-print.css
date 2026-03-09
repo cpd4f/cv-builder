@@ -14,11 +14,19 @@
   margin: var(--page-margin);
 }
 
+@page :left {
+  margin-top: var(--page-margin);
+}
+
+@page :right {
+  margin-top: var(--page-margin);
+}
+
 html,
 body {
   margin: 0;
   padding: 0;
-  font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  font-family: "Segoe UI", Helvetica, Arial, sans-serif;
   color: var(--text);
   font-size: 12px;
   line-height: 1.35;
@@ -80,15 +88,28 @@ body {
 
 .content {
   margin-top: 6mm;
-  display: grid;
-  grid-template-columns: 1.75fr 0.95fr;
-  gap: 7mm;
-  align-items: start;
+  width: 100%;
+}
+
+.content::after {
+  content: "";
+  display: block;
+  clear: both;
 }
 
 .main-col,
 .rail-col {
   min-width: 0;
+  float: left;
+}
+
+.main-col {
+  width: calc(65% - 3.5mm);
+  margin-right: 7mm;
+}
+
+.rail-col {
+  width: calc(35% - 3.5mm);
 }
 
 .section {
@@ -153,6 +174,8 @@ aside#rail-col > section.section {
   margin: 0 0 2px;
   padding-left: 11px;
   position: relative;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 .entry-content li::before {
   content: "•";
