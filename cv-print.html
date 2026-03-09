@@ -31,7 +31,8 @@
     <script src="cv-render.js"></script>
     <script>
       const query = new URLSearchParams(window.location.search);
-      const slug = (query.get("cv") || location.hash.replace(/^#/, "") || "coleman-davis").trim().toLowerCase();
+      const pathSlug = (location.pathname.match(/cv-print-([a-z0-9-_]+)\.html$/i)?.[1] || "").trim().toLowerCase();
+      const slug = (query.get("cv") || pathSlug || location.hash.replace(/^#/, "") || "coleman-davis").trim().toLowerCase();
 
       async function init() {
         try {
@@ -53,6 +54,7 @@
           window.CvRender.renderContact(document.getElementById("contact"), contacts, false);
 
           const mainConfig = [
+            { key: "core competencies", title: "Core Competencies" },
             { key: "work experience", title: "Work Experience" },
             { key: "technical + it", title: "Technical + IT" }
           ];

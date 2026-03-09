@@ -172,6 +172,7 @@
     railHost.innerHTML = "";
 
     const mainConfig = [
+      { key: "core competencies", title: "Core Competencies" },
       { key: "work experience", title: "Work Experience" },
       { key: "technical + it", title: "Technical + IT" }
     ];
