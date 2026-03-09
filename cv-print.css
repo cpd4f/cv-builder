@@ -112,6 +112,9 @@ body {
   width: calc(35% - 3.5mm);
 }
 
+.main-col { width: 65%; }
+.rail-col { width: 35%; }
+
 .section {
   margin-bottom: 10px;
 }
