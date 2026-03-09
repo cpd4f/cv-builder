@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   title: "CV PDF",
   entry: ["cv-print.html?cv=coleman-davis"],
   output: ["dist/coleman-davis.pdf"],
