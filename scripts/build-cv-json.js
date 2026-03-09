@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 
-// ===== Airtable configuration =====
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || "YOUR_AIRTABLE_BASE_ID";
 const CVS_TABLE_NAME = process.env.CVS_TABLE_NAME || "CVs";
 const CV_ITEMS_TABLE_NAME = process.env.CV_ITEMS_TABLE_NAME || "CV Items";
@@ -11,6 +10,7 @@ const CV_ITEMS_TABLE_ID = process.env.CV_ITEMS_TABLE_ID || "tblTNlBDhAjF32Sna";
 const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
 const ISSUE_TITLE = process.env.ISSUE_TITLE || "";
 const ISSUE_BODY = process.env.ISSUE_BODY || "";
+const BUILD_ALL_CVS = String(process.env.BUILD_ALL_CVS || "").toLowerCase() === "true";
 const GITHUB_OUTPUT = process.env.GITHUB_OUTPUT;
 
 function logDebug(message, data) {
@@ -33,10 +33,7 @@ function parseRecordId(title, body) {
   }
 
   const bodyMatch = String(body).match(/^recordid\s+(rec[\w]+)/im);
-  if (bodyMatch?.[1]) {
-    return bodyMatch[1];
-  }
-
+  if (bodyMatch?.[1]) return bodyMatch[1];
   return "";
 }
 
@@ -65,6 +62,30 @@ function safeRelativePath(inputPath, fallbackPath) {
   return withoutLeading;
 }
 
+function valueOrNull(value) {
+  return value === undefined ? null : value;
+}
+
+function pushContact(items, title, value) {
+  if (value !== undefined && value !== null && String(value).trim() !== "") {
+    items.push({ title, content: value, section: "contact" });
+  }
+}
+
+function pushCoreCompetencies(items, value) {
+  if (value !== undefined && value !== null && String(value).trim() !== "") {
+    items.push({
+      title: "Core Competencies",
+      content: value,
+      section: "core competencies"
+    });
+  }
+}
+
+function escapeFormulaString(value) {
+  return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
 async function airtableGetJson(url, contextLabel) {
   logDebug(`Requesting Airtable (${contextLabel})`, url.replace(AIRTABLE_PAT || "", "***"));
 
@@ -84,25 +105,31 @@ async function airtableGetJson(url, contextLabel) {
   return res.json();
 }
 
-function valueOrNull(value) {
-  return value === undefined ? null : value;
-}
-
-function pushContact(items, title, value) {
-  if (value !== undefined && value !== null && String(value).trim() !== "") {
-    items.push({ title, content: value, section: "contact" });
-  }
-}
-
-
-function escapeFormulaString(value) {
-  return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-}
-
 async function fetchCvRecord(recordId) {
   const tableRef = CVS_TABLE_ID || CVS_TABLE_NAME;
   const url = `https://api.airtable.com/v0/${encodeURIComponent(AIRTABLE_BASE_ID)}/${encodeURIComponent(tableRef)}/${encodeURIComponent(recordId)}`;
   return airtableGetJson(url, "fetchCvRecord");
+}
+
+async function fetchPublishedCvRecords() {
+  const records = [];
+  const tableRef = CVS_TABLE_ID || CVS_TABLE_NAME;
+  let offset = "";
+
+  do {
+    const params = new URLSearchParams({
+      filterByFormula: '{Status}="Publish"',
+      pageSize: "100"
+    });
+    if (offset) params.set("offset", offset);
+
+    const url = `https://api.airtable.com/v0/${encodeURIComponent(AIRTABLE_BASE_ID)}/${encodeURIComponent(tableRef)}?${params.toString()}`;
+    const data = await airtableGetJson(url, "fetchPublishedCvRecords");
+    records.push(...(data.records || []));
+    offset = data.offset || "";
+  } while (offset);
+
+  return records;
 }
 
 async function fetchCvItems(recordId, linkedItemIds = []) {
@@ -115,7 +142,6 @@ async function fetchCvItems(recordId, linkedItemIds = []) {
     : `FIND("${escapeFormulaString(recordId)}", ARRAYJOIN({Parent-CV}))`;
 
   const filterByFormula = `AND({Publish}=TRUE(), ${idFormula})`;
-  logDebug("CV Items filter strategy", { useLinkedIds, linkedItemCount: linkedItemIds.length, filterByFormula });
 
   do {
     const params = new URLSearchParams({
@@ -132,11 +158,6 @@ async function fetchCvItems(recordId, linkedItemIds = []) {
 
     out.push(...(data.records || []));
     offset = data.offset || "";
-    logDebug("Fetched CV Items page", {
-      count: (data.records || []).length,
-      hasMore: Boolean(offset),
-      strategy: useLinkedIds ? "linked-cv-items" : "parent-cv-fallback"
-    });
   } while (offset);
 
   return out;
@@ -157,64 +178,38 @@ function mapItem(record) {
   };
 }
 
-async function main() {
-  if (!AIRTABLE_PAT) throw new Error("Missing AIRTABLE_PAT secret.");
-  if (!AIRTABLE_BASE_ID || AIRTABLE_BASE_ID === "YOUR_AIRTABLE_BASE_ID") {
-    throw new Error("AIRTABLE_BASE_ID is not configured.");
-  }
+function compareManualSort(a, b) {
+  const aKey = String(a.manualsort || "").trim();
+  const bKey = String(b.manualsort || "").trim();
+  if (aKey && bKey) return aKey.localeCompare(bKey, undefined, { numeric: true, sensitivity: "base" });
+  if (aKey) return -1;
+  if (bKey) return 1;
+  return 0;
+}
 
-  logDebug("Starting build", {
-    issueTitle: ISSUE_TITLE,
-    issueBodyPreview: ISSUE_BODY.slice(0, 120),
-    baseConfigured: Boolean(AIRTABLE_BASE_ID),
-    cvsTable: CVS_TABLE_ID || CVS_TABLE_NAME,
-    cvItemsTable: CV_ITEMS_TABLE_ID || CV_ITEMS_TABLE_NAME
-  });
-
-  const recordId = parseRecordId(ISSUE_TITLE, ISSUE_BODY);
-  logDebug("Parsed recordId", recordId || "<empty>");
-  if (!recordId) {
-    throw new Error("Could not determine Airtable recordId from issue title/body.");
-  }
-
-  const cv = await fetchCvRecord(recordId);
-  const fields = cv.fields || {};
-  logDebug("Fetched CV record", { id: cv.id, fieldKeys: Object.keys(fields) });
-
+async function buildAndWriteCv(cvRecord) {
+  const fields = cvRecord.fields || {};
+  const status = String(fields["Status"] || "").trim();
   const slugRaw = fields["Slug"];
   const slug = sanitizeSlug(slugRaw);
-  logDebug("Resolved slug", { slugRaw, slug });
-  if (!slug) throw new Error("CV record is missing a valid Slug.");
+  if (!slug) throw new Error(`CV record ${cvRecord.id} is missing a valid Slug.`);
 
-  const status = String(fields["Status"] || "").trim();
   const fallbackPath = safeRelativePathFromSlug(slug);
   const relativePath = safeRelativePath(fields["GitHub Path"], fallbackPath);
   const outputPath = path.resolve(relativePath);
-  logDebug("Resolved output path", { status, relativePath, outputPath });
-
-  setOutput("record_id", recordId);
-  setOutput("slug", slug);
-  setOutput("relative_path", relativePath);
-  setOutput("status", status);
 
   if (status === "Draft") {
-    if (fs.existsSync(outputPath)) {
-      fs.unlinkSync(outputPath);
-      setOutput("action", "deleted");
-      console.log(`Deleted ${relativePath}`);
-    } else {
-      setOutput("action", "noop");
-      console.log(`No file to delete for ${relativePath}`);
-    }
-    return;
+    if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
+    logDebug("Draft status handled", { slug, relativePath, deleted: true });
+    return { slug, relativePath, action: "deleted" };
   }
 
   if (status !== "Publish") {
-    throw new Error(`Unsupported Status '${status}'. Expected Publish or Draft.`);
+    logDebug("Skipped non-publish CV", { slug, status });
+    return { slug, relativePath, action: "skipped" };
   }
 
   const items = [];
-
   items.push({
     title: valueOrNull(fields["Person Name"]),
     subtitle: valueOrNull(fields["CV Subtitle"]),
@@ -225,29 +220,50 @@ async function main() {
   pushContact(items, "Email", fields["Contact: Email"]);
   pushContact(items, "Website", fields["Contact: Personal Website"]);
   pushContact(items, "Phone", fields["Contact: Phone Number"]);
+  pushCoreCompetencies(items, fields["Core Competencies"]);
 
   const linkedCvItems = Array.isArray(fields["CV Items"]) ? fields["CV Items"] : [];
-  logDebug("CV linked item ids from CV record", { count: linkedCvItems.length });
-
-  const cvItems = await fetchCvItems(recordId, linkedCvItems);
-  logDebug("Total CV items fetched", cvItems.length);
+  const cvItems = await fetchCvItems(cvRecord.id, linkedCvItems);
 
   cvItems
     .map(mapItem)
-    .sort((a, b) => (a.manualsort ?? Number.MAX_SAFE_INTEGER) - (b.manualsort ?? Number.MAX_SAFE_INTEGER))
+    .sort(compareManualSort)
     .forEach((item) => items.push(item));
 
-  const output = {
-    slug,
-    status,
-    items
-  };
-
+  const output = { slug, status, items };
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`, "utf8");
-  setOutput("action", "written");
-  logDebug("Write complete", { relativePath, itemCount: items.length });
-  console.log(`Wrote ${relativePath}`);
+
+  logDebug("Wrote CV JSON", { slug, relativePath, itemCount: items.length });
+  return { slug, relativePath, action: "written" };
+}
+
+async function main() {
+  if (!AIRTABLE_PAT) throw new Error("Missing AIRTABLE_PAT secret.");
+  if (!AIRTABLE_BASE_ID || AIRTABLE_BASE_ID === "YOUR_AIRTABLE_BASE_ID") {
+    throw new Error("AIRTABLE_BASE_ID is not configured.");
+  }
+
+  const issueRecordId = parseRecordId(ISSUE_TITLE, ISSUE_BODY);
+  const buildAll = BUILD_ALL_CVS || !issueRecordId;
+
+  if (buildAll) {
+    const records = await fetchPublishedCvRecords();
+    logDebug("Building all published CVs", { count: records.length });
+    for (const record of records) {
+      await buildAndWriteCv(record);
+    }
+    setOutput("action", "written_all");
+    setOutput("count", records.length);
+    return;
+  }
+
+  const cvRecord = await fetchCvRecord(issueRecordId);
+  const result = await buildAndWriteCv(cvRecord);
+  setOutput("record_id", issueRecordId);
+  setOutput("slug", result.slug);
+  setOutput("relative_path", result.relativePath);
+  setOutput("action", result.action);
 }
 
 main().catch((err) => {
