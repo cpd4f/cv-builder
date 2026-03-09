@@ -13,6 +13,11 @@
     <link rel="stylesheet" href="cv-print.css" />
   </head>
   <body>
+    <div class="print-actions" id="print-actions">
+      <button class="print-btn" id="print-btn" type="button">Print</button>
+      <button class="print-btn" id="download-btn" type="button">Download PDF</button>
+    </div>
+
     <main class="cv-print" id="cv-print-root">
       <header class="header" id="header"></header>
       <section class="contact-bar" id="contact"></section>
@@ -81,6 +86,33 @@
           document.body.innerHTML = `<div style="padding:20px;color:#8b1111">${error.message}</div>`;
         }
       }
+
+      function openPrintDialog() {
+        window.print();
+      }
+
+      async function downloadPdfForSlug(slugValue) {
+        const distPath = `dist/${encodeURIComponent(slugValue)}.pdf`;
+        try {
+          const response = await fetch(distPath, { cache: "no-store" });
+          if (!response.ok) throw new Error("No prebuilt PDF found");
+          const blob = await response.blob();
+          const url = URL.createObjectURL(blob);
+          const anchor = document.createElement("a");
+          anchor.href = url;
+          anchor.download = `${slugValue}.pdf`;
+          document.body.appendChild(anchor);
+          anchor.click();
+          anchor.remove();
+          URL.revokeObjectURL(url);
+        } catch (error) {
+          alert("Prebuilt PDF not found on this environment. Opening print dialog so you can Save as PDF.");
+          openPrintDialog();
+        }
+      }
+
+      document.getElementById("print-btn").addEventListener("click", openPrintDialog);
+      document.getElementById("download-btn").addEventListener("click", () => downloadPdfForSlug(slug));
 
       init();
     </script>

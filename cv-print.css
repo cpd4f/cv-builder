@@ -11,7 +11,7 @@
 
 @page {
   size: A4;
-  margin: var(--page-margin);
+  margin: 0;
 }
 
 html,
@@ -28,6 +28,7 @@ body {
 
 .cv-print {
   width: 100%;
+  padding: var(--page-margin);
 }
 
 .header {
@@ -161,10 +162,35 @@ body {
 .rail-col .entry-date,
 .rail-col .entry-content { font-size: 8.8px; }
 
+
+.print-actions {
+  display: none;
+}
+
+.print-btn {
+  border: 0;
+  border-radius: 999px;
+  background: #1f2937;
+  color: #fff;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.print-btn:hover { background: #111827; }
+
 @media screen {
   body {
     background: #edf1f4;
     padding: 16px;
+  }
+
+  .print-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 0 0 12px;
   }
 
   .cv-print {
@@ -172,6 +198,11 @@ body {
     margin: 0 auto;
     background: #fff;
     box-shadow: 0 8px 28px rgba(15, 23, 42, 0.2), 0 2px 8px rgba(15, 23, 42, 0.12);
-    padding: var(--page-margin);
+  }
+}
+
+@media print {
+  .print-actions {
+    display: none !important;
   }
 }
