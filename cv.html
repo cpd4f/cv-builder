@@ -177,7 +177,7 @@
       }
 
       .pdf-page {
-        --pdf-margin: 10mm;
+        --pdf-margin: 8mm;
         width: 210mm;
         height: 297mm;
         background: #fff;
@@ -187,22 +187,22 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        font-size: 12px;
+        font-size: 10px;
       }
       .pdf-page:last-child { page-break-after: auto; }
       .pdf-page .header { padding: 0 0 5mm; }
-      .pdf-page .header-summary { margin-top: 3.5mm; }
+      .pdf-page .header-summary { margin-top: 2.5mm; }
       .pdf-page .contact-bar {
         margin-left: calc(-1 * var(--pdf-margin));
         margin-right: calc(-1 * var(--pdf-margin));
-        padding: 4mm var(--pdf-margin);
+        padding: 3mm var(--pdf-margin);
       }
       .pdf-grid {
         flex: 1;
-        margin-top: 7mm;
+        margin-top: 5mm;
         display: grid;
-        grid-template-columns: 1.75fr 1fr;
-        gap: 8mm;
+        grid-template-columns: 1.85fr 1fr;
+        gap: 6mm;
         min-height: 0;
       }
       .pdf-main, .pdf-rail {
@@ -210,33 +210,33 @@
         overflow: hidden;
       }
       .pdf-main {
-        font-size: 12px;
+        font-size: 10px;
       }
       .pdf-rail {
-        font-size: 10.5px;
+        font-size: 8.8px;
       }
       .pdf-rail .section h3 {
-        font-size: 12px;
+        font-size: 10px;
       }
       .pdf-rail .entry-title {
-        font-size: 11px;
+        font-size: 9.5px;
       }
       .pdf-rail .entry-meta {
-        font-size: 10px;
+        font-size: 8.8px;
       }
       .pdf-rail .entry-content {
-        font-size: 10px;
+        font-size: 8.8px;
       }
-      .pdf-section { margin-bottom: 16px; break-inside: avoid; }
-      .pdf-page .section h3 { font-size: 14px; }
-      .pdf-page .entry-title { font-size: 13px; }
-      .pdf-page .entry-meta { font-size: 12px; }
-      .pdf-page .entry-date { font-size: 12px; }
-      .pdf-page .entry-content { font-size: 12px; line-height: 1.38; }
-      .pdf-page .pdf-rail .section h3 { font-size: 12px; }
-      .pdf-page .pdf-rail .entry-content { font-size: 10px; }
-      .pdf-page .pdf-rail .entry-meta { font-size: 10px; }
-      .pdf-page .pdf-rail .entry-title { font-size: 11px; }
+      .pdf-section { margin-bottom: 10px; break-inside: avoid; }
+      .pdf-page .section h3 { font-size: 11px; }
+      .pdf-page .entry-title { font-size: 10px; }
+      .pdf-page .entry-meta { font-size: 10px; }
+      .pdf-page .entry-date { font-size: 10px; }
+      .pdf-page .entry-content { font-size: 10px; line-height: 1.38; }
+      .pdf-page .pdf-rail .section h3 { font-size: 10px; }
+      .pdf-page .pdf-rail .entry-content { font-size: 8.8px; }
+      .pdf-page .pdf-rail .entry-meta { font-size: 8.8px; }
+      .pdf-page .pdf-rail .entry-title { font-size: 9.5px; }
       .pdf-entry { margin-bottom: 12px; break-inside: avoid; }
 
       @media (max-width: 920px) {
@@ -621,7 +621,7 @@
       }
 
       function markdownToPdfBlocks(markdown, options = {}) {
-        const textSize = options.size || 12;
+        const textSize = options.size || 10;
         const bulletSize = options.bulletSize || textSize;
         const lines = String(markdown || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
         const blocks = [];
@@ -656,11 +656,11 @@
 
         if (item.content) stack.push(...markdownToPdfBlocks(item.content, { size, bulletSize: size }));
 
-        return { unbreakable: true, margin: [0, 0, 0, 8], stack };
+        return { unbreakable: true, margin: [0, 0, 0, 5], stack };
       }
 
       function buildPdfSection(title, items, opts = {}) {
-        const section = [{ text: title, fontSize: opts.sectionSize || 14, bold: true, margin: [0, 0, 0, 6] }];
+        const section = [{ text: title, fontSize: opts.sectionSize || 11, bold: true, margin: [0, 0, 0, 4] }];
         sortItems(items).forEach((item) => section.push(buildPdfEntry(item, opts)));
         return section;
       }
@@ -669,8 +669,8 @@
         const blocks = [];
         sortItems(items).forEach((item) => {
           if (!item.title) return;
-          blocks.push({ text: item.title, fontSize: opts.sectionSize || 12, bold: true, margin: [0, 0, 0, 4] });
-          if (item.content) blocks.push(...markdownToPdfBlocks(item.content, { size: opts.size || 10 }));
+          blocks.push({ text: item.title, fontSize: opts.sectionSize || 10, bold: true, margin: [0, 0, 0, 3] });
+          if (item.content) blocks.push(...markdownToPdfBlocks(item.content, { size: opts.size || 8.8 }));
           blocks.push({ text: "", margin: [0, 0, 0, 4] });
         });
         return blocks;
@@ -684,56 +684,56 @@
           .join("      |      ");
 
         const page1Main = [];
-        if (plan.workFirstPage.length) page1Main.push(...buildPdfSection("Work Experience", plan.workFirstPage, { sectionSize: 14, titleSize: 13, metaSize: 12, dateSize: 12, size: 12 }));
+        if (plan.workFirstPage.length) page1Main.push(...buildPdfSection("Work Experience", plan.workFirstPage, { sectionSize: 11, titleSize: 10, metaSize: 9.5, dateSize: 9, size: 10 }));
 
         const page1Rail = [];
-        if (plan.skills.length) page1Rail.push(...buildPdfSection("Skills", plan.skills, { sectionSize: 12, titleSize: 11, metaSize: 10, dateSize: 10, size: 10 }));
+        if (plan.skills.length) page1Rail.push(...buildPdfSection("Skills", plan.skills, { sectionSize: 10, titleSize: 9.5, metaSize: 8.8, dateSize: 8.8, size: 8.8 }));
 
         const page2Main = [];
-        if (plan.workOverflow.length) page2Main.push(...buildPdfSection("Work Experience (Cont.)", plan.workOverflow, { sectionSize: 14, titleSize: 13, metaSize: 12, dateSize: 12, size: 12 }));
-        if (plan.technical.length) page2Main.push(...buildPdfSection("Technical + IT", plan.technical, { sectionSize: 14, titleSize: 13, metaSize: 12, dateSize: 12, size: 12 }));
-        plan.extras.forEach((extra) => page2Main.push(...buildPdfSection(extra.title, extra.items, { sectionSize: 14, titleSize: 13, metaSize: 12, dateSize: 12, size: 12 })));
+        if (plan.workOverflow.length) page2Main.push(...buildPdfSection("Work Experience (Cont.)", plan.workOverflow, { sectionSize: 11, titleSize: 10, metaSize: 9.5, dateSize: 9, size: 10 }));
+        if (plan.technical.length) page2Main.push(...buildPdfSection("Technical + IT", plan.technical, { sectionSize: 11, titleSize: 10, metaSize: 9.5, dateSize: 9, size: 10 }));
+        plan.extras.forEach((extra) => page2Main.push(...buildPdfSection(extra.title, extra.items, { sectionSize: 11, titleSize: 10, metaSize: 9.5, dateSize: 9, size: 10 })));
 
         const page2Rail = [];
-        if (plan.education.length) page2Rail.push(...buildPdfSection("Education", plan.education, { sectionSize: 12, titleSize: 11, metaSize: 10, dateSize: 10, size: 10 }));
-        if (plan.secondRail.length) page2Rail.push(...buildSecondRailBlocks(plan.secondRail, { sectionSize: 12, size: 10 }));
+        if (plan.education.length) page2Rail.push(...buildPdfSection("Education", plan.education, { sectionSize: 10, titleSize: 9.5, metaSize: 8.8, dateSize: 8.8, size: 8.8 }));
+        if (plan.secondRail.length) page2Rail.push(...buildSecondRailBlocks(plan.secondRail, { sectionSize: 10, size: 8.8 }));
 
         return {
           pageSize: "A4",
-          pageMargins: [28, 24, 28, 24],
+          pageMargins: [20, 16, 20, 16],
           defaultStyle: {
             font: "Roboto",
-            fontSize: 12,
-            lineHeight: 1.25
+            fontSize: 10,
+            lineHeight: 1.15
           },
           content: [
             {
               stack: [
-                { text: plan.headerItem?.title || "CV", fontSize: 34, bold: true, margin: [0, 0, 0, 3] },
-                { text: plan.headerItem?.subtitle || "", fontSize: 20, margin: [0, 0, 0, 8] },
-                ...markdownToPdfBlocks(plan.headerItem?.content || "", { size: 12 }),
+                { text: plan.headerItem?.title || "CV", fontSize: 22, bold: true, margin: [0, 0, 0, 2] },
+                { text: plan.headerItem?.subtitle || "", fontSize: 13, margin: [0, 0, 0, 5] },
+                ...markdownToPdfBlocks(plan.headerItem?.content || "", { size: 10 }),
                 {
-                  canvas: [{ type: "rect", x: -28, y: 0, w: 595.28, h: 24, color: "#2c3237" }],
-                  margin: [0, 10, 0, -24]
+                  canvas: [{ type: "rect", x: -20, y: 0, w: 595.28, h: 16, color: "#2c3237" }],
+                  margin: [0, 6, 0, -16]
                 },
-                { text: contactLine, color: "#f7f9fb", margin: [0, 4, 0, 0], fontSize: 11, bold: true }
+                { text: contactLine, color: "#f7f9fb", margin: [0, 2, 0, 0], fontSize: 9, bold: true }
               ]
             },
             {
-              margin: [0, 14, 0, 0],
+              margin: [0, 9, 0, 0],
               columns: [
-                { width: "63%", stack: page1Main },
-                { width: "37%", stack: page1Rail }
+                { width: "66%", stack: page1Main },
+                { width: "34%", stack: page1Rail }
               ],
-              columnGap: 20
+              columnGap: 14
             },
             {
               pageBreak: "before",
               columns: [
-                { width: "63%", stack: page2Main },
-                { width: "37%", stack: page2Rail }
+                { width: "66%", stack: page2Main },
+                { width: "34%", stack: page2Rail }
               ],
-              columnGap: 20
+              columnGap: 14
             }
           ]
         };
