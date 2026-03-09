@@ -168,7 +168,7 @@ function renderDocument(cv, cssHref) {
 
   const railSections = [];
   railSections.push(renderSection("Skills", skillsItems));
-  railSections.push(renderSection("Education", educationItems, { breakBefore: Boolean(skillsItems.length && educationItems.length) }));
+  railSections.push(renderSection("Education", educationItems));
   grouped.delete("topline skills");
   grouped.delete("education");
 
