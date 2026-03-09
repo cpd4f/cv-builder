@@ -95,11 +95,13 @@
     });
   }
 
-  function renderEntry(item) {
+  function renderEntry(item, options = {}) {
     const wrap = document.createElement("article");
     wrap.className = "entry";
 
-    if (item.title) {
+    const hideTitle = Boolean(options.hideEntryTitle);
+
+    if (item.title && !hideTitle) {
       const title = document.createElement("h4");
       title.className = "entry-title";
       title.textContent = item.title;
@@ -130,12 +132,19 @@
     return wrap;
   }
 
-  function renderSection(host, title, items) {
+  function renderSection(host, title, items, options = {}) {
     if (!items.length) return;
     const section = document.createElement("section");
     section.className = "section";
     section.innerHTML = `<h3>${title}</h3>`;
-    sortItems(items).forEach((item) => section.appendChild(renderEntry(item)));
+
+    const normalizedTitle = String(title || "").trim().toLowerCase();
+    sortItems(items).forEach((item) => {
+      const itemTitle = String(item?.title || "").trim().toLowerCase();
+      const hideEntryTitle = options.hideEntryTitleWhenSameAsSection && itemTitle && itemTitle === normalizedTitle;
+      section.appendChild(renderEntry(item, { hideEntryTitle }));
+    });
+
     host.appendChild(section);
   }
 
@@ -185,7 +194,8 @@
 
     mainConfig.forEach((cfg) => {
       const sectionItems = grouped.get(cfg.key) || [];
-      renderSection(mainHost, cfg.title, sectionItems);
+      const hideTitle = cfg.key === "core competencies";
+      renderSection(mainHost, cfg.title, sectionItems, { hideEntryTitleWhenSameAsSection: hideTitle });
       grouped.delete(cfg.key);
     });
 
@@ -196,12 +206,12 @@
         return;
       }
       if (cfg.key === "second page rail") renderSecondRail(railHost, sectionItems);
-      else renderSection(railHost, cfg.title, sectionItems);
+      else renderSection(railHost, cfg.title, sectionItems, { hideEntryTitleWhenSameAsSection: false });
       grouped.delete(cfg.key);
     });
 
     [...grouped.keys()].sort().forEach((extraKey) => {
-      renderSection(mainHost, titleCase(extraKey), grouped.get(extraKey));
+      renderSection(mainHost, titleCase(extraKey), grouped.get(extraKey), { hideEntryTitleWhenSameAsSection: false });
     });
   }
 

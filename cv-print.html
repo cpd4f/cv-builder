@@ -66,7 +66,10 @@
 
           mainConfig.forEach((cfg) => {
             const sectionItems = grouped.get(cfg.key) || [];
-            if (sectionItems.length) window.CvRender.renderSection(mainHost, cfg.title, sectionItems);
+            if (sectionItems.length) {
+              const hideTitle = cfg.key === "core competencies";
+              window.CvRender.renderSection(mainHost, cfg.title, sectionItems, { hideEntryTitleWhenSameAsSection: hideTitle });
+            }
             grouped.delete(cfg.key);
           });
 
@@ -77,12 +80,12 @@
               return;
             }
             if (cfg.key === "second page rail") window.CvRender.renderSecondRail(railHost, sectionItems);
-            else window.CvRender.renderSection(railHost, cfg.title, sectionItems);
+            else window.CvRender.renderSection(railHost, cfg.title, sectionItems, { hideEntryTitleWhenSameAsSection: false });
             grouped.delete(cfg.key);
           });
 
           [...grouped.keys()].sort().forEach((extraKey) => {
-            window.CvRender.renderSection(mainHost, extraKey.replace(/\b\w/g, (c) => c.toUpperCase()), grouped.get(extraKey));
+            window.CvRender.renderSection(mainHost, extraKey.replace(/\b\w/g, (c) => c.toUpperCase()), grouped.get(extraKey), { hideEntryTitleWhenSameAsSection: false });
           });
         } catch (error) {
           document.body.innerHTML = `<div style="padding:20px;color:#8b1111">${error.message}</div>`;
