@@ -136,9 +136,10 @@
     if (!items.length) return;
     const section = document.createElement("section");
     section.className = "section";
-    section.innerHTML = `<h3>${title}</h3>`;
 
     const normalizedTitle = String(title || "").trim().toLowerCase();
+    if (normalizedTitle === "skills") section.classList.add("skills-section");
+    section.innerHTML = `<h3>${title}</h3>`;
     sortItems(items).forEach((item) => {
       const itemTitle = String(item?.title || "").trim().toLowerCase();
       const hideEntryTitle = options.hideEntryTitleWhenSameAsSection && itemTitle && itemTitle === normalizedTitle;
@@ -175,6 +176,37 @@
     return grouped;
   }
 
+
+  function expandSkillsItems(items) {
+    const expanded = [];
+    for (const item of items) {
+      const content = String(item?.content || "");
+      const bulletLines = content
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => /^[-*]\s+/.test(line));
+
+      if (bulletLines.length >= 2) {
+        bulletLines.forEach((line, index) => {
+          expanded.push({
+            ...item,
+            title: "",
+            subtitle: "",
+            location: "",
+            start: "",
+            end: "",
+            dispdate: "",
+            manualsort: item.manualsort ? `${item.manualsort}.${String(index + 1).padStart(3, "0")}` : "",
+            content: line
+          });
+        });
+      } else {
+        expanded.push(item);
+      }
+    }
+    return expanded;
+  }
+
   function renderColumns(items, mainHost, railHost) {
     const grouped = groupBySection(items);
     mainHost.innerHTML = "";
@@ -206,6 +238,7 @@
         return;
       }
       if (cfg.key === "second page rail") renderSecondRail(railHost, sectionItems);
+      else if (cfg.key === "topline skills") renderSection(railHost, cfg.title, expandSkillsItems(sectionItems), { hideEntryTitleWhenSameAsSection: false });
       else renderSection(railHost, cfg.title, sectionItems, { hideEntryTitleWhenSameAsSection: false });
       grouped.delete(cfg.key);
     });
@@ -228,6 +261,7 @@
     sortItems,
     renderStandardCv,
     groupBySection,
+    renderColumns,
     renderSection,
     renderSecondRail,
     renderHeader,
