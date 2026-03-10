@@ -123,8 +123,8 @@ function renderSection(title, items, options = {}) {
     return renderEntry(item, { hideEntryTitle });
   }).join("\n");
 
-  const breakClass = options.breakBefore ? " rail-break-before" : "";
-  return `<section class=\"section${breakClass}\"><h3>${escapeHtml(title)}</h3>${entries}</section>`;
+  const sectionClass = normalizedTitle === "skills" ? "section skills-section" : "section";
+  return `<section class=\"${sectionClass}\"><h3>${escapeHtml(title)}</h3>${entries}</section>`;
 }
 
 function groupBySection(items) {
@@ -136,6 +136,37 @@ function groupBySection(items) {
     grouped.get(section).push(item);
   }
   return grouped;
+}
+
+
+function expandSkillsItems(items) {
+  const expanded = [];
+  for (const item of items) {
+    const content = String(item?.content || "");
+    const bulletLines = content
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => /^[-*]\s+/.test(line));
+
+    if (bulletLines.length >= 2) {
+      bulletLines.forEach((line, index) => {
+        expanded.push({
+          ...item,
+          title: "",
+          subtitle: "",
+          location: "",
+          start: "",
+          end: "",
+          dispdate: "",
+          manualsort: item.manualsort ? `${item.manualsort}.${String(index + 1).padStart(3, "0")}` : "",
+          content: line
+        });
+      });
+    } else {
+      expanded.push(item);
+    }
+  }
+  return expanded;
 }
 
 function renderContact(contacts) {
@@ -156,7 +187,7 @@ function renderDocument(cv, cssHref) {
     { key: "technical + it", title: "Technical + IT", hideTitle: false }
   ];
 
-  const skillsItems = grouped.get("topline skills") || [];
+  const skillsItems = expandSkillsItems(grouped.get("topline skills") || []);
   const educationItems = grouped.get("education") || [];
 
   const mainSections = [];
@@ -206,6 +237,45 @@ function renderDocument(cv, cssHref) {
         <div class="main-col" id="main-col">${mainSections.join("\n")}</div>
       </section>
     </main>
+    <script>
+      function mmToPx(mm) {
+        const probe = document.createElement("div");
+        probe.style.width = mm + "mm";
+        probe.style.position = "absolute";
+        probe.style.visibility = "hidden";
+        document.body.appendChild(probe);
+        const px = probe.getBoundingClientRect().width;
+        probe.remove();
+        return px;
+      }
+
+      function applyRailEducationBreakIfSkillsFit() {
+        const root = document.getElementById("cv-print-root");
+        const railHost = document.getElementById("rail-col");
+        if (!root || !railHost) return;
+
+        const sections = [...railHost.querySelectorAll(':scope > .section')];
+        const skillsSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'skills');
+        const educationSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'education');
+        if (!skillsSection || !educationSection) return;
+
+        educationSection.classList.remove('rail-break-before');
+
+        const pageHeightPx = mmToPx(297);
+        const pageMarginPx = mmToPx(12);
+        const firstPageBottom = root.getBoundingClientRect().top + pageHeightPx - pageMarginPx;
+        const railTop = railHost.getBoundingClientRect().top;
+        const availableRailHeightOnFirstPage = firstPageBottom - railTop;
+        if (availableRailHeightOnFirstPage <= 0) return;
+
+        const skillsHeight = skillsSection.getBoundingClientRect().height;
+        if (skillsHeight <= availableRailHeightOnFirstPage) {
+          educationSection.classList.add('rail-break-before');
+        }
+      }
+
+      applyRailEducationBreakIfSkillsFit();
+    </script>
   </body>
 </html>`;
 }
