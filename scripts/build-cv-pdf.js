@@ -238,8 +238,12 @@ function renderDocument(cv, cssHref) {
       </header>
       ${renderContact(contacts)}
       <section class="content">
-        <aside class="rail-col" id="rail-col">${railSections.join("\n")}</aside>
+        <aside class="rail-col" id="rail-col">
+          <div class="rail-page1">${railPage1Html}</div>
+          <div class="rail-overflow">${railOverflowHtml}</div>
+        </aside>
         <div class="main-col" id="main-col">${mainSections.join("\n")}</div>
+        <aside class="rail-col" id="rail-col">${railSections.join("\n")}</aside>
       </section>
     </main>
     <script>
