@@ -239,6 +239,7 @@ function renderDocument(cv, cssHref) {
           <div class="rail-overflow">${railOverflowHtml}</div>
         </aside>
         <div class="main-col" id="main-col">${mainSections.join("\n")}</div>
+        <aside class="rail-col" id="rail-col">${railSections.join("\n")}</aside>
       </section>
     </main>
     <script>
