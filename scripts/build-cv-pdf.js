@@ -216,6 +216,10 @@ function renderDocument(cv, cssHref) {
 
   const railPage1Html = `${renderSection("Skills", skillsItems)}${renderSection("Education", educationItems)}`;
   const railOverflowHtml = secondRailSections.join("\n");
+  const railSections = [
+    `<div class="rail-page1">${railPage1Html}</div>`,
+    `<div class="rail-overflow">${railOverflowHtml}</div>`
+  ];
 
   return `<!doctype html>
 <html lang="en">
