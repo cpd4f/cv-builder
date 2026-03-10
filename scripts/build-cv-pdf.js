@@ -123,8 +123,8 @@ function renderSection(title, items, options = {}) {
     return renderEntry(item, { hideEntryTitle });
   }).join("\n");
 
-  const breakClass = options.breakBefore ? " rail-break-before" : "";
-  return `<section class=\"section${breakClass}\"><h3>${escapeHtml(title)}</h3>${entries}</section>`;
+  const sectionClass = normalizedTitle === "skills" ? "section skills-section" : "section";
+  return `<section class=\"${sectionClass}\"><h3>${escapeHtml(title)}</h3>${entries}</section>`;
 }
 
 function groupBySection(items) {
@@ -136,6 +136,37 @@ function groupBySection(items) {
     grouped.get(section).push(item);
   }
   return grouped;
+}
+
+
+function expandSkillsItems(items) {
+  const expanded = [];
+  for (const item of items) {
+    const content = String(item?.content || "");
+    const bulletLines = content
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => /^[-*]\s+/.test(line));
+
+    if (bulletLines.length >= 2) {
+      bulletLines.forEach((line, index) => {
+        expanded.push({
+          ...item,
+          title: "",
+          subtitle: "",
+          location: "",
+          start: "",
+          end: "",
+          dispdate: "",
+          manualsort: item.manualsort ? `${item.manualsort}.${String(index + 1).padStart(3, "0")}` : "",
+          content: line
+        });
+      });
+    } else {
+      expanded.push(item);
+    }
+  }
+  return expanded;
 }
 
 function renderContact(contacts) {
@@ -156,7 +187,7 @@ function renderDocument(cv, cssHref) {
     { key: "technical + it", title: "Technical + IT", hideTitle: false }
   ];
 
-  const skillsItems = grouped.get("topline skills") || [];
+  const skillsItems = expandSkillsItems(grouped.get("topline skills") || []);
   const educationItems = grouped.get("education") || [];
 
   const mainSections = [];
@@ -166,17 +197,15 @@ function renderDocument(cv, cssHref) {
     mainSections.push(renderSection(cfg.title, sectionItems, { hideEntryTitleWhenSameAsSection: cfg.hideTitle }));
   }
 
-  const railSections = [];
-  railSections.push(renderSection("Skills", skillsItems));
-  railSections.push(renderSection("Education", educationItems));
   grouped.delete("topline skills");
   grouped.delete("education");
 
   const secondRail = grouped.get("second page rail") || [];
   grouped.delete("second page rail");
+  const secondRailSections = [];
   for (const item of sortItems(secondRail)) {
     if (!item.title) continue;
-    railSections.push(`<section class=\"section\"><h3>${escapeHtml(item.title)}</h3><div class=\"entry-content\">${markdownToHtml(item.content || "")}</div></section>`);
+    secondRailSections.push(`<section class="section"><h3>${escapeHtml(item.title)}</h3><div class="entry-content">${markdownToHtml(item.content || "")}</div></section>`);
   }
 
   const extraKeys = [...grouped.keys()].sort();
@@ -184,6 +213,11 @@ function renderDocument(cv, cssHref) {
     const title = extraKey.replace(/\b\w/g, (c) => c.toUpperCase());
     mainSections.push(renderSection(title, grouped.get(extraKey) || []));
   }
+
+  const railSections = [];
+  railSections.push(renderSection("Skills", skillsItems));
+  railSections.push(renderSection("Education", educationItems));
+  railSections.push(secondRailSections.join("\n"));
 
   return `<!doctype html>
 <html lang="en">
