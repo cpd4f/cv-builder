@@ -103,15 +103,6 @@ body {
   float: left;
 }
 
-.rail-col {
-  float: right;
-  width: 34%;
-}
-
-.main-col {
-  margin-right: calc(34% + 7mm);
-}
-
 .main-col { grid-column: 1; }
 .rail-col { grid-column: 2; }
 
