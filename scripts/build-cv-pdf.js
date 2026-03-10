@@ -214,6 +214,9 @@ function renderDocument(cv, cssHref) {
     mainSections.push(renderSection(title, grouped.get(extraKey) || []));
   }
 
+  const railPage1Html = `${renderSection("Skills", skillsItems)}${renderSection("Education", educationItems)}`;
+  const railOverflowHtml = secondRailSections.join("\n");
+
   return `<!doctype html>
 <html lang="en">
   <head>
@@ -232,8 +235,8 @@ function renderDocument(cv, cssHref) {
       ${renderContact(contacts)}
       <section class="content">
         <aside class="rail-col" id="rail-col">
-          <div class="rail-page1">${renderSection("Skills", skillsItems)}${renderSection("Education", educationItems)}</div>
-          <div class="rail-overflow">${secondRailSections.join("\n")}</div>
+          <div class="rail-page1">${railPage1Html}</div>
+          <div class="rail-overflow">${railOverflowHtml}</div>
         </aside>
         <div class="main-col" id="main-col">${mainSections.join("\n")}</div>
         <aside class="rail-col" id="rail-col">${railSections.join("\n")}</aside>
