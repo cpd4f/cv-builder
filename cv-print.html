@@ -12,14 +12,7 @@
       <button class="print-btn" id="download-btn" type="button">Download PDF</button>
     </div>
 
-    <main class="cv-print" id="cv-print-root">
-      <header class="header" id="header"></header>
-      <section class="contact-bar" id="contact"></section>
-      <section class="content">
-        <div class="main-col" id="main-col"></div>
-        <aside class="rail-col" id="rail-col"></aside>
-      </section>
-    </main>
+    <main class="cv-print" id="cv-print-root"></main>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="cv-render.js"></script>
@@ -29,12 +22,8 @@
       const injectedSlug = String(window.__CV_SLUG__ || "").trim().toLowerCase();
       const slug = (query.get("cv") || injectedSlug || pathSlug || location.hash.replace(/^#/, "") || "coleman-davis").trim().toLowerCase();
 
-
       async function loadCvData() {
-        if (window.__CV_DATA__ && typeof window.__CV_DATA__ === "object") {
-          return window.__CV_DATA__;
-        }
-
+        if (window.__CV_DATA__ && typeof window.__CV_DATA__ === "object") return window.__CV_DATA__;
         const response = await fetch(`data/cv/${encodeURIComponent(slug)}.json`, { cache: "no-store" });
         if (!response.ok) throw new Error(`Unable to load data/cv/${slug}.json (HTTP ${response.status})`);
         return response.json();
@@ -43,16 +32,7 @@
       async function init() {
         try {
           const cv = await loadCvData();
-          const items = Array.isArray(cv.items) ? cv.items : [];
-
-          const header = items.find((item) => window.CvRender.key(item.section) === "header") || {};
-          const contacts = items.filter((item) => window.CvRender.key(item.section) === "contact");
-          const mainHost = document.getElementById("main-col");
-          const railHost = document.getElementById("rail-col");
-
-          window.CvRender.renderHeader(document.getElementById("header"), header);
-          window.CvRender.renderContact(document.getElementById("contact"), contacts, false);
-          window.CvRender.renderColumns(items, mainHost, railHost);
+          window.CvRender.renderPaginatedCv(document.getElementById("cv-print-root"), cv);
         } catch (error) {
           document.body.innerHTML = `<div style="padding:20px;color:#8b1111">${error.message}</div>`;
         }
@@ -63,11 +43,7 @@
       }
 
       async function downloadPdfForSlug(slugValue) {
-        const candidates = [
-          `dist/${encodeURIComponent(slugValue)}.pdf`,
-          `./dist/${encodeURIComponent(slugValue)}.pdf`
-        ];
-
+        const candidates = [`dist/${encodeURIComponent(slugValue)}.pdf`, `./dist/${encodeURIComponent(slugValue)}.pdf`];
         try {
           let response = null;
           for (const path of candidates) {
@@ -87,7 +63,7 @@
           anchor.click();
           anchor.remove();
           URL.revokeObjectURL(url);
-        } catch (error) {
+        } catch (_) {
           alert("Prebuilt PDF not found on this environment. Opening print dialog so you can Save as PDF.");
           openPrintDialog();
         }
