@@ -100,15 +100,8 @@ body {
   min-width: 0;
 }
 
-.main-col {
-  float: left;
-  width: 64%;
-}
-
-.rail-col {
-  float: right;
-  width: 32%;
-}
+.main-col { grid-column: 1; }
+.rail-col { grid-column: 2; }
 
 .section {
   margin-bottom: 10px;
@@ -249,12 +242,8 @@ body {
 
   .main-col,
   .rail-col {
-    float: none;
     width: auto;
   }
-
-  .main-col { grid-column: 1; }
-  .rail-col { grid-column: 2; }
 }
 
 @media print {
