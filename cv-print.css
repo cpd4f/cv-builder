@@ -253,13 +253,9 @@ body {
 
   .main-col,
   .rail-col {
-    float: none;
     width: auto;
     margin-left: 0;
   }
-
-  .main-col { grid-column: 1; }
-  .rail-col { grid-column: 2; }
 }
 
 @media print {
