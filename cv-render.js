@@ -136,9 +136,10 @@
     if (!items.length) return;
     const section = document.createElement("section");
     section.className = "section";
-    section.innerHTML = `<h3>${title}</h3>`;
 
     const normalizedTitle = String(title || "").trim().toLowerCase();
+    if (normalizedTitle === "skills") section.classList.add("skills-section");
+    section.innerHTML = `<h3>${title}</h3>`;
     sortItems(items).forEach((item) => {
       const itemTitle = String(item?.title || "").trim().toLowerCase();
       const hideEntryTitle = options.hideEntryTitleWhenSameAsSection && itemTitle && itemTitle === normalizedTitle;
@@ -175,6 +176,86 @@
     return grouped;
   }
 
+
+  function expandSkillsItems(items) {
+    const expanded = [];
+    for (const item of items) {
+      const content = String(item?.content || "");
+      const bulletLines = content
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => /^[-*]\s+/.test(line));
+
+      if (bulletLines.length >= 2) {
+        bulletLines.forEach((line, index) => {
+          expanded.push({
+            ...item,
+            title: "",
+            subtitle: "",
+            location: "",
+            start: "",
+            end: "",
+            dispdate: "",
+            manualsort: item.manualsort ? `${item.manualsort}.${String(index + 1).padStart(3, "0")}` : "",
+            content: line
+          });
+        });
+      } else {
+        expanded.push(item);
+      }
+    }
+    return expanded;
+  }
+
+  function packRailForPagedLayout(root, railHost) {
+    if (!root || !railHost) return;
+
+    const page1 = railHost.querySelector(":scope > .rail-page1");
+    const overflow = railHost.querySelector(":scope > .rail-overflow");
+    if (!page1 || !overflow) return;
+
+    const sections = [...page1.querySelectorAll(":scope > .section")];
+    const skillsSection = sections.find((section) => section.querySelector("h3")?.textContent?.trim().toLowerCase() === "skills");
+    const educationSection = sections.find((section) => section.querySelector("h3")?.textContent?.trim().toLowerCase() === "education");
+    if (!skillsSection) return;
+
+    const overflowSkills = document.createElement("section");
+    overflowSkills.className = "section skills-section";
+    overflowSkills.innerHTML = "<h3>Skills</h3>";
+
+    const mmProbe = document.createElement("div");
+    mmProbe.style.width = "1mm";
+    mmProbe.style.position = "absolute";
+    mmProbe.style.visibility = "hidden";
+    document.body.appendChild(mmProbe);
+    const pxPerMm = mmProbe.getBoundingClientRect().width || 3.7795;
+    mmProbe.remove();
+
+    const firstPageBottom = root.getBoundingClientRect().top + (297 - 12) * pxPerMm;
+    const page1Top = page1.getBoundingClientRect().top;
+    const availableHeight = firstPageBottom - page1Top;
+
+    if (availableHeight > 0) {
+      while (skillsSection.querySelectorAll(":scope > .entry").length > 1 && page1.getBoundingClientRect().height > availableHeight) {
+        const entries = skillsSection.querySelectorAll(":scope > .entry");
+        const last = entries[entries.length - 1];
+        overflowSkills.appendChild(last);
+      }
+    }
+
+    if (overflowSkills.querySelector(":scope > .entry")) {
+      const movedEntries = [...overflowSkills.querySelectorAll(":scope > .entry")];
+      overflowSkills.innerHTML = "<h3>Skills</h3>";
+      movedEntries.reverse().forEach((entry) => overflowSkills.appendChild(entry));
+      overflow.prepend(overflowSkills);
+    }
+
+    if (educationSection) overflow.appendChild(educationSection);
+
+    if (overflow.children.length) overflow.classList.add("rail-page-break");
+    else overflow.classList.remove("rail-page-break");
+  }
+
   function renderColumns(items, mainHost, railHost) {
     const grouped = groupBySection(items);
     mainHost.innerHTML = "";
@@ -186,11 +267,6 @@
       { key: "technical + it", title: "Technical + IT" }
     ];
 
-    const railConfig = [
-      { key: "topline skills", title: "Skills" },
-      { key: "education", title: "Education" },
-      { key: "second page rail", title: null }
-    ];
 
     mainConfig.forEach((cfg) => {
       const sectionItems = grouped.get(cfg.key) || [];
@@ -199,16 +275,23 @@
       grouped.delete(cfg.key);
     });
 
-    railConfig.forEach((cfg) => {
-      const sectionItems = grouped.get(cfg.key) || [];
-      if (!sectionItems.length) {
-        grouped.delete(cfg.key);
-        return;
-      }
-      if (cfg.key === "second page rail") renderSecondRail(railHost, sectionItems);
-      else renderSection(railHost, cfg.title, sectionItems, { hideEntryTitleWhenSameAsSection: false });
-      grouped.delete(cfg.key);
-    });
+    const railPage1 = document.createElement("div");
+    railPage1.className = "rail-page1";
+    const railOverflow = document.createElement("div");
+    railOverflow.className = "rail-overflow";
+    railHost.appendChild(railPage1);
+    railHost.appendChild(railOverflow);
+
+    const skillsItems = grouped.get("topline skills") || [];
+    const educationItems = grouped.get("education") || [];
+    const secondRailItems = grouped.get("second page rail") || [];
+    renderSection(railPage1, "Skills", expandSkillsItems(skillsItems), { hideEntryTitleWhenSameAsSection: false });
+    renderSection(railPage1, "Education", educationItems, { hideEntryTitleWhenSameAsSection: false });
+    renderSecondRail(railOverflow, secondRailItems);
+
+    grouped.delete("topline skills");
+    grouped.delete("education");
+    grouped.delete("second page rail");
 
     [...grouped.keys()].sort().forEach((extraKey) => {
       renderSection(mainHost, titleCase(extraKey), grouped.get(extraKey), { hideEntryTitleWhenSameAsSection: false });
@@ -228,6 +311,8 @@
     sortItems,
     renderStandardCv,
     groupBySection,
+    packRailForPagedLayout,
+    renderColumns,
     renderSection,
     renderSecondRail,
     renderHeader,
