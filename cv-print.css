@@ -248,6 +248,7 @@ body {
 
   .content::after {
     content: none;
+    display: none;
   }
 
   .main-col,
@@ -259,18 +260,24 @@ body {
 
 @media print {
   .content {
-    display: block !important;
+    display: block;
+    width: 100%;
+  }
+
+  .content::after {
+    content: none !important;
+    display: none !important;
   }
 
   .main-col {
-    float: left !important;
-    width: 65% !important;
+    float: left;
+    width: 64%;
   }
 
   .rail-col {
-    float: left !important;
-    width: 31% !important;
-    margin-left: 4% !important;
+    float: right;
+    width: 32%;
+    margin-left: 0;
   }
 
   body {
@@ -282,3 +289,4 @@ body {
     display: none !important;
   }
 }
+
