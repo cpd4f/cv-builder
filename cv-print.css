@@ -114,6 +114,12 @@ body {
   margin-bottom: 10px;
 }
 
+.content > .main-col > .section,
+.content > .rail-col > .section {
+  break-inside: auto;
+  page-break-inside: auto;
+}
+
 
 .section h3 {
   margin: 0 0 6px;
@@ -182,14 +188,6 @@ body {
 .rail-col .entry-date,
 .rail-col .entry-content { font-size: 12px; }
 
-
-.skills-section .entry {
-  margin-bottom: 2px;
-}
-
-.skills-section .entry-content {
-  margin-top: 0;
-}
 
 .skills-section .entry {
   margin-bottom: 2px;
