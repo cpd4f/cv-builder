@@ -197,17 +197,15 @@ function renderDocument(cv, cssHref) {
     mainSections.push(renderSection(cfg.title, sectionItems, { hideEntryTitleWhenSameAsSection: cfg.hideTitle }));
   }
 
-  const railSections = [];
-  railSections.push(renderSection("Skills", skillsItems));
-  railSections.push(renderSection("Education", educationItems));
   grouped.delete("topline skills");
   grouped.delete("education");
 
   const secondRail = grouped.get("second page rail") || [];
   grouped.delete("second page rail");
+  const secondRailSections = [];
   for (const item of sortItems(secondRail)) {
     if (!item.title) continue;
-    railSections.push(`<section class=\"section\"><h3>${escapeHtml(item.title)}</h3><div class=\"entry-content\">${markdownToHtml(item.content || "")}</div></section>`);
+    secondRailSections.push(`<section class="section"><h3>${escapeHtml(item.title)}</h3><div class="entry-content">${markdownToHtml(item.content || "")}</div></section>`);
   }
 
   const extraKeys = [...grouped.keys()].sort();
@@ -233,48 +231,65 @@ function renderDocument(cv, cssHref) {
       </header>
       ${renderContact(contacts)}
       <section class="content">
+        <aside class="rail-col" id="rail-col">
+          <div class="rail-page1">${renderSection("Skills", skillsItems)}${renderSection("Education", educationItems)}</div>
+          <div class="rail-overflow">${secondRailSections.join("\n")}</div>
+        </aside>
         <div class="main-col" id="main-col">${mainSections.join("\n")}</div>
         <aside class="rail-col" id="rail-col">${railSections.join("\n")}</aside>
       </section>
     </main>
     <script>
-      function mmToPx(mm) {
-        const probe = document.createElement("div");
-        probe.style.width = mm + "mm";
-        probe.style.position = "absolute";
-        probe.style.visibility = "hidden";
-        document.body.appendChild(probe);
-        const px = probe.getBoundingClientRect().width;
-        probe.remove();
-        return px;
-      }
-
-      function applyRailEducationBreakIfSkillsFit() {
+      (function packRailForPagedLayout() {
         const root = document.getElementById("cv-print-root");
         const railHost = document.getElementById("rail-col");
         if (!root || !railHost) return;
 
-        const sections = [...railHost.querySelectorAll(':scope > .section')];
-        const skillsSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'skills');
-        const educationSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'education');
-        if (!skillsSection || !educationSection) return;
+        const page1 = railHost.querySelector(":scope > .rail-page1");
+        const overflow = railHost.querySelector(":scope > .rail-overflow");
+        if (!page1 || !overflow) return;
 
-        educationSection.classList.remove('rail-break-before');
+        const sections = [...page1.querySelectorAll(":scope > .section")];
+        const skillsSection = sections.find((section) => section.querySelector("h3")?.textContent?.trim().toLowerCase() === "skills");
+        const educationSection = sections.find((section) => section.querySelector("h3")?.textContent?.trim().toLowerCase() === "education");
+        if (!skillsSection) return;
 
-        const pageHeightPx = mmToPx(297);
-        const pageMarginPx = mmToPx(12);
-        const firstPageBottom = root.getBoundingClientRect().top + pageHeightPx - pageMarginPx;
-        const railTop = railHost.getBoundingClientRect().top;
-        const availableRailHeightOnFirstPage = firstPageBottom - railTop;
-        if (availableRailHeightOnFirstPage <= 0) return;
+        const overflowSkills = document.createElement("section");
+        overflowSkills.className = "section skills-section";
+        overflowSkills.innerHTML = "<h3>Skills</h3>";
 
-        const skillsHeight = skillsSection.getBoundingClientRect().height;
-        if (skillsHeight <= availableRailHeightOnFirstPage) {
-          educationSection.classList.add('rail-break-before');
+        const mmProbe = document.createElement("div");
+        mmProbe.style.width = "1mm";
+        mmProbe.style.position = "absolute";
+        mmProbe.style.visibility = "hidden";
+        document.body.appendChild(mmProbe);
+        const pxPerMm = mmProbe.getBoundingClientRect().width || 3.7795;
+        mmProbe.remove();
+
+        const firstPageBottom = root.getBoundingClientRect().top + (297 - 12) * pxPerMm;
+        const page1Top = page1.getBoundingClientRect().top;
+        const availableHeight = firstPageBottom - page1Top;
+
+        if (availableHeight > 0) {
+          while (skillsSection.querySelectorAll(":scope > .entry").length > 1 && page1.getBoundingClientRect().height > availableHeight) {
+            const entries = skillsSection.querySelectorAll(":scope > .entry");
+            const last = entries[entries.length - 1];
+            overflowSkills.appendChild(last);
+          }
         }
-      }
 
-      applyRailEducationBreakIfSkillsFit();
+        if (overflowSkills.querySelector(":scope > .entry")) {
+          const movedEntries = [...overflowSkills.querySelectorAll(":scope > .entry")];
+          overflowSkills.innerHTML = "<h3>Skills</h3>";
+          movedEntries.reverse().forEach((entry) => overflowSkills.appendChild(entry));
+          overflow.prepend(overflowSkills);
+        }
+
+        if (educationSection) overflow.appendChild(educationSection);
+
+        if (overflow.children.length) overflow.classList.add("rail-page-break");
+        else overflow.classList.remove("rail-page-break");
+      })();
     </script>
   </body>
 </html>`;

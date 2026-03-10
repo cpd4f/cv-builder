@@ -29,42 +29,6 @@
       const injectedSlug = String(window.__CV_SLUG__ || "").trim().toLowerCase();
       const slug = (query.get("cv") || injectedSlug || pathSlug || location.hash.replace(/^#/, "") || "coleman-davis").trim().toLowerCase();
 
-      function mmToPx(mm) {
-        const probe = document.createElement("div");
-        probe.style.width = `${mm}mm`;
-        probe.style.position = "absolute";
-        probe.style.visibility = "hidden";
-        document.body.appendChild(probe);
-        const px = probe.getBoundingClientRect().width;
-        probe.remove();
-        return px;
-      }
-
-      function applyRailEducationBreakIfSkillsFit() {
-        const root = document.getElementById("cv-print-root");
-        const railHost = document.getElementById("rail-col");
-        if (!root || !railHost) return;
-
-        const sections = [...railHost.querySelectorAll(':scope > .section')];
-        const skillsSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'skills');
-        const educationSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'education');
-
-        if (!skillsSection || !educationSection) return;
-
-        educationSection.classList.remove('rail-break-before');
-
-        const pageHeightPx = mmToPx(297);
-        const pageMarginPx = mmToPx(12);
-        const firstPageBottom = root.getBoundingClientRect().top + pageHeightPx - pageMarginPx;
-        const railTop = railHost.getBoundingClientRect().top;
-        const availableRailHeightOnFirstPage = firstPageBottom - railTop;
-        if (availableRailHeightOnFirstPage <= 0) return;
-
-        const skillsHeight = skillsSection.getBoundingClientRect().height;
-        if (skillsHeight <= availableRailHeightOnFirstPage) {
-          educationSection.classList.add('rail-break-before');
-        }
-      }
 
       async function loadCvData() {
         if (window.__CV_DATA__ && typeof window.__CV_DATA__ === "object") {
@@ -89,7 +53,7 @@
           window.CvRender.renderHeader(document.getElementById("header"), header);
           window.CvRender.renderContact(document.getElementById("contact"), contacts, false);
           window.CvRender.renderColumns(items, mainHost, railHost);
-          applyRailEducationBreakIfSkillsFit();
+          window.CvRender.packRailForPagedLayout(document.getElementById("cv-print-root"), railHost);
         } catch (error) {
           document.body.innerHTML = `<div style="padding:20px;color:#8b1111">${error.message}</div>`;
         }

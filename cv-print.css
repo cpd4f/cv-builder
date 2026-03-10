@@ -110,12 +110,22 @@ body {
   width: 32%;
 }
 
+.rail-page1,
+.rail-overflow {
+  min-width: 0;
+}
+
+.rail-overflow {
+  clear: both;
+}
+
+
 .section {
   margin-bottom: 10px;
 }
 
 div#main-col > section,
-aside#rail-col > section.section {
+#rail-col .section {
   break-inside: auto;
   page-break-inside: auto;
 }
@@ -187,7 +197,7 @@ aside#rail-col > section.section {
 .rail-col .entry-date,
 .rail-col .entry-content { font-size: 12px; }
 
-.rail-break-before {
+.rail-page-break {
   break-before: page;
   page-break-before: always;
 }
