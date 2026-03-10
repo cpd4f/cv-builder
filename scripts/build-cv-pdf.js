@@ -80,6 +80,15 @@ function sortItems(items) {
   });
 }
 
+
+function titleCase(value) {
+  return String(value || "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 function formatApDate(value) {
   const input = String(value || "").trim();
   if (!input) return "";
@@ -212,8 +221,7 @@ function renderDocument(cv, cssHref) {
 
   const extraKeys = [...grouped.keys()].sort();
   for (const extraKey of extraKeys) {
-    const title = extraKey.replace(/\b\w/g, (c) => c.toUpperCase());
-    mainSections.push(renderSection(title, grouped.get(extraKey) || []));
+    mainSections.push(renderSection(titleCase(extraKey), grouped.get(extraKey) || []));
   }
 
   return `<!doctype html>
@@ -237,45 +245,6 @@ function renderDocument(cv, cssHref) {
         <aside class="rail-col" id="rail-col">${railSections.join("\n")}</aside>
       </section>
     </main>
-    <script>
-      function mmToPx(mm) {
-        const probe = document.createElement("div");
-        probe.style.width = mm + "mm";
-        probe.style.position = "absolute";
-        probe.style.visibility = "hidden";
-        document.body.appendChild(probe);
-        const px = probe.getBoundingClientRect().width;
-        probe.remove();
-        return px;
-      }
-
-      function applyRailEducationBreakIfSkillsFit() {
-        const root = document.getElementById("cv-print-root");
-        const railHost = document.getElementById("rail-col");
-        if (!root || !railHost) return;
-
-        const sections = [...railHost.querySelectorAll(':scope > .section')];
-        const skillsSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'skills');
-        const educationSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'education');
-        if (!skillsSection || !educationSection) return;
-
-        educationSection.classList.remove('rail-break-before');
-
-        const pageHeightPx = mmToPx(297);
-        const pageMarginPx = mmToPx(12);
-        const firstPageBottom = root.getBoundingClientRect().top + pageHeightPx - pageMarginPx;
-        const railTop = railHost.getBoundingClientRect().top;
-        const availableRailHeightOnFirstPage = firstPageBottom - railTop;
-        if (availableRailHeightOnFirstPage <= 0) return;
-
-        const skillsHeight = skillsSection.getBoundingClientRect().height;
-        if (skillsHeight <= availableRailHeightOnFirstPage) {
-          educationSection.classList.add('rail-break-before');
-        }
-      }
-
-      applyRailEducationBreakIfSkillsFit();
-    </script>
   </body>
 </html>`;
 }

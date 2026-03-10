@@ -89,10 +89,12 @@ body {
 .content {
   margin-top: 6mm;
   width: 100%;
-  display: grid;
-  grid-template-columns: minmax(0, 1.95fr) minmax(0, 1fr);
-  column-gap: 6mm;
-  align-items: start;
+}
+
+.content::after {
+  content: "";
+  display: table;
+  clear: both;
 }
 
 .main-col,
@@ -112,10 +114,6 @@ body {
 
 .section {
   margin-bottom: 10px;
-}
-
-div#main-col > section,
-aside#rail-col > section.section {
   break-inside: auto;
   page-break-inside: auto;
 }
@@ -187,11 +185,6 @@ aside#rail-col > section.section {
 .rail-col .entry-date,
 .rail-col .entry-content { font-size: 12px; }
 
-.rail-break-before {
-  break-before: page;
-  page-break-before: always;
-}
-
 .skills-section .entry {
   margin-bottom: 2px;
 }
@@ -199,7 +192,6 @@ aside#rail-col > section.section {
 .skills-section .entry-content {
   margin-top: 0;
 }
-
 
 .print-actions {
   display: none;

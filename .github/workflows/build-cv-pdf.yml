@@ -111,8 +111,7 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/cv/*.json
-          git add -f dist/*.pdf
+          git add data/cv dist
           git commit -m "chore: update generated CV JSON and PDFs"
 
           branch="${GITHUB_REF_NAME:-main}"
