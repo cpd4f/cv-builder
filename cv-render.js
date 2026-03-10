@@ -136,9 +136,10 @@
     if (!items.length) return;
     const section = document.createElement("section");
     section.className = "section";
-    section.innerHTML = `<h3>${title}</h3>`;
 
     const normalizedTitle = String(title || "").trim().toLowerCase();
+    if (normalizedTitle === "skills") section.classList.add("skills-section");
+    section.innerHTML = `<h3>${title}</h3>`;
     sortItems(items).forEach((item) => {
       const itemTitle = String(item?.title || "").trim().toLowerCase();
       const hideEntryTitle = options.hideEntryTitleWhenSameAsSection && itemTitle && itemTitle === normalizedTitle;
@@ -175,6 +176,37 @@
     return grouped;
   }
 
+
+  function expandSkillsItems(items) {
+    const expanded = [];
+    for (const item of items) {
+      const content = String(item?.content || "");
+      const bulletLines = content
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => /^[-*]\s+/.test(line));
+
+      if (bulletLines.length >= 2) {
+        bulletLines.forEach((line, index) => {
+          expanded.push({
+            ...item,
+            title: "",
+            subtitle: "",
+            location: "",
+            start: "",
+            end: "",
+            dispdate: "",
+            manualsort: item.manualsort ? `${item.manualsort}.${String(index + 1).padStart(3, "0")}` : "",
+            content: line
+          });
+        });
+      } else {
+        expanded.push(item);
+      }
+    }
+    return expanded;
+  }
+
   function renderColumns(items, mainHost, railHost) {
     const grouped = groupBySection(items);
     mainHost.innerHTML = "";
@@ -186,11 +218,6 @@
       { key: "technical + it", title: "Technical + IT" }
     ];
 
-    const railConfig = [
-      { key: "topline skills", title: "Skills" },
-      { key: "education", title: "Education" },
-      { key: "second page rail", title: null }
-    ];
 
     mainConfig.forEach((cfg) => {
       const sectionItems = grouped.get(cfg.key) || [];
@@ -199,16 +226,17 @@
       grouped.delete(cfg.key);
     });
 
-    railConfig.forEach((cfg) => {
-      const sectionItems = grouped.get(cfg.key) || [];
-      if (!sectionItems.length) {
-        grouped.delete(cfg.key);
-        return;
-      }
-      if (cfg.key === "second page rail") renderSecondRail(railHost, sectionItems);
-      else renderSection(railHost, cfg.title, sectionItems, { hideEntryTitleWhenSameAsSection: false });
-      grouped.delete(cfg.key);
-    });
+    const skillsItems = grouped.get("topline skills") || [];
+    const educationItems = grouped.get("education") || [];
+    const secondRailItems = grouped.get("second page rail") || [];
+
+    renderSection(railHost, "Skills", expandSkillsItems(skillsItems), { hideEntryTitleWhenSameAsSection: false });
+    renderSection(railHost, "Education", educationItems, { hideEntryTitleWhenSameAsSection: false });
+    renderSecondRail(railHost, secondRailItems);
+
+    grouped.delete("topline skills");
+    grouped.delete("education");
+    grouped.delete("second page rail");
 
     [...grouped.keys()].sort().forEach((extraKey) => {
       renderSection(mainHost, titleCase(extraKey), grouped.get(extraKey), { hideEntryTitleWhenSameAsSection: false });
@@ -228,6 +256,7 @@
     sortItems,
     renderStandardCv,
     groupBySection,
+    renderColumns,
     renderSection,
     renderSecondRail,
     renderHeader,
