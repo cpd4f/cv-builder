@@ -60,14 +60,6 @@
     return end;
   }
 
-  function contactIconClass(title) {
-    const t = String(title || "").trim().toLowerCase();
-    if (t === "email") return "fa-solid fa-envelope";
-    if (t === "website") return "fa-solid fa-link";
-    if (t === "phone") return "fa-solid fa-phone";
-    return "fa-solid fa-circle-info";
-  }
-
   function renderHeader(host, item) {
     host.innerHTML = `
       <h1>${item?.title || "CV"}</h1>
@@ -76,7 +68,7 @@
     `;
   }
 
-  function renderContact(host, items, withIcons = true) {
+  function renderContact(host, items) {
     const entries = items.filter((item) => String(item?.content || "").trim() !== "");
     if (!entries.length) {
       host.style.display = "none";
@@ -84,76 +76,73 @@
     }
 
     host.style.display = "grid";
-    host.innerHTML = "";
-    entries.forEach((item) => {
-      const el = document.createElement("div");
-      el.className = "contact-item";
-      el.innerHTML = withIcons
-        ? `<i class="${contactIconClass(item.title)}" aria-hidden="true"></i><span>${item.content || ""}</span>`
-        : `<span>${item.content || ""}</span>`;
-      host.appendChild(el);
-    });
+    host.innerHTML = entries
+      .map((item) => `<div class="contact-item"><span>${item.content || ""}</span></div>`)
+      .join("");
   }
 
   function renderEntry(item, options = {}) {
-    const wrap = document.createElement("article");
-    wrap.className = "entry";
+    const article = document.createElement("article");
+    article.className = "entry";
 
     const hideTitle = Boolean(options.hideEntryTitle);
-
     if (item.title && !hideTitle) {
       const title = document.createElement("h4");
       title.className = "entry-title";
       title.textContent = item.title;
-      wrap.appendChild(title);
+      article.appendChild(title);
     }
 
     if (item.subtitle || item.location) {
       const meta = document.createElement("div");
       meta.className = "entry-meta";
       meta.textContent = [item.subtitle, item.location].filter(Boolean).join(" • ");
-      wrap.appendChild(meta);
+      article.appendChild(meta);
     }
 
-    if (item.start || item.end || item.dispdate) {
-      const date = document.createElement("div");
-      date.className = "entry-date";
-      date.textContent = displayDate(item);
-      wrap.appendChild(date);
+    const date = displayDate(item);
+    if (date) {
+      const dateEl = document.createElement("div");
+      dateEl.className = "entry-date";
+      dateEl.textContent = date;
+      article.appendChild(dateEl);
     }
 
     if (item.content) {
       const content = document.createElement("div");
       content.className = "entry-content";
       content.innerHTML = markdownToHtml(item.content);
-      wrap.appendChild(content);
+      article.appendChild(content);
     }
 
-    return wrap;
+    return article;
   }
 
   function renderSection(host, title, items, options = {}) {
     if (!items.length) return;
     const section = document.createElement("section");
-    section.className = "section";
-
-    const normalizedTitle = String(title || "").trim().toLowerCase();
-    if (normalizedTitle === "skills") section.classList.add("skills-section");
+    const normalizedTitle = key(title);
+    section.className = normalizedTitle === "skills" ? "section skills-section" : "section";
+    if (options.column === "main") section.classList.add("col-main");
+    if (options.column === "rail") section.classList.add("col-rail");
     section.innerHTML = `<h3>${title}</h3>`;
+
     sortItems(items).forEach((item) => {
-      const itemTitle = String(item?.title || "").trim().toLowerCase();
-      const hideEntryTitle = options.hideEntryTitleWhenSameAsSection && itemTitle && itemTitle === normalizedTitle;
+      const hideEntryTitle =
+        options.hideEntryTitleWhenSameAsSection &&
+        key(item.title) &&
+        key(item.title) === normalizedTitle;
       section.appendChild(renderEntry(item, { hideEntryTitle }));
     });
 
     host.appendChild(section);
   }
 
-  function renderSecondRail(host, items) {
+  function renderPlainRailSections(host, items) {
     sortItems(items).forEach((item) => {
       if (!item.title) return;
       const section = document.createElement("section");
-      section.className = "section";
+      section.className = "section col-rail";
       section.innerHTML = `<h3>${item.title}</h3>`;
       if (item.content) {
         const body = document.createElement("div");
@@ -163,6 +152,36 @@
       }
       host.appendChild(section);
     });
+  }
+
+  function splitSkillsBullets(items) {
+    const expanded = [];
+    for (const item of items) {
+      const lines = String(item?.content || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => /^[-*]\s+/.test(line));
+
+      if (lines.length < 2) {
+        expanded.push(item);
+        continue;
+      }
+
+      lines.forEach((line, index) => {
+        expanded.push({
+          ...item,
+          title: "",
+          subtitle: "",
+          location: "",
+          start: "",
+          end: "",
+          dispdate: "",
+          manualsort: item.manualsort ? `${item.manualsort}.${String(index + 1).padStart(3, "0")}` : "",
+          content: line
+        });
+      });
+    }
+    return expanded;
   }
 
   function groupBySection(items) {
@@ -176,70 +195,35 @@
     return grouped;
   }
 
-
-  function expandSkillsItems(items) {
-    const expanded = [];
-    for (const item of items) {
-      const content = String(item?.content || "");
-      const bulletLines = content
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter((line) => /^[-*]\s+/.test(line));
-
-      if (bulletLines.length >= 2) {
-        bulletLines.forEach((line, index) => {
-          expanded.push({
-            ...item,
-            title: "",
-            subtitle: "",
-            location: "",
-            start: "",
-            end: "",
-            dispdate: "",
-            manualsort: item.manualsort ? `${item.manualsort}.${String(index + 1).padStart(3, "0")}` : "",
-            content: line
-          });
-        });
-      } else {
-        expanded.push(item);
-      }
-    }
-    return expanded;
-  }
-
   function renderColumns(items, mainHost, railHost) {
     const grouped = groupBySection(items);
     mainHost.innerHTML = "";
     railHost.innerHTML = "";
 
-    const mainConfig = [
-      { key: "core competencies", title: "Core Competencies" },
-      { key: "work experience", title: "Work Experience" },
-      { key: "technical + it", title: "Technical + IT" }
+    const mainOrder = [
+      { key: "core competencies", title: "Core Competencies", hideTitle: true },
+      { key: "work experience", title: "Work Experience", hideTitle: false },
+      { key: "technical + it", title: "Technical + IT", hideTitle: false }
     ];
 
-
-    mainConfig.forEach((cfg) => {
-      const sectionItems = grouped.get(cfg.key) || [];
-      const hideTitle = cfg.key === "core competencies";
-      renderSection(mainHost, cfg.title, sectionItems, { hideEntryTitleWhenSameAsSection: hideTitle });
+    mainOrder.forEach((cfg) => {
+      renderSection(mainHost, cfg.title, grouped.get(cfg.key) || [], {
+        hideEntryTitleWhenSameAsSection: cfg.hideTitle,
+        column: "main"
+      });
       grouped.delete(cfg.key);
     });
 
-    const skillsItems = grouped.get("topline skills") || [];
-    const educationItems = grouped.get("education") || [];
-    const secondRailItems = grouped.get("second page rail") || [];
-
-    renderSection(railHost, "Skills", expandSkillsItems(skillsItems), { hideEntryTitleWhenSameAsSection: false });
-    renderSection(railHost, "Education", educationItems, { hideEntryTitleWhenSameAsSection: false });
-    renderSecondRail(railHost, secondRailItems);
+    renderSection(railHost, "Skills", splitSkillsBullets(grouped.get("topline skills") || []), { column: "rail" });
+    renderSection(railHost, "Education", grouped.get("education") || [], { column: "rail" });
+    renderPlainRailSections(railHost, grouped.get("second page rail") || []);
 
     grouped.delete("topline skills");
     grouped.delete("education");
     grouped.delete("second page rail");
 
     [...grouped.keys()].sort().forEach((extraKey) => {
-      renderSection(mainHost, titleCase(extraKey), grouped.get(extraKey), { hideEntryTitleWhenSameAsSection: false });
+      renderSection(mainHost, titleCase(extraKey), grouped.get(extraKey) || [], { column: "main" });
     });
   }
 
@@ -247,19 +231,16 @@
     const header = items.find((item) => key(item.section) === "header") || {};
     const contacts = items.filter((item) => key(item.section) === "contact");
     renderHeader(headerEl, header);
-    renderContact(contactEl, contacts, true);
+    renderContact(contactEl, contacts);
     renderColumns(items, mainEl, railEl);
   }
 
   global.CvRender = {
     key,
     sortItems,
-    renderStandardCv,
-    groupBySection,
-    renderColumns,
-    renderSection,
-    renderSecondRail,
     renderHeader,
-    renderContact
+    renderContact,
+    renderColumns,
+    renderStandardCv
   };
 })(window);
