@@ -88,15 +88,19 @@ body {
 
 .content {
   margin-top: 6mm;
-  display: grid;
-  grid-template-columns: 1.75fr 0.95fr;
-  gap: 7mm;
-  align-items: start;
+  width: 100%;
+}
+
+.content::after {
+  content: "";
+  display: block;
+  clear: both;
 }
 
 .main-col,
 .rail-col {
   min-width: 0;
+  float: left;
 }
 
 .main-col { grid-column: 1; }
