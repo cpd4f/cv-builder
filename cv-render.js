@@ -207,39 +207,6 @@
     return expanded;
   }
 
-  function mmToPx(mm) {
-    const probe = document.createElement("div");
-    probe.style.width = `${mm}mm`;
-    probe.style.position = "absolute";
-    probe.style.visibility = "hidden";
-    document.body.appendChild(probe);
-    const px = probe.getBoundingClientRect().width;
-    probe.remove();
-    return px;
-  }
-
-  function applyRailEducationBreakIfSkillsFit(root, railHost) {
-    if (!root || !railHost) return;
-    const sections = [...railHost.querySelectorAll(":scope > .section")];
-    const skillsSection = sections.find((section) => section.querySelector("h3")?.textContent?.trim().toLowerCase() === "skills");
-    const educationSection = sections.find((section) => section.querySelector("h3")?.textContent?.trim().toLowerCase() === "education");
-    if (!skillsSection || !educationSection) return;
-
-    educationSection.classList.remove("rail-page-break");
-
-    const pageHeightPx = mmToPx(297);
-    const pageMarginPx = mmToPx(12);
-    const firstPageBottom = root.getBoundingClientRect().top + pageHeightPx - pageMarginPx;
-    const railTop = railHost.getBoundingClientRect().top;
-    const availableRailHeightOnFirstPage = firstPageBottom - railTop;
-    if (availableRailHeightOnFirstPage <= 0) return;
-
-    const skillsHeight = skillsSection.getBoundingClientRect().height;
-    if (skillsHeight <= availableRailHeightOnFirstPage) {
-      educationSection.classList.add("rail-page-break");
-    }
-  }
-
   function renderColumns(items, mainHost, railHost) {
     const grouped = groupBySection(items);
     mainHost.innerHTML = "";
@@ -289,7 +256,6 @@
     sortItems,
     renderStandardCv,
     groupBySection,
-    applyRailEducationBreakIfSkillsFit,
     renderColumns,
     renderSection,
     renderSecondRail,

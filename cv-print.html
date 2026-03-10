@@ -53,7 +53,6 @@
           window.CvRender.renderHeader(document.getElementById("header"), header);
           window.CvRender.renderContact(document.getElementById("contact"), contacts, false);
           window.CvRender.renderColumns(items, mainHost, railHost);
-          window.CvRender.applyRailEducationBreakIfSkillsFit(document.getElementById("cv-print-root"), railHost);
         } catch (error) {
           document.body.innerHTML = `<div style="padding:20px;color:#8b1111">${error.message}</div>`;
         }

@@ -182,9 +182,13 @@ body {
 .rail-col .entry-date,
 .rail-col .entry-content { font-size: 12px; }
 
-.rail-page-break {
-  break-before: page;
-  page-break-before: always;
+
+.skills-section .entry {
+  margin-bottom: 2px;
+}
+
+.skills-section .entry-content {
+  margin-top: 0;
 }
 
 .skills-section .entry {
