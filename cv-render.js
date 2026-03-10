@@ -48,8 +48,8 @@
   function estimateUnits(item, isRail = false) {
     const text = `${item.title || ""} ${item.subtitle || ""} ${item.location || ""} ${item.content || ""}`.trim();
     const chars = text.length;
-    const perLine = isRail ? 42 : 74;
-    const lines = Math.max(2, Math.ceil(chars / perLine));
+    const perLine = isRail ? 48 : 82;
+    const lines = Math.max(1, Math.ceil(chars / perLine));
     return lines + (item.content ? 1 : 0);
   }
 
@@ -60,7 +60,7 @@
   function sectionEntries(title, items, opts = {}) {
     if (!items.length) return [];
     const normalized = key(title);
-    const out = [{ type: "section-title", title, units: 2 }];
+    const out = [{ type: "section-title", title, units: 1 }];
     sortItems(items).forEach((item) => {
       const hideTitle = opts.hideEntryTitleWhenSameAsSection && key(item.title) && key(item.title) === normalized;
       out.push(makeEntry(item, hideTitle));
@@ -103,7 +103,7 @@
 
     sortItems(grouped.get("second page rail") || []).forEach((item) => {
       if (!item.title) return;
-      rail.push({ type: "section-title", title: item.title, units: 2 });
+      rail.push({ type: "section-title", title: item.title, units: 1 });
       rail.push({ type: "entry", item: { ...item, content: item.content || "" }, hideTitle: true, units: estimateUnits(item, true) });
     });
 
@@ -141,8 +141,8 @@
     let m = 0; let r = 0;
     let page = 0;
     while (m < mainAtoms.length || r < railAtoms.length) {
-      const mainBudget = page === 0 ? 36 : 64;
-      const railBudget = page === 0 ? 36 : 64;
+      const mainBudget = page === 0 ? 44 : 72;
+      const railBudget = page === 0 ? 44 : 72;
       const mainSlice = fillPage(mainAtoms, m, mainBudget);
       const railSlice = fillPage(railAtoms, r, railBudget);
       pages.push({ main: mainSlice.atoms, rail: railSlice.atoms, first: page === 0 });
