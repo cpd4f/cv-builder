@@ -127,8 +127,10 @@ function renderSection(title, items, options = {}) {
     })
     .join("\n");
 
-  const className = normalizedTitle === "skills" ? "section skills-section" : "section";
-  return `<section class=\"${className}\"><h3>${escapeHtml(title)}</h3>${entries}</section>`;
+  const classNames = [normalizedTitle === "skills" ? "section skills-section" : "section"];
+  if (options.column === "main") classNames.push("col-main");
+  if (options.column === "rail") classNames.push("col-rail");
+  return `<section class=\"${classNames.join(" ")}\"><h3>${escapeHtml(title)}</h3>${entries}</section>`;
 }
 
 function splitSkillsBullets(items) {
@@ -164,7 +166,7 @@ function splitSkillsBullets(items) {
 function renderPlainRailSections(items) {
   return sortItems(items)
     .filter((item) => item.title)
-    .map((item) => `<section class=\"section\"><h3>${escapeHtml(item.title)}</h3><div class=\"entry-content\">${markdownToHtml(item.content || "")}</div></section>`)
+    .map((item) => `<section class=\"section col-rail\"><h3>${escapeHtml(item.title)}</h3><div class=\"entry-content\">${markdownToHtml(item.content || "")}</div></section>`)
     .join("\n");
 }
 
@@ -209,14 +211,14 @@ function renderDocument(cv, cssHref) {
 
   const mainSections = mainOrder
     .map((cfg) => {
-      const html = renderSection(cfg.title, grouped.get(cfg.key) || [], { hideEntryTitleWhenSameAsSection: cfg.hideTitle });
+      const html = renderSection(cfg.title, grouped.get(cfg.key) || [], { hideEntryTitleWhenSameAsSection: cfg.hideTitle, column: "main" });
       grouped.delete(cfg.key);
       return html;
     })
     .join("\n");
 
-  const skillsHtml = renderSection("Skills", splitSkillsBullets(grouped.get("topline skills") || []));
-  const educationHtml = renderSection("Education", grouped.get("education") || []);
+  const skillsHtml = renderSection("Skills", splitSkillsBullets(grouped.get("topline skills") || []), { column: "rail" });
+  const educationHtml = renderSection("Education", grouped.get("education") || [], { column: "rail" });
   const plainRailHtml = renderPlainRailSections(grouped.get("second page rail") || []);
 
   grouped.delete("topline skills");
@@ -225,7 +227,7 @@ function renderDocument(cv, cssHref) {
 
   const extraMainHtml = [...grouped.keys()]
     .sort()
-    .map((extraKey) => renderSection(titleCase(extraKey), grouped.get(extraKey) || []))
+    .map((extraKey) => renderSection(titleCase(extraKey), grouped.get(extraKey) || [], { column: "main" }))
     .join("\n");
 
   return `<!doctype html>

@@ -123,6 +123,8 @@
     const section = document.createElement("section");
     const normalizedTitle = key(title);
     section.className = normalizedTitle === "skills" ? "section skills-section" : "section";
+    if (options.column === "main") section.classList.add("col-main");
+    if (options.column === "rail") section.classList.add("col-rail");
     section.innerHTML = `<h3>${title}</h3>`;
 
     sortItems(items).forEach((item) => {
@@ -140,7 +142,7 @@
     sortItems(items).forEach((item) => {
       if (!item.title) return;
       const section = document.createElement("section");
-      section.className = "section";
+      section.className = "section col-rail";
       section.innerHTML = `<h3>${item.title}</h3>`;
       if (item.content) {
         const body = document.createElement("div");
@@ -206,13 +208,14 @@
 
     mainOrder.forEach((cfg) => {
       renderSection(mainHost, cfg.title, grouped.get(cfg.key) || [], {
-        hideEntryTitleWhenSameAsSection: cfg.hideTitle
+        hideEntryTitleWhenSameAsSection: cfg.hideTitle,
+        column: "main"
       });
       grouped.delete(cfg.key);
     });
 
-    renderSection(railHost, "Skills", splitSkillsBullets(grouped.get("topline skills") || []));
-    renderSection(railHost, "Education", grouped.get("education") || []);
+    renderSection(railHost, "Skills", splitSkillsBullets(grouped.get("topline skills") || []), { column: "rail" });
+    renderSection(railHost, "Education", grouped.get("education") || [], { column: "rail" });
     renderPlainRailSections(railHost, grouped.get("second page rail") || []);
 
     grouped.delete("topline skills");
@@ -220,7 +223,7 @@
     grouped.delete("second page rail");
 
     [...grouped.keys()].sort().forEach((extraKey) => {
-      renderSection(mainHost, titleCase(extraKey), grouped.get(extraKey) || []);
+      renderSection(mainHost, titleCase(extraKey), grouped.get(extraKey) || [], { column: "main" });
     });
   }
 
