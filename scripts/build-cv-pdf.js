@@ -16,46 +16,6 @@ function key(value) {
   return String(value || "").trim().toLowerCase();
 }
 
-function inlineMarkdownToHtml(text) {
-  const escaped = escapeHtml(text);
-  return escaped
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/`(.+?)`/g, "<code>$1</code>")
-    .replace(/\[(.+?)\]\((https?:[^\s)]+)\)/g, '<a href="$2">$1</a>');
-}
-
-function markdownToHtml(markdown) {
-  const raw = String(markdown || "").trim();
-  if (!raw) return "";
-
-  const lines = raw.split(/\r?\n/);
-  const chunks = [];
-  let listItems = [];
-
-  const flushList = () => {
-    if (!listItems.length) return;
-    const items = listItems.map((item) => `<li>${inlineMarkdownToHtml(item)}</li>`).join("");
-    chunks.push(`<ul>${items}</ul>`);
-    listItems = [];
-  };
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    const bullet = trimmed.match(/^[-*]\s+(.*)$/);
-    if (bullet) {
-      listItems.push(bullet[1]);
-      continue;
-    }
-    flushList();
-    if (!trimmed) continue;
-    chunks.push(`<p>${inlineMarkdownToHtml(trimmed)}</p>`);
-  }
-
-  flushList();
-  return chunks.join("\n");
-}
-
 function parseDateValue(value) {
   if (!value) return Number.NEGATIVE_INFINITY;
   const timestamp = Date.parse(String(value));
@@ -98,17 +58,55 @@ function displayDate(item) {
   return end;
 }
 
+function inlineMarkdownToHtml(value) {
+  const text = escapeHtml(value);
+  return text
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>")
+    .replace(/`(.+?)`/g, "<code>$1</code>")
+    .replace(/\[(.+?)\]\((https?:[^\s)]+)\)/g, '<a href="$2">$1</a>');
+}
+
+function markdownToHtml(markdown) {
+  const raw = String(markdown || "").trim();
+  if (!raw) return "";
+
+  const chunks = [];
+  let listItems = [];
+
+  const flushList = () => {
+    if (!listItems.length) return;
+    chunks.push(`<ul>${listItems.map((line) => `<li>${inlineMarkdownToHtml(line)}</li>`).join("")}</ul>`);
+    listItems = [];
+  };
+
+  raw.split(/\r?\n/).forEach((line) => {
+    const trimmed = line.trim();
+    const bullet = trimmed.match(/^[-*]\s+(.*)$/);
+    if (bullet) {
+      listItems.push(bullet[1]);
+      return;
+    }
+    flushList();
+    if (!trimmed) return;
+    chunks.push(`<p>${inlineMarkdownToHtml(trimmed)}</p>`);
+  });
+
+  flushList();
+  return chunks.join("\n");
+}
+
 function renderEntry(item, options = {}) {
-  const parts = ["<article class=\"entry\">"];
   const hideTitle = Boolean(options.hideEntryTitle);
+  const parts = ["<article class=\"entry\">"];
 
   if (item.title && !hideTitle) parts.push(`<h4 class=\"entry-title\">${escapeHtml(item.title)}</h4>`);
 
-  const meta = [item.subtitle, item.location].filter(Boolean).map((x) => escapeHtml(x)).join(" • ");
+  const meta = [item.subtitle, item.location].filter(Boolean).map((value) => escapeHtml(value)).join(" • ");
   if (meta) parts.push(`<div class=\"entry-meta\">${meta}</div>`);
 
-  const dateText = displayDate(item);
-  if (dateText) parts.push(`<div class=\"entry-date\">${escapeHtml(dateText)}</div>`);
+  const date = displayDate(item);
+  if (date) parts.push(`<div class=\"entry-date\">${escapeHtml(date)}</div>`);
 
   if (item.content) parts.push(`<div class=\"entry-content\">${markdownToHtml(item.content)}</div>`);
   parts.push("</article>");
@@ -118,61 +116,83 @@ function renderEntry(item, options = {}) {
 function renderSection(title, items, options = {}) {
   if (!items.length) return "";
   const normalizedTitle = key(title);
-  const entries = sortItems(items).map((item) => {
-    const hideEntryTitle = options.hideEntryTitleWhenSameAsSection && key(item.title) === normalizedTitle;
-    return renderEntry(item, { hideEntryTitle });
-  }).join("\n");
 
-  const sectionClass = normalizedTitle === "skills" ? "section skills-section" : "section";
-  return `<section class=\"${sectionClass}\"><h3>${escapeHtml(title)}</h3>${entries}</section>`;
+  const entries = sortItems(items)
+    .map((item) => {
+      const hideEntryTitle =
+        options.hideEntryTitleWhenSameAsSection &&
+        key(item.title) &&
+        key(item.title) === normalizedTitle;
+      return renderEntry(item, { hideEntryTitle });
+    })
+    .join("\n");
+
+  const className = normalizedTitle === "skills" ? "section skills-section" : "section";
+  return `<section class=\"${className}\"><h3>${escapeHtml(title)}</h3>${entries}</section>`;
 }
 
-function groupBySection(items) {
-  const grouped = new Map();
-  for (const item of items) {
-    const section = key(item.section);
-    if (!section || section === "header" || section === "contact") continue;
-    if (!grouped.has(section)) grouped.set(section, []);
-    grouped.get(section).push(item);
-  }
-  return grouped;
-}
-
-
-function expandSkillsItems(items) {
+function splitSkillsBullets(items) {
   const expanded = [];
   for (const item of items) {
-    const content = String(item?.content || "");
-    const bulletLines = content
+    const lines = String(item?.content || "")
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter((line) => /^[-*]\s+/.test(line));
 
-    if (bulletLines.length >= 2) {
-      bulletLines.forEach((line, index) => {
-        expanded.push({
-          ...item,
-          title: "",
-          subtitle: "",
-          location: "",
-          start: "",
-          end: "",
-          dispdate: "",
-          manualsort: item.manualsort ? `${item.manualsort}.${String(index + 1).padStart(3, "0")}` : "",
-          content: line
-        });
-      });
-    } else {
+    if (lines.length < 2) {
       expanded.push(item);
+      continue;
     }
+
+    lines.forEach((line, index) => {
+      expanded.push({
+        ...item,
+        title: "",
+        subtitle: "",
+        location: "",
+        start: "",
+        end: "",
+        dispdate: "",
+        manualsort: item.manualsort ? `${item.manualsort}.${String(index + 1).padStart(3, "0")}` : "",
+        content: line
+      });
+    });
   }
   return expanded;
+}
+
+function renderPlainRailSections(items) {
+  return sortItems(items)
+    .filter((item) => item.title)
+    .map((item) => `<section class=\"section\"><h3>${escapeHtml(item.title)}</h3><div class=\"entry-content\">${markdownToHtml(item.content || "")}</div></section>`)
+    .join("\n");
+}
+
+function groupBySection(items) {
+  const grouped = new Map();
+  items.forEach((item) => {
+    const section = key(item.section);
+    if (!section || section === "header" || section === "contact") return;
+    if (!grouped.has(section)) grouped.set(section, []);
+    grouped.get(section).push(item);
+  });
+  return grouped;
 }
 
 function renderContact(contacts) {
   const entries = contacts.filter((item) => String(item?.content || "").trim() !== "");
   if (!entries.length) return "<section class=\"contact-bar\" id=\"contact\" style=\"display:none\"></section>";
-  return `<section class=\"contact-bar\" id=\"contact\">${entries.map((item) => `<div class=\"contact-item\"><span>${escapeHtml(item.content)}</span></div>`).join("")}</section>`;
+  return `<section class=\"contact-bar\" id=\"contact\">${entries
+    .map((item) => `<div class=\"contact-item\"><span>${escapeHtml(item.content)}</span></div>`)
+    .join("")}</section>`;
+}
+
+function titleCase(value) {
+  return String(value || "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 function renderDocument(cv, cssHref) {
@@ -181,43 +201,32 @@ function renderDocument(cv, cssHref) {
   const contacts = items.filter((item) => key(item.section) === "contact");
   const grouped = groupBySection(items);
 
-  const mainConfig = [
+  const mainOrder = [
     { key: "core competencies", title: "Core Competencies", hideTitle: true },
     { key: "work experience", title: "Work Experience", hideTitle: false },
     { key: "technical + it", title: "Technical + IT", hideTitle: false }
   ];
 
-  const skillsItems = expandSkillsItems(grouped.get("topline skills") || []);
-  const educationItems = grouped.get("education") || [];
+  const mainSections = mainOrder
+    .map((cfg) => {
+      const html = renderSection(cfg.title, grouped.get(cfg.key) || [], { hideEntryTitleWhenSameAsSection: cfg.hideTitle });
+      grouped.delete(cfg.key);
+      return html;
+    })
+    .join("\n");
 
-  const mainSections = [];
-  for (const cfg of mainConfig) {
-    const sectionItems = grouped.get(cfg.key) || [];
-    grouped.delete(cfg.key);
-    mainSections.push(renderSection(cfg.title, sectionItems, { hideEntryTitleWhenSameAsSection: cfg.hideTitle }));
-  }
+  const skillsHtml = renderSection("Skills", splitSkillsBullets(grouped.get("topline skills") || []));
+  const educationHtml = renderSection("Education", grouped.get("education") || []);
+  const plainRailHtml = renderPlainRailSections(grouped.get("second page rail") || []);
 
   grouped.delete("topline skills");
   grouped.delete("education");
-
-  const secondRail = grouped.get("second page rail") || [];
   grouped.delete("second page rail");
-  const secondRailSections = [];
-  for (const item of sortItems(secondRail)) {
-    if (!item.title) continue;
-    secondRailSections.push(`<section class="section"><h3>${escapeHtml(item.title)}</h3><div class="entry-content">${markdownToHtml(item.content || "")}</div></section>`);
-  }
 
-  const extraKeys = [...grouped.keys()].sort();
-  for (const extraKey of extraKeys) {
-    const title = extraKey.replace(/\b\w/g, (c) => c.toUpperCase());
-    mainSections.push(renderSection(title, grouped.get(extraKey) || []));
-  }
-
-  const railSections = [];
-  railSections.push(renderSection("Skills", skillsItems));
-  railSections.push(renderSection("Education", educationItems));
-  railSections.push(secondRailSections.join("\n"));
+  const extraMainHtml = [...grouped.keys()]
+    .sort()
+    .map((extraKey) => renderSection(titleCase(extraKey), grouped.get(extraKey) || []))
+    .join("\n");
 
   return `<!doctype html>
 <html lang="en">
@@ -236,8 +245,8 @@ function renderDocument(cv, cssHref) {
       </header>
       ${renderContact(contacts)}
       <section class="content">
-        <div class="main-col" id="main-col">${mainSections.join("\n")}</div>
-        <aside class="rail-col" id="rail-col">${railSections.join("\n")}</aside>
+        <div class="main-col" id="main-col">${mainSections}\n${extraMainHtml}</div>
+        <aside class="rail-col" id="rail-col">${skillsHtml}\n${educationHtml}\n${plainRailHtml}</aside>
       </section>
     </main>
   </body>
@@ -271,10 +280,10 @@ function main() {
 
     if (!slugs.length) throw new Error("No CV JSON files found in data/cv");
 
-    for (const slug of slugs) {
+    slugs.forEach((slug) => {
       console.log(`[build-cv-pdf] Building PDF for slug: ${slug}`);
       buildPdfForSlug(slug, cssHref);
-    }
+    });
   } finally {
     fs.rmSync(".tmp", { recursive: true, force: true });
   }
