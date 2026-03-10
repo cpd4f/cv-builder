@@ -30,6 +30,16 @@ body {
   width: 100%;
 }
 
+.print-page {
+  break-after: page;
+  page-break-after: always;
+}
+
+.print-page:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+
 .header {
   padding: 0 0 5mm;
   border-bottom: 1px solid var(--rule);
@@ -79,8 +89,12 @@ body {
 .contact-item:last-child { padding-right: 0; border-right: 0; }
 
 .content {
-  margin-top: 6mm;
+  margin-top: 0;
   width: 100%;
+}
+
+.print-page.first .content {
+  margin-top: 6mm;
 }
 
 .main-col,
@@ -219,21 +233,20 @@ body {
     width: 100%;
   }
 
-  .main-col,
-  .rail-col {
-    display: contents;
-  }
-
-  .section.col-main {
+  .main-col {
     float: left;
-    clear: left;
     width: 64%;
   }
 
-  .section.col-rail {
+  .rail-col {
     float: right;
-    clear: right;
     width: 32%;
+  }
+
+  .main-col,
+  .rail-col {
+    break-inside: auto;
+    page-break-inside: auto;
   }
 
   .print-actions {

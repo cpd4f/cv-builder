@@ -12,9 +12,7 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function key(value) {
-  return String(value || "").trim().toLowerCase();
-}
+function key(value) { return String(value || "").trim().toLowerCase(); }
 
 function parseDateValue(value) {
   if (!value) return Number.NEGATIVE_INFINITY;
@@ -26,17 +24,12 @@ function sortItems(items) {
   return [...items].sort((a, b) => {
     const aManual = String(a.manualsort || "").trim();
     const bManual = String(b.manualsort || "").trim();
-    if (aManual && bManual && aManual !== bManual) {
-      return aManual.localeCompare(bManual, undefined, { numeric: true, sensitivity: "base" });
-    }
+    if (aManual && bManual && aManual !== bManual) return aManual.localeCompare(bManual, undefined, { numeric: true, sensitivity: "base" });
     if (aManual && !bManual) return -1;
     if (!aManual && bManual) return 1;
-
     const byStart = parseDateValue(b.start) - parseDateValue(a.start);
     if (byStart !== 0) return byStart;
-    const byEnd = parseDateValue(b.end) - parseDateValue(a.end);
-    if (byEnd !== 0) return byEnd;
-    return 0;
+    return parseDateValue(b.end) - parseDateValue(a.end);
   });
 }
 
@@ -58,9 +51,9 @@ function displayDate(item) {
   return end;
 }
 
-function inlineMarkdownToHtml(value) {
-  const text = escapeHtml(value);
-  return text
+function inlineMarkdownToHtml(text) {
+  const escaped = escapeHtml(text);
+  return escaped
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.+?)\*/g, "<em>$1</em>")
     .replace(/`(.+?)`/g, "<code>$1</code>")
@@ -70,104 +63,41 @@ function inlineMarkdownToHtml(value) {
 function markdownToHtml(markdown) {
   const raw = String(markdown || "").trim();
   if (!raw) return "";
-
+  const lines = raw.split(/\r?\n/);
   const chunks = [];
-  let listItems = [];
-
-  const flushList = () => {
-    if (!listItems.length) return;
-    chunks.push(`<ul>${listItems.map((line) => `<li>${inlineMarkdownToHtml(line)}</li>`).join("")}</ul>`);
-    listItems = [];
+  let list = [];
+  const flush = () => {
+    if (!list.length) return;
+    chunks.push(`<ul>${list.map((x) => `<li>${inlineMarkdownToHtml(x)}</li>`).join("")}</ul>`);
+    list = [];
   };
-
-  raw.split(/\r?\n/).forEach((line) => {
-    const trimmed = line.trim();
-    const bullet = trimmed.match(/^[-*]\s+(.*)$/);
-    if (bullet) {
-      listItems.push(bullet[1]);
-      return;
-    }
-    flushList();
-    if (!trimmed) return;
-    chunks.push(`<p>${inlineMarkdownToHtml(trimmed)}</p>`);
+  lines.forEach((line) => {
+    const t = line.trim();
+    const bullet = t.match(/^[-*]\s+(.*)$/);
+    if (bullet) { list.push(bullet[1]); return; }
+    flush();
+    if (t) chunks.push(`<p>${inlineMarkdownToHtml(t)}</p>`);
   });
-
-  flushList();
+  flush();
   return chunks.join("\n");
 }
 
-function renderEntry(item, options = {}) {
-  const hideTitle = Boolean(options.hideEntryTitle);
-  const parts = ["<article class=\"entry\">"];
-
-  if (item.title && !hideTitle) parts.push(`<h4 class=\"entry-title\">${escapeHtml(item.title)}</h4>`);
-
-  const meta = [item.subtitle, item.location].filter(Boolean).map((value) => escapeHtml(value)).join(" • ");
-  if (meta) parts.push(`<div class=\"entry-meta\">${meta}</div>`);
-
-  const date = displayDate(item);
-  if (date) parts.push(`<div class=\"entry-date\">${escapeHtml(date)}</div>`);
-
-  if (item.content) parts.push(`<div class=\"entry-content\">${markdownToHtml(item.content)}</div>`);
-  parts.push("</article>");
-  return parts.join("\n");
-}
-
-function renderSection(title, items, options = {}) {
-  if (!items.length) return "";
-  const normalizedTitle = key(title);
-
-  const entries = sortItems(items)
-    .map((item) => {
-      const hideEntryTitle =
-        options.hideEntryTitleWhenSameAsSection &&
-        key(item.title) &&
-        key(item.title) === normalizedTitle;
-      return renderEntry(item, { hideEntryTitle });
-    })
-    .join("\n");
-
-  const classNames = [normalizedTitle === "skills" ? "section skills-section" : "section"];
-  if (options.column === "main") classNames.push("col-main");
-  if (options.column === "rail") classNames.push("col-rail");
-  return `<section class=\"${classNames.join(" ")}\"><h3>${escapeHtml(title)}</h3>${entries}</section>`;
+function estimateUnits(item, isRail = false) {
+  const text = `${item.title || ""} ${item.subtitle || ""} ${item.location || ""} ${item.content || ""}`.trim();
+  const chars = text.length;
+  const perLine = isRail ? 42 : 74;
+  const lines = Math.max(2, Math.ceil(chars / perLine));
+  return lines + (item.content ? 1 : 0);
 }
 
 function splitSkillsBullets(items) {
-  const expanded = [];
+  const out = [];
   for (const item of items) {
-    const lines = String(item?.content || "")
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => /^[-*]\s+/.test(line));
-
-    if (lines.length < 2) {
-      expanded.push(item);
-      continue;
-    }
-
-    lines.forEach((line, index) => {
-      expanded.push({
-        ...item,
-        title: "",
-        subtitle: "",
-        location: "",
-        start: "",
-        end: "",
-        dispdate: "",
-        manualsort: item.manualsort ? `${item.manualsort}.${String(index + 1).padStart(3, "0")}` : "",
-        content: line
-      });
-    });
+    const lines = String(item?.content || "").split(/\r?\n/).map((l) => l.trim()).filter((l) => /^[-*]\s+/.test(l));
+    if (lines.length < 2) { out.push(item); continue; }
+    lines.forEach((line, index) => out.push({ ...item, title: "", subtitle: "", location: "", start: "", end: "", dispdate: "", manualsort: item.manualsort ? `${item.manualsort}.${String(index + 1).padStart(3, "0")}` : "", content: line }));
   }
-  return expanded;
-}
-
-function renderPlainRailSections(items) {
-  return sortItems(items)
-    .filter((item) => item.title)
-    .map((item) => `<section class=\"section col-rail\"><h3>${escapeHtml(item.title)}</h3><div class=\"entry-content\">${markdownToHtml(item.content || "")}</div></section>`)
-    .join("\n");
+  return out;
 }
 
 function groupBySection(items) {
@@ -181,107 +111,154 @@ function groupBySection(items) {
   return grouped;
 }
 
-function renderContact(contacts) {
-  const entries = contacts.filter((item) => String(item?.content || "").trim() !== "");
-  if (!entries.length) return "<section class=\"contact-bar\" id=\"contact\" style=\"display:none\"></section>";
-  return `<section class=\"contact-bar\" id=\"contact\">${entries
-    .map((item) => `<div class=\"contact-item\"><span>${escapeHtml(item.content)}</span></div>`)
-    .join("")}</section>`;
+function sectionAtoms(title, items, opts = {}) {
+  if (!items.length) return [];
+  const normalized = key(title);
+  const out = [{ type: "section-title", title, units: 2 }];
+  sortItems(items).forEach((item) => {
+    const hideTitle = opts.hideEntryTitleWhenSameAsSection && key(item.title) && key(item.title) === normalized;
+    out.push({ type: "entry", item, hideTitle, units: estimateUnits(item, opts.rail) });
+  });
+  return out;
 }
 
-function titleCase(value) {
-  return String(value || "")
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+function toAtoms(items) {
+  const grouped = groupBySection(items);
+  const main = [];
+  const rail = [];
+
+  main.push(...sectionAtoms("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true }));
+  main.push(...sectionAtoms("Work Experience", grouped.get("work experience") || []));
+  main.push(...sectionAtoms("Technical + IT", grouped.get("technical + it") || []));
+
+  rail.push(...sectionAtoms("Skills", splitSkillsBullets(grouped.get("topline skills") || []), { rail: true }));
+  rail.push(...sectionAtoms("Education", grouped.get("education") || [], { rail: true }));
+
+  sortItems(grouped.get("second page rail") || []).forEach((item) => {
+    if (!item.title) return;
+    rail.push({ type: "section-title", title: item.title, units: 2 });
+    rail.push({ type: "entry", item: { ...item, content: item.content || "" }, hideTitle: true, units: estimateUnits(item, true) });
+  });
+
+  grouped.delete("core competencies");
+  grouped.delete("work experience");
+  grouped.delete("technical + it");
+  grouped.delete("topline skills");
+  grouped.delete("education");
+  grouped.delete("second page rail");
+
+  [...grouped.keys()].sort().forEach((extraKey) => {
+    const title = extraKey.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    main.push(...sectionAtoms(title, grouped.get(extraKey) || []));
+  });
+
+  return { main, rail };
+}
+
+function fillPage(atoms, index, budget) {
+  const out = [];
+  let used = 0;
+  let i = index;
+  while (i < atoms.length) {
+    const next = atoms[i];
+    if (used + next.units > budget && out.length) break;
+    out.push(next);
+    used += next.units;
+    i += 1;
+  }
+  return { nextIndex: i, atoms: out };
+}
+
+function paginate(mainAtoms, railAtoms) {
+  const pages = [];
+  let m = 0; let r = 0; let page = 0;
+  while (m < mainAtoms.length || r < railAtoms.length) {
+    const mainBudget = page === 0 ? 36 : 64;
+    const railBudget = page === 0 ? 36 : 64;
+    const mainSlice = fillPage(mainAtoms, m, mainBudget);
+    const railSlice = fillPage(railAtoms, r, railBudget);
+    pages.push({ main: mainSlice.atoms, rail: railSlice.atoms, first: page === 0 });
+    m = mainSlice.nextIndex;
+    r = railSlice.nextIndex;
+    page += 1;
+    if (page > 20) break;
+  }
+  return pages.filter((p) => p.main.length || p.rail.length);
+}
+
+function renderEntry(atom) {
+  const item = atom.item;
+  const parts = ["<article class=\"entry\">"];
+  if (item.title && !atom.hideTitle) parts.push(`<h4 class=\"entry-title\">${escapeHtml(item.title)}</h4>`);
+  const meta = [item.subtitle, item.location].filter(Boolean).map((x) => escapeHtml(x)).join(" • ");
+  if (meta) parts.push(`<div class=\"entry-meta\">${meta}</div>`);
+  const date = displayDate(item);
+  if (date) parts.push(`<div class=\"entry-date\">${escapeHtml(date)}</div>`);
+  if (item.content) parts.push(`<div class=\"entry-content\">${markdownToHtml(item.content)}</div>`);
+  parts.push("</article>");
+  return parts.join("\n");
+}
+
+function renderColumn(atoms, cls) {
+  const out = [];
+  let open = false;
+  atoms.forEach((atom) => {
+    if (atom.type === "section-title") {
+      if (open) out.push("</section>");
+      out.push(`<section class=\"section ${cls}\"><h3>${escapeHtml(atom.title)}</h3>`);
+      open = true;
+      return;
+    }
+    if (!open) {
+      out.push(`<section class=\"section ${cls}\">`);
+      open = true;
+    }
+    out.push(renderEntry(atom));
+  });
+  if (open) out.push("</section>");
+  return out.join("\n");
+}
+
+function renderContact(contacts) {
+  const entries = contacts.filter((item) => String(item?.content || "").trim() !== "");
+  if (!entries.length) return "";
+  return `<section class=\"contact-bar\">${entries.map((item) => `<div class=\"contact-item\"><span>${escapeHtml(item.content)}</span></div>`).join("")}</section>`;
 }
 
 function renderDocument(cv, cssHref) {
   const items = Array.isArray(cv.items) ? cv.items : [];
   const header = items.find((item) => key(item.section) === "header") || {};
   const contacts = items.filter((item) => key(item.section) === "contact");
-  const grouped = groupBySection(items);
+  const atoms = toAtoms(items);
+  const pages = paginate(atoms.main, atoms.rail);
 
-  const mainOrder = [
-    { key: "core competencies", title: "Core Competencies", hideTitle: true },
-    { key: "work experience", title: "Work Experience", hideTitle: false },
-    { key: "technical + it", title: "Technical + IT", hideTitle: false }
-  ];
+  const pageHtml = pages.map((page, idx) => {
+    const headerHtml = idx === 0
+      ? `<header class=\"header\"><h1>${escapeHtml(header?.title || "CV")}</h1><h2>${escapeHtml(header?.subtitle || "")}</h2><div class=\"header-summary\">${markdownToHtml(header?.content || "")}</div></header>${renderContact(contacts)}`
+      : "";
+    return `<section class=\"print-page${idx === 0 ? " first" : ""}\">${headerHtml}<section class=\"content\"><div class=\"main-col\">${renderColumn(page.main, "col-main")}</div><aside class=\"rail-col\">${renderColumn(page.rail, "col-rail")}</aside></section></section>`;
+  }).join("\n");
 
-  const mainSections = mainOrder
-    .map((cfg) => {
-      const html = renderSection(cfg.title, grouped.get(cfg.key) || [], { hideEntryTitleWhenSameAsSection: cfg.hideTitle, column: "main" });
-      grouped.delete(cfg.key);
-      return html;
-    })
-    .join("\n");
-
-  const skillsHtml = renderSection("Skills", splitSkillsBullets(grouped.get("topline skills") || []), { column: "rail" });
-  const educationHtml = renderSection("Education", grouped.get("education") || [], { column: "rail" });
-  const plainRailHtml = renderPlainRailSections(grouped.get("second page rail") || []);
-
-  grouped.delete("topline skills");
-  grouped.delete("education");
-  grouped.delete("second page rail");
-
-  const extraMainHtml = [...grouped.keys()]
-    .sort()
-    .map((extraKey) => renderSection(titleCase(extraKey), grouped.get(extraKey) || [], { column: "main" }))
-    .join("\n");
-
-  return `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CV Print</title>
-    <link rel="stylesheet" href="${cssHref}" />
-  </head>
-  <body>
-    <main class="cv-print" id="cv-print-root">
-      <header class="header" id="header">
-        <h1>${escapeHtml(header?.title || "CV")}</h1>
-        <h2>${escapeHtml(header?.subtitle || "")}</h2>
-        <div class="header-summary">${markdownToHtml(header?.content || "")}</div>
-      </header>
-      ${renderContact(contacts)}
-      <section class="content">
-        <div class="main-col" id="main-col">${mainSections}\n${extraMainHtml}</div>
-        <aside class="rail-col" id="rail-col">${skillsHtml}\n${educationHtml}\n${plainRailHtml}</aside>
-      </section>
-    </main>
-  </body>
-</html>`;
+  return `<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\" /><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" /><title>CV Print</title><link rel=\"stylesheet\" href=\"${cssHref}\" /></head><body><main class=\"cv-print\" id=\"cv-print-root\">${pageHtml}</main></body></html>`;
 }
 
 function buildPdfForSlug(slug, cssHref) {
   const jsonPath = path.join("data", "cv", `${slug}.json`);
   const outputPath = path.join("dist", `${slug}.pdf`);
   const tmpPath = path.join(".tmp", `cv-print-${slug}.html`);
-
   const cv = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
   fs.mkdirSync(path.dirname(tmpPath), { recursive: true });
   fs.writeFileSync(tmpPath, renderDocument(cv, cssHref), "utf8");
-
   execFileSync("npx", ["vivliostyle", "build", tmpPath, "-o", outputPath], { stdio: "inherit" });
 }
 
 function main() {
   fs.mkdirSync("dist", { recursive: true });
   fs.mkdirSync(".tmp", { recursive: true });
-
   const cssHref = pathToFileURL(path.resolve("cv-print.css")).href;
-
   try {
-    const slugs = fs
-      .readdirSync(path.join("data", "cv"))
-      .filter((file) => file.endsWith(".json"))
-      .map((file) => file.replace(/\.json$/, ""))
-      .sort();
-
+    const slugs = fs.readdirSync(path.join("data", "cv")).filter((file) => file.endsWith(".json")).map((file) => file.replace(/\.json$/, "")).sort();
     if (!slugs.length) throw new Error("No CV JSON files found in data/cv");
-
     slugs.forEach((slug) => {
       console.log(`[build-cv-pdf] Building PDF for slug: ${slug}`);
       buildPdfForSlug(slug, cssHref);
