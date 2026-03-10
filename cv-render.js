@@ -242,14 +242,18 @@
       }
 
       const content = document.createElement("section");
-      content.className = "content";
+      content.className = `content${idx === 0 ? " content-first" : ""}`;
       const main = document.createElement("div");
-      main.className = "main-col";
+      main.className = `main-col${idx === 0 ? " main-col-first" : ""}`;
       const rail = document.createElement("aside");
-      rail.className = "rail-col";
+      rail.className = `rail-col${idx === 0 ? " rail-col-first" : ""}`;
       renderColumnAtoms(main, page.main, "col-main");
       renderColumnAtoms(rail, page.rail, "col-rail");
-      content.append(main, rail);
+      if (idx === 0) {
+        content.append(rail, main);
+      } else {
+        content.append(main, rail);
+      }
       pageEl.appendChild(content);
       root.appendChild(pageEl);
     });

@@ -236,7 +236,10 @@ function renderDocument(cv, cssHref) {
     const headerHtml = idx === 0
       ? `<header class=\"header\"><h1>${escapeHtml(header?.title || "CV")}</h1><h2>${escapeHtml(header?.subtitle || "")}</h2><div class=\"header-summary\">${markdownToHtml(header?.content || "")}</div></header>${renderContact(contacts)}`
       : "";
-    return `<section class=\"print-page${idx === 0 ? " first" : ""}\">${headerHtml}<section class=\"content\"><div class=\"main-col\">${renderColumn(page.main, "col-main")}</div><aside class=\"rail-col\">${renderColumn(page.rail, "col-rail")}</aside></section></section>`;
+    const contentHtml = idx === 0
+      ? `<section class="content content-first"><aside class="rail-col rail-col-first">${renderColumn(page.rail, "col-rail")}</aside><div class="main-col main-col-first">${renderColumn(page.main, "col-main")}</div></section>`
+      : `<section class="content"><div class="main-col">${renderColumn(page.main, "col-main")}</div><aside class="rail-col">${renderColumn(page.rail, "col-rail")}</aside></section>`;
+    return `<section class="print-page${idx === 0 ? " first" : ""}">${headerHtml}${contentHtml}</section>`;
   }).join("\n");
 
   return `<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\" /><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" /><title>CV Print</title><link rel=\"stylesheet\" href=\"${cssHref}\" /></head><body><main class=\"cv-print\" id=\"cv-print-root\">${pageHtml}</main></body></html>`;
