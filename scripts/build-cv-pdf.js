@@ -123,8 +123,7 @@ function renderSection(title, items, options = {}) {
     return renderEntry(item, { hideEntryTitle });
   }).join("\n");
 
-  const breakClass = options.breakBefore ? " rail-break-before" : "";
-  return `<section class=\"section${breakClass}\"><h3>${escapeHtml(title)}</h3>${entries}</section>`;
+  return `<section class=\"section\"><h3>${escapeHtml(title)}</h3>${entries}</section>`;
 }
 
 function groupBySection(items) {
@@ -202,8 +201,8 @@ function renderDocument(cv, cssHref) {
       </header>
       ${renderContact(contacts)}
       <section class="content">
-        <aside class="rail-col" id="rail-col">${railSections.join("\n")}</aside>
         <div class="main-col" id="main-col">${mainSections.join("\n")}</div>
+        <aside class="rail-col" id="rail-col">${railSections.join("\n")}</aside>
       </section>
     </main>
   </body>
