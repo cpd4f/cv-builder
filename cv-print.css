@@ -89,10 +89,12 @@ body {
 .content {
   margin-top: 6mm;
   width: 100%;
-  display: grid;
-  grid-template-columns: minmax(0, 1.95fr) minmax(0, 1fr);
-  column-gap: 6mm;
-  align-items: start;
+}
+
+.content::after {
+  content: "";
+  display: table;
+  clear: both;
 }
 
 .main-col,
