@@ -100,9 +100,6 @@ body {
   min-width: 0;
 }
 
-.main-col { grid-column: 1; }
-.rail-col { grid-column: 2; }
-
 .section {
   margin-bottom: 10px;
 }
