@@ -16,8 +16,8 @@
       <header class="header" id="header"></header>
       <section class="contact-bar" id="contact"></section>
       <section class="content">
-        <aside class="rail-col" id="rail-col"></aside>
         <div class="main-col" id="main-col"></div>
+        <aside class="rail-col" id="rail-col"></aside>
       </section>
     </main>
 
@@ -29,40 +29,6 @@
       const injectedSlug = String(window.__CV_SLUG__ || "").trim().toLowerCase();
       const slug = (query.get("cv") || injectedSlug || pathSlug || location.hash.replace(/^#/, "") || "coleman-davis").trim().toLowerCase();
 
-
-      function mmToPx(mm) {
-        const probe = document.createElement("div");
-        probe.style.width = `${mm}mm`;
-        probe.style.position = "absolute";
-        probe.style.visibility = "hidden";
-        document.body.appendChild(probe);
-        const px = probe.getBoundingClientRect().width;
-        probe.remove();
-        return px;
-      }
-
-      function applyRailEducationBreakIfSkillsFit() {
-        const railHost = document.getElementById("rail-col");
-        if (!railHost) return;
-
-        const sections = [...railHost.querySelectorAll(':scope > .section')];
-        const skillsSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'skills');
-        const educationSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'education');
-
-        if (!skillsSection || !educationSection) return;
-
-        const firstPageHeightPx = mmToPx(297);
-        const pageMarginPx = mmToPx(12);
-        const usablePageHeightPx = firstPageHeightPx - (pageMarginPx * 2);
-
-        const railTop = railHost.getBoundingClientRect().top;
-        const skillsBottom = skillsSection.getBoundingClientRect().bottom;
-        const skillsHeightWithinRail = skillsBottom - railTop;
-
-        if (skillsHeightWithinRail <= usablePageHeightPx) {
-          educationSection.classList.add('rail-break-before');
-        }
-      }
 
       async function loadCvData() {
         if (window.__CV_DATA__ && typeof window.__CV_DATA__ === "object") {
@@ -81,52 +47,13 @@
 
           const header = items.find((item) => window.CvRender.key(item.section) === "header") || {};
           const contacts = items.filter((item) => window.CvRender.key(item.section) === "contact");
-          const grouped = window.CvRender.groupBySection(items);
-
           const mainHost = document.getElementById("main-col");
           const railHost = document.getElementById("rail-col");
-          mainHost.innerHTML = "";
-          railHost.innerHTML = "";
 
           window.CvRender.renderHeader(document.getElementById("header"), header);
           window.CvRender.renderContact(document.getElementById("contact"), contacts, false);
-
-          const mainConfig = [
-            { key: "core competencies", title: "Core Competencies" },
-            { key: "work experience", title: "Work Experience" },
-            { key: "technical + it", title: "Technical + IT" }
-          ];
-          const railConfig = [
-            { key: "topline skills", title: "Skills" },
-            { key: "education", title: "Education" },
-            { key: "second page rail", title: null }
-          ];
-
-          mainConfig.forEach((cfg) => {
-            const sectionItems = grouped.get(cfg.key) || [];
-            if (sectionItems.length) {
-              const hideTitle = cfg.key === "core competencies";
-              window.CvRender.renderSection(mainHost, cfg.title, sectionItems, { hideEntryTitleWhenSameAsSection: hideTitle });
-            }
-            grouped.delete(cfg.key);
-          });
-
-          railConfig.forEach((cfg) => {
-            const sectionItems = grouped.get(cfg.key) || [];
-            if (!sectionItems.length) {
-              grouped.delete(cfg.key);
-              return;
-            }
-            if (cfg.key === "second page rail") window.CvRender.renderSecondRail(railHost, sectionItems);
-            else window.CvRender.renderSection(railHost, cfg.title, sectionItems, { hideEntryTitleWhenSameAsSection: false });
-            grouped.delete(cfg.key);
-          });
-
-          [...grouped.keys()].sort().forEach((extraKey) => {
-            window.CvRender.renderSection(mainHost, extraKey.replace(/\b\w/g, (c) => c.toUpperCase()), grouped.get(extraKey), { hideEntryTitleWhenSameAsSection: false });
-          });
-
-          applyRailEducationBreakIfSkillsFit();
+          window.CvRender.renderColumns(items, mainHost, railHost);
+          window.CvRender.applyRailEducationBreakIfSkillsFit(document.getElementById("cv-print-root"), railHost);
         } catch (error) {
           document.body.innerHTML = `<div style="padding:20px;color:#8b1111">${error.message}</div>`;
         }
