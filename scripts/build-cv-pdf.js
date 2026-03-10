@@ -214,12 +214,10 @@ function renderDocument(cv, cssHref) {
     mainSections.push(renderSection(title, grouped.get(extraKey) || []));
   }
 
-  const railPage1Html = `${renderSection("Skills", skillsItems)}${renderSection("Education", educationItems)}`;
-  const railOverflowHtml = secondRailSections.join("\n");
-  const railSections = [
-    `<div class="rail-page1">${railPage1Html}</div>`,
-    `<div class="rail-overflow">${railOverflowHtml}</div>`
-  ];
+  const railSections = [];
+  railSections.push(renderSection("Skills", skillsItems));
+  railSections.push(renderSection("Education", educationItems));
+  railSections.push(secondRailSections.join("\n"));
 
   return `<!doctype html>
 <html lang="en">
@@ -238,32 +236,22 @@ function renderDocument(cv, cssHref) {
       </header>
       ${renderContact(contacts)}
       <section class="content">
-        <aside class="rail-col" id="rail-col">
-          <div class="rail-page1">${railPage1Html}</div>
-          <div class="rail-overflow">${railOverflowHtml}</div>
-        </aside>
         <div class="main-col" id="main-col">${mainSections.join("\n")}</div>
         <aside class="rail-col" id="rail-col">${railSections.join("\n")}</aside>
       </section>
     </main>
     <script>
-      (function packRailForPagedLayout() {
+      (function applyRailEducationBreakIfSkillsFit() {
         const root = document.getElementById("cv-print-root");
         const railHost = document.getElementById("rail-col");
         if (!root || !railHost) return;
 
-        const page1 = railHost.querySelector(":scope > .rail-page1");
-        const overflow = railHost.querySelector(":scope > .rail-overflow");
-        if (!page1 || !overflow) return;
+        const sections = [...railHost.querySelectorAll(':scope > .section')];
+        const skillsSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'skills');
+        const educationSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'education');
+        if (!skillsSection || !educationSection) return;
 
-        const sections = [...page1.querySelectorAll(":scope > .section")];
-        const skillsSection = sections.find((section) => section.querySelector("h3")?.textContent?.trim().toLowerCase() === "skills");
-        const educationSection = sections.find((section) => section.querySelector("h3")?.textContent?.trim().toLowerCase() === "education");
-        if (!skillsSection) return;
-
-        const overflowSkills = document.createElement("section");
-        overflowSkills.className = "section skills-section";
-        overflowSkills.innerHTML = "<h3>Skills</h3>";
+        educationSection.classList.remove('rail-page-break');
 
         const mmProbe = document.createElement("div");
         mmProbe.style.width = "1mm";
@@ -273,29 +261,17 @@ function renderDocument(cv, cssHref) {
         const pxPerMm = mmProbe.getBoundingClientRect().width || 3.7795;
         mmProbe.remove();
 
-        const firstPageBottom = root.getBoundingClientRect().top + (297 - 12) * pxPerMm;
-        const page1Top = page1.getBoundingClientRect().top;
-        const availableHeight = firstPageBottom - page1Top;
+        const pageHeightPx = 297 * pxPerMm;
+        const pageMarginPx = 12 * pxPerMm;
+        const firstPageBottom = root.getBoundingClientRect().top + pageHeightPx - pageMarginPx;
+        const railTop = railHost.getBoundingClientRect().top;
+        const availableRailHeightOnFirstPage = firstPageBottom - railTop;
+        if (availableRailHeightOnFirstPage <= 0) return;
 
-        if (availableHeight > 0) {
-          while (skillsSection.querySelectorAll(":scope > .entry").length > 1 && page1.getBoundingClientRect().height > availableHeight) {
-            const entries = skillsSection.querySelectorAll(":scope > .entry");
-            const last = entries[entries.length - 1];
-            overflowSkills.appendChild(last);
-          }
+        const skillsHeight = skillsSection.getBoundingClientRect().height;
+        if (skillsHeight <= availableRailHeightOnFirstPage) {
+          educationSection.classList.add('rail-page-break');
         }
-
-        if (overflowSkills.querySelector(":scope > .entry")) {
-          const movedEntries = [...overflowSkills.querySelectorAll(":scope > .entry")];
-          overflowSkills.innerHTML = "<h3>Skills</h3>";
-          movedEntries.reverse().forEach((entry) => overflowSkills.appendChild(entry));
-          overflow.prepend(overflowSkills);
-        }
-
-        if (educationSection) overflow.appendChild(educationSection);
-
-        if (overflow.children.length) overflow.classList.add("rail-page-break");
-        else overflow.classList.remove("rail-page-break");
       })();
     </script>
   </body>
