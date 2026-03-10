@@ -123,8 +123,7 @@ function renderSection(title, items, options = {}) {
     return renderEntry(item, { hideEntryTitle });
   }).join("\n");
 
-  const breakClass = options.breakBefore ? " rail-break-before" : "";
-  return `<section class=\"section${breakClass}\"><h3>${escapeHtml(title)}</h3>${entries}</section>`;
+  return `<section class=\"section\"><h3>${escapeHtml(title)}</h3>${entries}</section>`;
 }
 
 function groupBySection(items) {
@@ -206,6 +205,45 @@ function renderDocument(cv, cssHref) {
         <div class="main-col" id="main-col">${mainSections.join("\n")}</div>
       </section>
     </main>
+    <script>
+      function mmToPx(mm) {
+        const probe = document.createElement("div");
+        probe.style.width = mm + "mm";
+        probe.style.position = "absolute";
+        probe.style.visibility = "hidden";
+        document.body.appendChild(probe);
+        const px = probe.getBoundingClientRect().width;
+        probe.remove();
+        return px;
+      }
+
+      function applyRailEducationBreakIfSkillsFit() {
+        const root = document.getElementById("cv-print-root");
+        const railHost = document.getElementById("rail-col");
+        if (!root || !railHost) return;
+
+        const sections = [...railHost.querySelectorAll(':scope > .section')];
+        const skillsSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'skills');
+        const educationSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'education');
+        if (!skillsSection || !educationSection) return;
+
+        educationSection.classList.remove('rail-break-before');
+
+        const pageHeightPx = mmToPx(297);
+        const pageMarginPx = mmToPx(12);
+        const firstPageBottom = root.getBoundingClientRect().top + pageHeightPx - pageMarginPx;
+        const railTop = railHost.getBoundingClientRect().top;
+        const availableRailHeightOnFirstPage = firstPageBottom - railTop;
+        if (availableRailHeightOnFirstPage <= 0) return;
+
+        const skillsHeight = skillsSection.getBoundingClientRect().height;
+        if (skillsHeight <= availableRailHeightOnFirstPage) {
+          educationSection.classList.add('rail-break-before');
+        }
+      }
+
+      applyRailEducationBreakIfSkillsFit();
+    </script>
   </body>
 </html>`;
 }

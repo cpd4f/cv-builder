@@ -89,18 +89,15 @@ body {
 .content {
   margin-top: 6mm;
   width: 100%;
-}
-
-.content::after {
-  content: "";
-  display: block;
-  clear: both;
+  display: grid;
+  grid-template-columns: minmax(0, 1.95fr) minmax(0, 1fr);
+  column-gap: 6mm;
+  align-items: start;
 }
 
 .main-col,
 .rail-col {
   min-width: 0;
-  float: left;
 }
 
 .main-col { grid-column: 1; }

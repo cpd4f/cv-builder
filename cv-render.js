@@ -228,6 +228,7 @@
     sortItems,
     renderStandardCv,
     groupBySection,
+    renderColumns,
     renderSection,
     renderSecondRail,
     renderHeader,
