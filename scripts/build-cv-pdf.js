@@ -236,10 +236,44 @@ function renderDocument(cv, cssHref) {
       </header>
       ${renderContact(contacts)}
       <section class="content">
-        <aside class="rail-col" id="rail-col">${railSections.join("\n")}</aside>
         <div class="main-col" id="main-col">${mainSections.join("\n")}</div>
+        <aside class="rail-col" id="rail-col">${railSections.join("\n")}</aside>
       </section>
     </main>
+    <script>
+      (function applyRailEducationBreakIfSkillsFit() {
+        const root = document.getElementById("cv-print-root");
+        const railHost = document.getElementById("rail-col");
+        if (!root || !railHost) return;
+
+        const sections = [...railHost.querySelectorAll(':scope > .section')];
+        const skillsSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'skills');
+        const educationSection = sections.find((section) => section.querySelector('h3')?.textContent?.trim().toLowerCase() === 'education');
+        if (!skillsSection || !educationSection) return;
+
+        educationSection.classList.remove('rail-page-break');
+
+        const mmProbe = document.createElement("div");
+        mmProbe.style.width = "1mm";
+        mmProbe.style.position = "absolute";
+        mmProbe.style.visibility = "hidden";
+        document.body.appendChild(mmProbe);
+        const pxPerMm = mmProbe.getBoundingClientRect().width || 3.7795;
+        mmProbe.remove();
+
+        const pageHeightPx = 297 * pxPerMm;
+        const pageMarginPx = 12 * pxPerMm;
+        const firstPageBottom = root.getBoundingClientRect().top + pageHeightPx - pageMarginPx;
+        const railTop = railHost.getBoundingClientRect().top;
+        const availableRailHeightOnFirstPage = firstPageBottom - railTop;
+        if (availableRailHeightOnFirstPage <= 0) return;
+
+        const skillsHeight = skillsSection.getBoundingClientRect().height;
+        if (skillsHeight <= availableRailHeightOnFirstPage) {
+          educationSection.classList.add('rail-page-break');
+        }
+      })();
+    </script>
   </body>
 </html>`;
 }
