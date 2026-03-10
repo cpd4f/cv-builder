@@ -100,6 +100,16 @@ body {
   min-width: 0;
 }
 
+.main-col {
+  float: left;
+  width: 64%;
+}
+
+.rail-col {
+  float: right;
+  width: 32%;
+}
+
 .section {
   margin-bottom: 10px;
 }
@@ -228,6 +238,26 @@ aside#rail-col > section.section {
     box-shadow: 0 8px 28px rgba(15, 23, 42, 0.2), 0 2px 8px rgba(15, 23, 42, 0.12);
     padding: var(--page-margin);
   }
+
+  .content {
+    display: grid;
+    grid-template-columns: minmax(0, 1.95fr) minmax(0, 1fr);
+    column-gap: 6mm;
+    align-items: start;
+  }
+
+  .content::after {
+    content: none;
+  }
+
+  .main-col,
+  .rail-col {
+    float: none;
+    width: auto;
+  }
+
+  .main-col { grid-column: 1; }
+  .rail-col { grid-column: 2; }
 }
 
 @media print {
