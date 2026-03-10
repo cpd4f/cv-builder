@@ -100,9 +100,6 @@ body {
   min-width: 0;
 }
 
-.main-col { grid-column: 1; }
-.rail-col { grid-column: 2; }
-
 .section {
   margin-bottom: 10px;
 }
@@ -179,11 +176,6 @@ aside#rail-col > section.section {
 .rail-col .entry-meta,
 .rail-col .entry-date,
 .rail-col .entry-content { font-size: 12px; }
-
-.rail-break-before {
-  break-before: page;
-  page-break-before: always;
-}
 
 
 .print-actions {
