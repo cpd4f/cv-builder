@@ -102,8 +102,16 @@ body {
   min-width: 0;
 }
 
-.main-col { grid-column: 1; }
-.rail-col { grid-column: 2; }
+.main-col {
+  float: left;
+  width: 65%;
+}
+
+.rail-col {
+  float: left;
+  width: 31%;
+  margin-left: 4%;
+}
 
 .section {
   margin-bottom: 10px;
@@ -245,10 +253,26 @@ body {
   .main-col,
   .rail-col {
     width: auto;
+    margin-left: 0;
   }
 }
 
 @media print {
+  .content {
+    display: block !important;
+  }
+
+  .main-col {
+    float: left !important;
+    width: 65% !important;
+  }
+
+  .rail-col {
+    float: left !important;
+    width: 31% !important;
+    margin-left: 4% !important;
+  }
+
   body {
     padding: 0;
     margin: 0;
