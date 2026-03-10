@@ -123,7 +123,8 @@ function renderSection(title, items, options = {}) {
     return renderEntry(item, { hideEntryTitle });
   }).join("\n");
 
-  return `<section class=\"section\"><h3>${escapeHtml(title)}</h3>${entries}</section>`;
+  const sectionClass = normalizedTitle === "skills" ? "section skills-section" : "section";
+  return `<section class=\"${sectionClass}\"><h3>${escapeHtml(title)}</h3>${entries}</section>`;
 }
 
 function groupBySection(items) {
@@ -135,6 +136,37 @@ function groupBySection(items) {
     grouped.get(section).push(item);
   }
   return grouped;
+}
+
+
+function expandSkillsItems(items) {
+  const expanded = [];
+  for (const item of items) {
+    const content = String(item?.content || "");
+    const bulletLines = content
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => /^[-*]\s+/.test(line));
+
+    if (bulletLines.length >= 2) {
+      bulletLines.forEach((line, index) => {
+        expanded.push({
+          ...item,
+          title: "",
+          subtitle: "",
+          location: "",
+          start: "",
+          end: "",
+          dispdate: "",
+          manualsort: item.manualsort ? `${item.manualsort}.${String(index + 1).padStart(3, "0")}` : "",
+          content: line
+        });
+      });
+    } else {
+      expanded.push(item);
+    }
+  }
+  return expanded;
 }
 
 function renderContact(contacts) {
@@ -155,7 +187,7 @@ function renderDocument(cv, cssHref) {
     { key: "technical + it", title: "Technical + IT", hideTitle: false }
   ];
 
-  const skillsItems = grouped.get("topline skills") || [];
+  const skillsItems = expandSkillsItems(grouped.get("topline skills") || []);
   const educationItems = grouped.get("education") || [];
 
   const mainSections = [];
