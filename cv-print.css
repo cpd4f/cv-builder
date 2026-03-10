@@ -112,6 +112,9 @@ body {
   margin-right: calc(34% + 7mm);
 }
 
+.main-col { grid-column: 1; }
+.rail-col { grid-column: 2; }
+
 .section {
   margin-bottom: 10px;
 }
