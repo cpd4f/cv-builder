@@ -229,22 +229,17 @@ body {
   }
 
   .content {
-    display: block;
+    display: grid;
+    grid-template-columns: minmax(0, 1.95fr) minmax(0, 1fr);
+    column-gap: 6mm;
+    align-items: start;
     width: 100%;
-  }
-
-  .main-col {
-    float: left;
-    width: 64%;
-  }
-
-  .rail-col {
-    float: right;
-    width: 32%;
   }
 
   .main-col,
   .rail-col {
+    float: none;
+    width: auto;
     break-inside: auto;
     page-break-inside: auto;
   }
