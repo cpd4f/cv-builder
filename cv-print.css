@@ -89,10 +89,12 @@ body {
 .content {
   margin-top: 6mm;
   width: 100%;
-  display: grid;
-  grid-template-columns: minmax(0, 1.95fr) minmax(0, 1fr);
-  column-gap: 6mm;
-  align-items: start;
+}
+
+.content::after {
+  content: "";
+  display: table;
+  clear: both;
 }
 
 .main-col,
@@ -102,12 +104,13 @@ body {
 
 .main-col {
   float: left;
-  width: 64%;
+  width: 65%;
 }
 
 .rail-col {
-  float: right;
-  width: 32%;
+  float: left;
+  width: 31%;
+  margin-left: 4%;
 }
 
 .section {
@@ -245,12 +248,14 @@ body {
 
   .content::after {
     content: none;
+    display: none;
   }
 
   .main-col,
   .rail-col {
     float: none;
     width: auto;
+    margin-left: 0;
   }
 
   .main-col { grid-column: 1; }
@@ -258,6 +263,27 @@ body {
 }
 
 @media print {
+  .content {
+    display: block;
+    width: 100%;
+  }
+
+  .content::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  .main-col {
+    float: left;
+    width: 64%;
+  }
+
+  .rail-col {
+    float: right;
+    width: 32%;
+    margin-left: 0;
+  }
+
   body {
     padding: 0;
     margin: 0;
@@ -267,3 +293,4 @@ body {
     display: none !important;
   }
 }
+
