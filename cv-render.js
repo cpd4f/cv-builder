@@ -88,12 +88,14 @@
 
   function groupBySection(items) {
     const grouped = new Map();
-    items.forEach((item) => {
+    const source = Array.isArray(items) ? items : [];
+    source.forEach((item) => {
       const section = key(item.section);
       if (!section || section === "header" || section === "contact") return;
       if (!grouped.has(section)) grouped.set(section, []);
       grouped.get(section).push(item);
     });
+    return grouped;
   }
 
   function toAtoms(items) {
@@ -158,14 +160,14 @@
     rs = firstRail.nextIndex;
 
     const mainRemainder = mainFirstAtoms.slice(mf).concat(mainLaterAtoms);
-    const railRemainder = railSkillsAtoms.slice(rs).concat(railPage2Atoms, railLaterAtoms);
+    const railRemainder = railPage2Atoms.concat(railSkillsAtoms.slice(rs), railLaterAtoms);
 
     let mr = 0;
     let rr = 0;
 
     if (mr < mainRemainder.length || rr < railRemainder.length) {
       const secondMain = fillPage(mainRemainder, mr, 98);
-      const secondRail = fillPage(railRemainder, rr, 72);
+      const secondRail = fillPage(railRemainder, rr, 220);
       pages.push({ main: secondMain.atoms, rail: secondRail.atoms, first: false });
       mr = secondMain.nextIndex;
       rr = secondRail.nextIndex;
@@ -174,7 +176,7 @@
     let guard = 0;
     while (mr < mainRemainder.length || rr < railRemainder.length) {
       const mainSlice = fillPage(mainRemainder, mr, 110);
-      const railSlice = fillPage(railRemainder, rr, 92);
+      const railSlice = fillPage(railRemainder, rr, 110);
       pages.push({ main: mainSlice.atoms, rail: railSlice.atoms, first: false });
       mr = mainSlice.nextIndex;
       rr = railSlice.nextIndex;
@@ -249,6 +251,42 @@
     host.innerHTML = entries.map((item) => `<div class="contact-item"><span>${item.content || ""}</span></div>`).join("");
   }
 
+  function renderStandardCv({ items, headerEl, contactEl, mainEl, railEl }) {
+    const source = Array.isArray(items) ? items : [];
+    const grouped = groupBySection(source);
+    const header = source.find((item) => key(item.section) === "header") || {};
+    const contacts = source.filter((item) => key(item.section) === "contact");
+
+    renderHeader(headerEl, header);
+    renderContact(contactEl, contacts);
+
+    const mainAtoms = [];
+    mainAtoms.push(...sectionEntries("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true }));
+    mainAtoms.push(...workAndTechEntries(grouped.get("work experience") || [], grouped.get("technical + it") || []));
+
+    grouped.delete("core competencies");
+    grouped.delete("work experience");
+    grouped.delete("technical + it");
+
+    [...grouped.keys()].sort().forEach((extraKey) => {
+      if (["topline skills", "education", "second page rail"].includes(extraKey)) return;
+      const title = extraKey.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+      mainAtoms.push(...sectionEntries(title, grouped.get(extraKey) || []));
+    });
+
+    const railAtoms = [];
+    railAtoms.push(...sectionEntries("Skills", splitSkillsBullets(grouped.get("topline skills") || [])));
+    railAtoms.push(...sectionEntries("Education", grouped.get("education") || []));
+    sortItems(grouped.get("second page rail") || []).forEach((item) => {
+      if (!item.title) return;
+      railAtoms.push({ type: "section-title", title: item.title, units: 0.5 });
+      railAtoms.push({ type: "entry", item: { ...item, content: item.content || "" }, hideTitle: true, units: estimateUnits(item, true) });
+    });
+
+    renderColumnAtoms(mainEl, mainAtoms, "col-main");
+    renderColumnAtoms(railEl, railAtoms, "col-rail");
+  }
+
   function renderPaginatedCv(root, cv) {
     const items = Array.isArray(cv?.items) ? cv.items : [];
     const header = items.find((item) => key(item.section) === "header") || {};
@@ -287,5 +325,5 @@
     });
   }
 
-  global.CvRender = { key, sortItems, renderPaginatedCv };
+  global.CvRender = { key, sortItems, renderStandardCv, renderPaginatedCv };
 })(window);

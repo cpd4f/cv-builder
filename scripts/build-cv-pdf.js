@@ -102,7 +102,8 @@ function splitSkillsBullets(items) {
 
 function groupBySection(items) {
   const grouped = new Map();
-  items.forEach((item) => {
+  const source = Array.isArray(items) ? items : [];
+  source.forEach((item) => {
     const section = key(item.section);
     if (!section || section === "header" || section === "contact") return;
     if (!grouped.has(section)) grouped.set(section, []);
@@ -192,14 +193,14 @@ function paginate(mainFirstAtoms, mainLaterAtoms, railSkillsAtoms, railPage2Atom
   rs = firstRail.nextIndex;
 
   const mainRemainder = mainFirstAtoms.slice(mf).concat(mainLaterAtoms);
-  const railRemainder = railSkillsAtoms.slice(rs).concat(railPage2Atoms, railLaterAtoms);
+  const railRemainder = railPage2Atoms.concat(railSkillsAtoms.slice(rs), railLaterAtoms);
 
   let mr = 0;
   let rr = 0;
 
   if (mr < mainRemainder.length || rr < railRemainder.length) {
     const secondMain = fillPage(mainRemainder, mr, 98);
-    const secondRail = fillPage(railRemainder, rr, 72);
+    const secondRail = fillPage(railRemainder, rr, 220);
     pages.push({ main: secondMain.atoms, rail: secondRail.atoms, first: false });
     mr = secondMain.nextIndex;
     rr = secondRail.nextIndex;
@@ -208,7 +209,7 @@ function paginate(mainFirstAtoms, mainLaterAtoms, railSkillsAtoms, railPage2Atom
   let guard = 0;
   while (mr < mainRemainder.length || rr < railRemainder.length) {
     const mainSlice = fillPage(mainRemainder, mr, 110);
-    const railSlice = fillPage(railRemainder, rr, 92);
+    const railSlice = fillPage(railRemainder, rr, 110);
     pages.push({ main: mainSlice.atoms, rail: railSlice.atoms, first: false });
     mr = mainSlice.nextIndex;
     rr = railSlice.nextIndex;
