@@ -376,10 +376,15 @@ function buildPdfForSlug(slug, cssHref) {
   const cv = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
   fs.mkdirSync(path.dirname(tmpPath), { recursive: true });
   fs.writeFileSync(tmpPath, renderPdfDocumentHtml(cv, cssHref), "utf8");
-  // Default path keeps text searchable/selectable in the output PDF.
-  // Set CV_PDF_LEGACY_PRESS_READY=1 to restore prior PDF/X press-ready output.
+  // Keep local-file rendering as default so existing layout styling remains stable.
+  // For HTTP-mode debugging, set CV_PDF_USE_HTTP=1.
+  const useHttpMode = process.env.CV_PDF_USE_HTTP === "1";
+  // Keep text selectable/searchable by default; opt into legacy PDF/X if needed.
   const useLegacyPressReady = process.env.CV_PDF_LEGACY_PRESS_READY === "1";
-  const cmd = ["vivliostyle", "build", tmpPath, "-o", outputPath, "--http"];
+  const cmd = ["vivliostyle", "build", tmpPath, "-o", outputPath];
+  if (useHttpMode) {
+    cmd.push("--http");
+  }
   if (useLegacyPressReady) {
     cmd.push("--press-ready");
   }
