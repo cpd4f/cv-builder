@@ -116,6 +116,11 @@ body {
   break-after: avoid;
 }
 
+.section-education {
+  break-before: auto;
+  page-break-before: auto;
+}
+
 .entry {
   margin-bottom: 8px;
   break-inside: avoid;

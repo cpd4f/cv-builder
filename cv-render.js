@@ -201,7 +201,9 @@
     atoms.forEach((atom) => {
       if (atom.type === "section-title") {
         section = document.createElement("section");
-        section.className = `section ${cls}`;
+        const normalized = key(atom.title);
+        const extraClass = normalized === "education" ? " section-education" : "";
+        section.className = `section ${cls}${extraClass}`;
         section.innerHTML = `<h3>${atom.title}</h3>`;
         host.appendChild(section);
         return;

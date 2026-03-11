@@ -216,7 +216,9 @@ function renderColumn(atoms, cls) {
   atoms.forEach((atom) => {
     if (atom.type === "section-title") {
       if (open) out.push("</section>");
-      out.push(`<section class=\"section ${cls}\"><h3>${escapeHtml(atom.title)}</h3>`);
+      const normalized = key(atom.title);
+      const extraClass = normalized === "education" ? " section-education" : "";
+      out.push(`<section class=\"section ${cls}${extraClass}\"><h3>${escapeHtml(atom.title)}</h3>`);
       open = true;
       return;
     }
