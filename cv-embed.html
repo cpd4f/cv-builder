@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CV Embed Instructions</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+        background: #f4f6f8;
+        color: #111827;
+        line-height: 1.45;
+      }
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+      }
+      h1 { margin: 0 0 8px; }
+      p { margin: 0 0 16px; }
+      .card {
+        background: #fff;
+        border: 1px solid #d6dbe2;
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      pre {
+        margin: 0;
+        overflow: auto;
+        padding: 12px;
+        border-radius: 8px;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+      code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      #embed-host { min-height: 600px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Embed this CV on any external site</h1>
+      <p>
+        Use the script below to embed the full CV viewer layout for <strong>coleman-davis</strong>.
+        You can change <code>data-cv</code> to any available slug.
+      </p>
+
+      <section class="card">
+        <h2>Copy/paste snippet</h2>
+        <pre><code>&lt;div id="cv-embed-target"&gt;&lt;/div&gt;
+&lt;script
+  src="https://cpd4f.github.io/cv-builder/cv-embed.js"
+  data-cv="coleman-davis"
+  data-target="cv-embed-target"
+  data-height="1800"
+&gt;&lt;/script&gt;</code></pre>
+      </section>
+
+      <section class="card">
+        <h2>Options</h2>
+        <ul>
+          <li><code>data-cv</code> (required): CV slug, e.g. <code>coleman-davis</code>.</li>
+          <li><code>data-target</code> (optional): container element id to place the iframe into.</li>
+          <li><code>data-height</code> (optional): iframe height (pixels like <code>1800</code> or CSS value like <code>120vh</code>).</li>
+          <li><code>data-base-url</code> (optional): override the base URL if you self-host these files.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Live preview</h2>
+        <div id="embed-host"></div>
+        <script
+          src="./cv-embed.js"
+          data-cv="coleman-davis"
+          data-target="embed-host"
+          data-height="1800"
+        ></script>
+      </section>
+    </div>
+  </body>
+</html>
