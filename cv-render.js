@@ -307,6 +307,14 @@
     }
     const compact = barelyMissed;
 
+    if (split.page2WorkItems.length) {
+      const promoteUnits = estimateUnits(split.page2WorkItems[0], false);
+      const promoteThreshold = compact ? 9.5 : 8.5;
+      if (workPage1Budget - split.used + promoteUnits >= promoteThreshold) {
+        split.page1WorkItems.push(split.page2WorkItems.shift());
+      }
+    }
+
     const mainPage1Atoms = coreAtoms.concat(sectionEntriesOrdered("Work Experience", split.page1WorkItems));
     const mainPage2Atoms = [];
     if (split.page2WorkItems.length) {
