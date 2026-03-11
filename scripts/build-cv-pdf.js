@@ -276,9 +276,19 @@ function composeFiveBlockLayout(items) {
 
   const coreAtoms = sectionAtoms("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true });
   const workItems = sortItems(grouped.get("work experience") || []);
-  const maxWorkPage1Items = 3;
-  const page1WorkItems = workItems.slice(0, maxWorkPage1Items);
-  const page2WorkItems = workItems.slice(maxWorkPage1Items);
+  const workPage1Budget = 23;
+  const page1WorkItems = [];
+  const page2WorkItems = [];
+  let workUsed = 0;
+  workItems.forEach((item, idx) => {
+    const units = estimateUnits(item, false);
+    if (idx === 0 || workUsed + units <= workPage1Budget) {
+      page1WorkItems.push(item);
+      workUsed += units;
+    } else {
+      page2WorkItems.push(item);
+    }
+  });
 
   const mainPage1Atoms = coreAtoms.concat(sectionAtoms("Work Experience", page1WorkItems));
   const mainPage2Atoms = [];
