@@ -124,16 +124,18 @@ function sectionAtoms(title, items, opts = {}) {
 
 function toAtoms(items) {
   const grouped = groupBySection(items);
-  const main = [];
+  const mainFirst = [];
+  const mainLater = [];
   const railSkills = [];
+  const railPage2 = [];
   const railLater = [];
 
-  main.push(...sectionAtoms("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true }));
-  main.push(...sectionAtoms("Work Experience", grouped.get("work experience") || []));
-  main.push(...sectionAtoms("Technical + IT", grouped.get("technical + it") || []));
+  mainFirst.push(...sectionAtoms("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true }));
+  mainFirst.push(...sectionAtoms("Work Experience", grouped.get("work experience") || []));
+  mainLater.push(...sectionAtoms("Technical + IT", grouped.get("technical + it") || []));
 
   railSkills.push(...sectionAtoms("Skills", splitSkillsBullets(grouped.get("topline skills") || []), { rail: true }));
-  railLater.push(...sectionAtoms("Education", grouped.get("education") || [], { rail: true }));
+  railPage2.push(...sectionAtoms("Education", grouped.get("education") || [], { rail: true }));
 
   sortItems(grouped.get("second page rail") || []).forEach((item) => {
     if (!item.title) return;
@@ -150,11 +152,12 @@ function toAtoms(items) {
 
   [...grouped.keys()].sort().forEach((extraKey) => {
     const title = extraKey.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-    main.push(...sectionAtoms(title, grouped.get(extraKey) || []));
+    mainLater.push(...sectionAtoms(title, grouped.get(extraKey) || []));
   });
 
-  return { main, railSkills, railLater };
+  return { mainFirst, mainLater, railSkills, railPage2, railLater };
 }
+
 
 function fillPage(atoms, index, budget) {
   const out = [];
@@ -170,36 +173,37 @@ function fillPage(atoms, index, budget) {
   return { nextIndex: i, atoms: out };
 }
 
-function paginate(mainAtoms, railSkillsAtoms, railLaterAtoms) {
+function paginate(mainFirstAtoms, mainLaterAtoms, railSkillsAtoms, railPage2Atoms, railLaterAtoms) {
   const pages = [];
-  let m = 0;
+  let mf = 0;
   let rs = 0;
 
-  const firstMain = fillPage(mainAtoms, m, 85);
-  const firstRailSkills = fillPage(railSkillsAtoms, rs, 55);
-  pages.push({ main: firstMain.atoms, rail: firstRailSkills.atoms, first: true });
-  m = firstMain.nextIndex;
-  rs = firstRailSkills.nextIndex;
+  const firstMain = fillPage(mainFirstAtoms, mf, 85);
+  const firstRail = fillPage(railSkillsAtoms, rs, 55);
+  pages.push({ main: firstMain.atoms, rail: firstRail.atoms, first: true });
+  mf = firstMain.nextIndex;
+  rs = firstRail.nextIndex;
 
-  const railRemainder = railSkillsAtoms.slice(rs).concat(railLaterAtoms);
+  const mainRemainder = mainFirstAtoms.slice(mf).concat(mainLaterAtoms);
+  const railRemainder = railSkillsAtoms.slice(rs).concat(railPage2Atoms, railLaterAtoms);
+
+  let mr = 0;
   let rr = 0;
 
-  if (m < mainAtoms.length || rr < railRemainder.length) {
-    const secondMain = fillPage(mainAtoms, m, 102);
-    const secondRail = fillPage(railRemainder, rr, 86);
+  if (mr < mainRemainder.length || rr < railRemainder.length) {
+    const secondMain = fillPage(mainRemainder, mr, 98);
+    const secondRail = fillPage(railRemainder, rr, 72);
     pages.push({ main: secondMain.atoms, rail: secondRail.atoms, first: false });
-    m = secondMain.nextIndex;
+    mr = secondMain.nextIndex;
     rr = secondRail.nextIndex;
   }
-  return { nextIndex: i, atoms: out };
-}
 
   let guard = 0;
-  while (m < mainAtoms.length || rr < railRemainder.length) {
-    const mainSlice = fillPage(mainAtoms, m, 110);
-    const railSlice = fillPage(railRemainder, rr, 96);
+  while (mr < mainRemainder.length || rr < railRemainder.length) {
+    const mainSlice = fillPage(mainRemainder, mr, 110);
+    const railSlice = fillPage(railRemainder, rr, 92);
     pages.push({ main: mainSlice.atoms, rail: railSlice.atoms, first: false });
-    m = mainSlice.nextIndex;
+    mr = mainSlice.nextIndex;
     rr = railSlice.nextIndex;
     guard += 1;
     if (guard > 20) break;
@@ -255,7 +259,7 @@ function renderDocument(cv, cssHref) {
   const header = items.find((item) => key(item.section) === "header") || {};
   const contacts = items.filter((item) => key(item.section) === "contact");
   const atoms = toAtoms(items);
-  const pages = paginate(atoms.main, atoms.railSkills, atoms.railLater);
+  const pages = paginate(atoms.mainFirst, atoms.mainLater, atoms.railSkills, atoms.railPage2, atoms.railLater);
 
   const pageHtml = pages.map((page, idx) => {
     const headerHtml = idx === 0
