@@ -183,10 +183,21 @@ function paginate(mainAtoms, railSkillsAtoms, railLaterAtoms) {
 
   const railRemainder = railSkillsAtoms.slice(rs).concat(railLaterAtoms);
   let rr = 0;
+
+  if (m < mainAtoms.length || rr < railRemainder.length) {
+    const secondMain = fillPage(mainAtoms, m, 102);
+    const secondRail = fillPage(railRemainder, rr, 86);
+    pages.push({ main: secondMain.atoms, rail: secondRail.atoms, first: false });
+    m = secondMain.nextIndex;
+    rr = secondRail.nextIndex;
+  }
+  return { nextIndex: i, atoms: out };
+}
+
   let guard = 0;
   while (m < mainAtoms.length || rr < railRemainder.length) {
     const mainSlice = fillPage(mainAtoms, m, 110);
-    const railSlice = fillPage(railRemainder, rr, 110);
+    const railSlice = fillPage(railRemainder, rr, 96);
     pages.push({ main: mainSlice.atoms, rail: railSlice.atoms, first: false });
     m = mainSlice.nextIndex;
     rr = railSlice.nextIndex;
@@ -196,6 +207,7 @@ function paginate(mainAtoms, railSkillsAtoms, railLaterAtoms) {
 
   return pages.filter((p) => p.main.length || p.rail.length);
 }
+
 
 function renderEntry(atom) {
   const item = atom.item;
@@ -251,7 +263,7 @@ function renderDocument(cv, cssHref) {
       : "";
     const contentHtml = idx === 0
       ? `<section class="content content-first"><aside class="rail-col rail-col-first">${renderColumn(page.rail, "col-rail")}</aside><div class="main-col main-col-first">${renderColumn(page.main, "col-main")}</div></section>`
-      : `<section class="content"><div class="main-col">${renderColumn(page.main, "col-main")}</div><aside class="rail-col">${renderColumn(page.rail, "col-rail")}</aside></section>`;
+      : `<section class="content"><aside class="rail-col">${renderColumn(page.rail, "col-rail")}</aside><div class="main-col">${renderColumn(page.main, "col-main")}</div></section>`;
     return `<section class="print-page${idx === 0 ? " first" : ""}">${headerHtml}${contentHtml}</section>`;
   }).join("\n");
 

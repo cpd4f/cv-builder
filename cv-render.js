@@ -150,10 +150,19 @@
 
     const railRemainder = railSkillsAtoms.slice(rs).concat(railLaterAtoms);
     let rr = 0;
+
+    if (m < mainAtoms.length || rr < railRemainder.length) {
+      const secondMain = fillPage(mainAtoms, m, 102);
+      const secondRail = fillPage(railRemainder, rr, 86);
+      pages.push({ main: secondMain.atoms, rail: secondRail.atoms, first: false });
+      m = secondMain.nextIndex;
+      rr = secondRail.nextIndex;
+    }
+
     let guard = 0;
     while (m < mainAtoms.length || rr < railRemainder.length) {
       const mainSlice = fillPage(mainAtoms, m, 110);
-      const railSlice = fillPage(railRemainder, rr, 110);
+      const railSlice = fillPage(railRemainder, rr, 96);
       pages.push({ main: mainSlice.atoms, rail: railSlice.atoms, first: false });
       m = mainSlice.nextIndex;
       rr = railSlice.nextIndex;
@@ -162,6 +171,7 @@
     }
     return pages.filter((p) => p.main.length || p.rail.length);
   }
+
 
   function renderEntryAtom(atom) {
     const { item, hideTitle } = atom;
@@ -260,11 +270,7 @@
       rail.className = `rail-col${idx === 0 ? " rail-col-first" : ""}`;
       renderColumnAtoms(main, page.main, "col-main");
       renderColumnAtoms(rail, page.rail, "col-rail");
-      if (idx === 0) {
-        content.append(rail, main);
-      } else {
-        content.append(main, rail);
-      }
+      content.append(rail, main);
       pageEl.appendChild(content);
       root.appendChild(pageEl);
     });
