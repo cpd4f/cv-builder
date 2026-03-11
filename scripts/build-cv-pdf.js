@@ -281,32 +281,45 @@ function renderContact(contacts) {
   return `<section class=\"contact-bar\">${entries.map((item) => `<div class=\"contact-item\"><i class=\"${iconClassForContact(item.content)}\" aria-hidden=\"true\"></i><span>${escapeHtml(item.content)}</span></div>`).join("")}</section>`;
 }
 
+function splitWorkPageOne(workItems, budget) {
+  const page1WorkItems = [];
+  const page2WorkItems = [];
+  let used = 0;
+  let overflowStarted = false;
+  workItems.forEach((item, idx) => {
+    const units = estimateUnits(item, false);
+    if (!overflowStarted && (idx === 0 || used + units <= budget)) {
+      page1WorkItems.push(item);
+      used += units;
+    } else {
+      overflowStarted = true;
+      page2WorkItems.push(item);
+    }
+  });
+  return { page1WorkItems, page2WorkItems, used };
+}
+
 function composeFiveBlockLayout(items) {
   const source = Array.isArray(items) ? items : [];
   const grouped = groupBySection(source);
 
   const coreAtoms = sectionAtoms("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true });
   const workItems = grouped.get("work experience") || [];
-  const workPage1Budget = 23;
-  const page1WorkItems = [];
-  const page2WorkItems = [];
-  let workUsed = 0;
-  let overflowStarted = false;
-  workItems.forEach((item, idx) => {
-    const units = estimateUnits(item, false);
-    if (!overflowStarted && (idx === 0 || workUsed + units <= workPage1Budget)) {
-      page1WorkItems.push(item);
-      workUsed += units;
-    } else {
-      overflowStarted = true;
-      page2WorkItems.push(item);
-    }
-  });
+  let workPage1Budget = 23;
+  let split = splitWorkPageOne(workItems, workPage1Budget);
+  const leftover = workPage1Budget - split.used;
+  const firstOverflowUnits = split.page2WorkItems.length ? estimateUnits(split.page2WorkItems[0], false) : 0;
+  const barelyMissed = split.page2WorkItems.length > 0 && firstOverflowUnits > leftover && (firstOverflowUnits - leftover) <= 1.2;
+  if (barelyMissed) {
+    workPage1Budget += 1.2;
+    split = splitWorkPageOne(workItems, workPage1Budget);
+  }
+  const compact = barelyMissed;
 
-  const mainPage1Atoms = coreAtoms.concat(sectionAtomsOrdered("Work Experience", page1WorkItems));
+  const mainPage1Atoms = coreAtoms.concat(sectionAtomsOrdered("Work Experience", split.page1WorkItems));
   const mainPage2Atoms = [];
-  if (page2WorkItems.length) {
-    mainPage2Atoms.push(...sectionAtomsOrdered("Work Experience (Cont.)", page2WorkItems));
+  if (split.page2WorkItems.length) {
+    mainPage2Atoms.push(...sectionAtomsOrdered("Work Experience (Cont.)", split.page2WorkItems));
   }
   mainPage2Atoms.push(...sectionAtoms("Technical + IT", grouped.get("technical + it") || []));
 
@@ -331,7 +344,7 @@ function composeFiveBlockLayout(items) {
     railPage2Atoms.push({ type: "entry", item: { ...item, content: item.content || "" }, hideTitle: true, units: estimateUnits(item, true) });
   });
 
-  return { mainPage1Atoms, mainPage2Atoms, railPage1Atoms, railPage2Atoms };
+  return { mainPage1Atoms, mainPage2Atoms, railPage1Atoms, railPage2Atoms, compact };
 }
 
 function renderDocument(cv, cssHref) {
@@ -344,7 +357,7 @@ function renderDocument(cv, cssHref) {
 
   const fullContainer = `<div class="full-container"><div class="header-container">${headerHtml}</div><div class="rail-page-1">${renderColumn(blocks.railPage1Atoms, "col-rail")}</div><div class="main-content-1">${renderColumn(blocks.mainPage1Atoms, "col-main")}</div><div class="rail-page-2">${renderColumn(blocks.railPage2Atoms, "col-rail")}</div><div class="main-content-2">${renderColumn(blocks.mainPage2Atoms, "col-main")}</div></div>`;
 
-  return `<!doctype html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>CV Print</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" /><link rel="stylesheet" href="${cssHref}" /></head><body><main class="cv-print" id="cv-print-root">${fullContainer}</main></body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>CV Print</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" /><link rel="stylesheet" href="${cssHref}" /></head><body><main class="cv-print${blocks.compact ? " compact" : ""}" id="cv-print-root">${fullContainer}</main></body></html>`;
 }
 
 

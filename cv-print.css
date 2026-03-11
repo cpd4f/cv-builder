@@ -30,9 +30,13 @@ body {
   width: 100%;
 }
 
+.cv-print.compact {
+  font-size: 11.75px;
+}
+
 .full-container {
   display: grid;
-  grid-template-columns: minmax(0, 1.95fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 2.05fr) minmax(0, 0.95fr);
   column-gap: 7mm;
   width: 100%;
 }
@@ -260,7 +264,7 @@ body {
 
   .content {
     display: grid;
-    grid-template-columns: minmax(0, 1.95fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 2.05fr) minmax(0, 0.95fr);
     column-gap: 7mm;
     align-items: start;
   }
@@ -274,7 +278,7 @@ body {
 
   .content {
     display: grid;
-    grid-template-columns: minmax(0, 1.95fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 2.05fr) minmax(0, 0.95fr);
     column-gap: 7mm;
     align-items: start;
     width: 100%;
