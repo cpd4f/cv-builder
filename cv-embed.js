@@ -31,6 +31,17 @@
     });
   }
 
+
+
+  function inlineMarkdownToHtml(text) {
+    const escaped = escapeHtml(text);
+    return escaped
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.+?)\*/g, "<em>$1</em>")
+      .replace(/`(.+?)`/g, "<code>$1</code>")
+      .replace(/\[(.+?)\]\((https?:[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  }
+
   function markdownToHtml(markdown) {
     const raw = String(markdown || "").trim();
     if (!raw) return "";
@@ -39,7 +50,7 @@
     let list = [];
     const flush = function () {
       if (!list.length) return;
-      chunks.push("<ul>" + list.map(function (x) { return "<li>" + escapeHtml(x) + "</li>"; }).join("") + "</ul>");
+      chunks.push("<ul>" + list.map(function (x) { return "<li>" + inlineMarkdownToHtml(x) + "</li>"; }).join("") + "</ul>");
       list = [];
     };
 
@@ -51,7 +62,7 @@
         return;
       }
       flush();
-      if (t) chunks.push("<p>" + escapeHtml(t) + "</p>");
+      if (t) chunks.push("<p>" + inlineMarkdownToHtml(t) + "</p>");
     });
     flush();
     return chunks.join("\n");
@@ -169,7 +180,6 @@
       }
       .contact-item {
         padding: 8px 0;
-        border-right: 1px solid #4b555f;
         font-size: 11pt;
         overflow-wrap: anywhere;
         display: flex;
@@ -178,7 +188,7 @@
       }
       .contact-item i { width: 14px; text-align: center; }
       .contact-item:first-child { padding-right: 16px; }
-      .contact-item:last-child { border-right: 0; padding-left: 16px; }
+      .contact-item:last-child { padding-left: 16px; }
       .content {
         display: grid;
         grid-template-columns: 1.55fr 0.75fr;
@@ -206,8 +216,8 @@
       @media (max-width: 920px) {
         .content { grid-template-columns: 1fr; gap: 6mm; }
         .contact-bar { grid-template-columns: 1fr; }
-        .contact-item { border-right: 0; border-bottom: 1px solid #4b555f; }
-        .contact-item:last-child { border-bottom: 0; padding-left: 0; }
+        .contact-item { padding-left: 0; }
+        .contact-item:last-child { padding-left: 0; }
       }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />

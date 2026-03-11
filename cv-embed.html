@@ -36,6 +36,18 @@
       }
       code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
       #embed-host { min-height: 600px; }
+      #copy-snippet {
+        border: 0;
+        border-radius: 999px;
+        background: #1f2937;
+        color: #fff;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      #copy-snippet:hover { background: #111827; }
+      #copy-status { margin-left: 8px; font-size: 13px; color: #1f2937; }
     </style>
   </head>
   <body>
@@ -48,7 +60,8 @@
 
       <section class="card">
         <h2>Copy/paste snippet</h2>
-        <pre><code>&lt;div id="cv-embed-target"&gt;&lt;/div&gt;
+        <p><button id="copy-snippet" type="button">Copy embed code</button> <span id="copy-status" aria-live="polite"></span></p>
+        <pre><code id="embed-snippet">&lt;div id="cv-embed-target"&gt;&lt;/div&gt;
 &lt;script
   src="https://cpd4f.github.io/cv-builder/cv-embed.js"
   data-cv="coleman-davis"
@@ -75,5 +88,22 @@
         ></script>
       </section>
     </div>
-  </body>
+  
+    <script>
+      const copyBtn = document.getElementById("copy-snippet");
+      const copyStatus = document.getElementById("copy-status");
+      const snippetEl = document.getElementById("embed-snippet");
+      if (copyBtn && snippetEl) {
+        copyBtn.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(snippetEl.textContent);
+            if (copyStatus) copyStatus.textContent = "Copied!";
+          } catch (error) {
+            if (copyStatus) copyStatus.textContent = "Copy failed. Please copy manually.";
+          }
+          setTimeout(() => { if (copyStatus) copyStatus.textContent = ""; }, 1800);
+        });
+      }
+    </script>
+</body>
 </html>
