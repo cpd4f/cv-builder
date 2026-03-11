@@ -94,7 +94,6 @@
       if (!grouped.has(section)) grouped.set(section, []);
       grouped.get(section).push(item);
     });
-    return grouped;
   }
 
   function toAtoms(items) {
