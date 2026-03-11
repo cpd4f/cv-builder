@@ -48,9 +48,11 @@
   function estimateUnits(item, isRail = false) {
     const text = `${item.title || ""} ${item.subtitle || ""} ${item.location || ""} ${item.content || ""}`.trim();
     const chars = text.length;
-    const perLine = isRail ? 80 : 120;
+    const perLine = isRail ? 52 : 68;
     const lines = Math.max(1, Math.ceil(chars / perLine));
-    return lines + (item.content ? 0.25 : 0);
+    const base = isRail ? 0.9 : 1.2;
+    const contentPenalty = item.content ? (isRail ? 0.8 : 1.1) : 0;
+    return base + lines + contentPenalty;
   }
 
   function makeEntry(item, hideTitle) {
@@ -251,6 +253,43 @@
     host.innerHTML = entries.map((item) => `<div class="contact-item"><span>${item.content || ""}</span></div>`).join("");
   }
 
+  function composeFiveBlockLayout(items) {
+    const source = Array.isArray(items) ? items : [];
+    const grouped = groupBySection(source);
+
+    const mainFlow = [];
+    mainFlow.push(...sectionEntries("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true }));
+    mainFlow.push(...sectionEntries("Work Experience", grouped.get("work experience") || []));
+
+    const firstMain = fillPage(mainFlow, 0, 120);
+    const mainPage1Atoms = firstMain.atoms;
+    const mainPage2Atoms = mainFlow.slice(firstMain.nextIndex);
+    mainPage2Atoms.push(...sectionEntries("Technical + IT", grouped.get("technical + it") || []));
+
+    grouped.delete("core competencies");
+    grouped.delete("work experience");
+    grouped.delete("technical + it");
+
+    [...grouped.keys()].sort().forEach((extraKey) => {
+      if (["topline skills", "education", "second page rail"].includes(extraKey)) return;
+      const title = extraKey.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+      mainPage2Atoms.push(...sectionEntries(title, grouped.get(extraKey) || []));
+    });
+
+    const railPage1Atoms = [];
+    railPage1Atoms.push(...sectionEntries("Skills", splitSkillsBullets(grouped.get("topline skills") || [])));
+
+    const railPage2Atoms = [];
+    railPage2Atoms.push(...sectionEntries("Education", grouped.get("education") || []));
+    sortItems(grouped.get("second page rail") || []).forEach((item) => {
+      if (!item.title) return;
+      railPage2Atoms.push({ type: "section-title", title: item.title, units: 0.5 });
+      railPage2Atoms.push({ type: "entry", item: { ...item, content: item.content || "" }, hideTitle: true, units: estimateUnits(item, true) });
+    });
+
+    return { mainPage1Atoms, mainPage2Atoms, railPage1Atoms, railPage2Atoms };
+  }
+
   function renderStandardCv({ items, headerEl, contactEl, mainEl, railEl }) {
     const source = Array.isArray(items) ? items : [];
     const grouped = groupBySection(source);
@@ -291,39 +330,44 @@
     const items = Array.isArray(cv?.items) ? cv.items : [];
     const header = items.find((item) => key(item.section) === "header") || {};
     const contacts = items.filter((item) => key(item.section) === "contact");
-    const atoms = toAtoms(items);
-    const pages = paginate(atoms.mainFirst, atoms.mainLater, atoms.railSkills, atoms.railPage2, atoms.railLater);
+    const blocks = composeFiveBlockLayout(items);
 
     root.innerHTML = "";
-    pages.forEach((page, idx) => {
-      const pageEl = document.createElement("section");
-      pageEl.className = `print-page${idx === 0 ? " first" : ""}`;
 
-      if (idx === 0) {
-        const headerEl = document.createElement("header");
-        headerEl.className = "header";
-        renderHeader(headerEl, header);
-        pageEl.appendChild(headerEl);
+    const full = document.createElement("div");
+    full.className = "full-container";
 
-        const contactEl = document.createElement("section");
-        contactEl.className = "contact-bar";
-        renderContact(contactEl, contacts);
-        pageEl.appendChild(contactEl);
-      }
+    const headerContainer = document.createElement("div");
+    headerContainer.className = "header-container";
+    const headerEl = document.createElement("header");
+    headerEl.className = "header";
+    renderHeader(headerEl, header);
+    headerContainer.appendChild(headerEl);
+    const contactEl = document.createElement("section");
+    contactEl.className = "contact-bar";
+    renderContact(contactEl, contacts);
+    headerContainer.appendChild(contactEl);
 
-      const content = document.createElement("section");
-      content.className = `content${idx === 0 ? " content-first" : ""}`;
-      const main = document.createElement("div");
-      main.className = `main-col${idx === 0 ? " main-col-first" : ""}`;
-      const rail = document.createElement("aside");
-      rail.className = `rail-col${idx === 0 ? " rail-col-first" : ""}`;
-      renderColumnAtoms(main, page.main, "col-main");
-      renderColumnAtoms(rail, page.rail, "col-rail");
-      content.append(rail, main);
-      pageEl.appendChild(content);
-      root.appendChild(pageEl);
-    });
+    const railPage1 = document.createElement("div");
+    railPage1.className = "rail-page-1";
+    renderColumnAtoms(railPage1, blocks.railPage1Atoms, "col-rail");
+
+    const mainPage1 = document.createElement("div");
+    mainPage1.className = "main-content-1";
+    renderColumnAtoms(mainPage1, blocks.mainPage1Atoms, "col-main");
+
+    const railPage2 = document.createElement("div");
+    railPage2.className = "rail-page-2";
+    renderColumnAtoms(railPage2, blocks.railPage2Atoms, "col-rail");
+
+    const mainPage2 = document.createElement("div");
+    mainPage2.className = "main-content-2";
+    renderColumnAtoms(mainPage2, blocks.mainPage2Atoms, "col-main");
+
+    full.append(headerContainer, railPage1, mainPage1, railPage2, mainPage2);
+    root.appendChild(full);
   }
+
 
   global.CvRender = { key, sortItems, renderStandardCv, renderPaginatedCv };
 })(window);

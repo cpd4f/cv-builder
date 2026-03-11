@@ -30,6 +30,39 @@ body {
   width: 100%;
 }
 
+.full-container {
+  display: grid;
+  grid-template-columns: minmax(0, 1.95fr) minmax(0, 1fr);
+  column-gap: 6mm;
+  width: 100%;
+}
+
+.header-container {
+  grid-column: 1 / span 2;
+  grid-row: 1 / span 1;
+}
+
+.rail-page-1 {
+  grid-column: 2 / span 1;
+  grid-row: 2 / span 1;
+}
+
+.main-content-1 {
+  grid-column: 1 / span 1;
+  grid-row: 2 / span 1;
+}
+
+.rail-page-2 {
+  grid-column: 2 / span 1;
+  grid-row: 3 / span 1;
+}
+
+.main-content-2 {
+  grid-column: 1 / span 1;
+  grid-row: 3 / span 1;
+}
+
+
 .print-page {
   break-after: page;
   page-break-after: always;

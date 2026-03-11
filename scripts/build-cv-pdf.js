@@ -85,9 +85,11 @@ function markdownToHtml(markdown) {
 function estimateUnits(item, isRail = false) {
   const text = `${item.title || ""} ${item.subtitle || ""} ${item.location || ""} ${item.content || ""}`.trim();
   const chars = text.length;
-  const perLine = isRail ? 80 : 120;
+  const perLine = isRail ? 52 : 68;
   const lines = Math.max(1, Math.ceil(chars / perLine));
-  return lines + (item.content ? 0.25 : 0);
+  const base = isRail ? 0.9 : 1.2;
+  const contentPenalty = item.content ? (isRail ? 0.8 : 1.1) : 0;
+  return base + lines + contentPenalty;
 }
 
 function splitSkillsBullets(items) {
@@ -260,25 +262,56 @@ function renderContact(contacts) {
   return `<section class=\"contact-bar\">${entries.map((item) => `<div class=\"contact-item\"><span>${escapeHtml(item.content)}</span></div>`).join("")}</section>`;
 }
 
+function composeFiveBlockLayout(items) {
+  const source = Array.isArray(items) ? items : [];
+  const grouped = groupBySection(source);
+
+  const mainFlow = [];
+  mainFlow.push(...sectionAtoms("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true }));
+  mainFlow.push(...sectionAtoms("Work Experience", grouped.get("work experience") || []));
+
+  const firstMain = fillPage(mainFlow, 0, 120);
+  const mainPage1Atoms = firstMain.atoms;
+  const mainPage2Atoms = mainFlow.slice(firstMain.nextIndex);
+  mainPage2Atoms.push(...sectionAtoms("Technical + IT", grouped.get("technical + it") || []));
+
+  grouped.delete("core competencies");
+  grouped.delete("work experience");
+  grouped.delete("technical + it");
+
+  [...grouped.keys()].sort().forEach((extraKey) => {
+    if (["topline skills", "education", "second page rail"].includes(extraKey)) return;
+    const title = extraKey.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    mainPage2Atoms.push(...sectionAtoms(title, grouped.get(extraKey) || []));
+  });
+
+  const railPage1Atoms = [];
+  railPage1Atoms.push(...sectionAtoms("Skills", splitSkillsBullets(grouped.get("topline skills") || []), { rail: true }));
+
+  const railPage2Atoms = [];
+  railPage2Atoms.push(...sectionAtoms("Education", grouped.get("education") || [], { rail: true }));
+  sortItems(grouped.get("second page rail") || []).forEach((item) => {
+    if (!item.title) return;
+    railPage2Atoms.push({ type: "section-title", title: item.title, units: 0.5 });
+    railPage2Atoms.push({ type: "entry", item: { ...item, content: item.content || "" }, hideTitle: true, units: estimateUnits(item, true) });
+  });
+
+  return { mainPage1Atoms, mainPage2Atoms, railPage1Atoms, railPage2Atoms };
+}
+
 function renderDocument(cv, cssHref) {
   const items = Array.isArray(cv.items) ? cv.items : [];
   const header = items.find((item) => key(item.section) === "header") || {};
   const contacts = items.filter((item) => key(item.section) === "contact");
-  const atoms = toAtoms(items);
-  const pages = paginate(atoms.mainFirst, atoms.mainLater, atoms.railSkills, atoms.railPage2, atoms.railLater);
+  const blocks = composeFiveBlockLayout(items);
 
-  const pageHtml = pages.map((page, idx) => {
-    const headerHtml = idx === 0
-      ? `<header class=\"header\"><h1>${escapeHtml(header?.title || "CV")}</h1><h2>${escapeHtml(header?.subtitle || "")}</h2><div class=\"header-summary\">${markdownToHtml(header?.content || "")}</div></header>${renderContact(contacts)}`
-      : "";
-    const contentHtml = idx === 0
-      ? `<section class="content content-first"><aside class="rail-col rail-col-first">${renderColumn(page.rail, "col-rail")}</aside><div class="main-col main-col-first">${renderColumn(page.main, "col-main")}</div></section>`
-      : `<section class="content"><aside class="rail-col">${renderColumn(page.rail, "col-rail")}</aside><div class="main-col">${renderColumn(page.main, "col-main")}</div></section>`;
-    return `<section class="print-page${idx === 0 ? " first" : ""}">${headerHtml}${contentHtml}</section>`;
-  }).join("\n");
+  const headerHtml = `<header class="header"><h1>${escapeHtml(header?.title || "CV")}</h1><h2>${escapeHtml(header?.subtitle || "")}</h2><div class="header-summary">${markdownToHtml(header?.content || "")}</div></header>${renderContact(contacts)}`;
 
-  return `<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\" /><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" /><title>CV Print</title><link rel=\"stylesheet\" href=\"${cssHref}\" /></head><body><main class=\"cv-print\" id=\"cv-print-root\">${pageHtml}</main></body></html>`;
+  const fullContainer = `<div class="full-container"><div class="header-container">${headerHtml}</div><div class="rail-page-1">${renderColumn(blocks.railPage1Atoms, "col-rail")}</div><div class="main-content-1">${renderColumn(blocks.mainPage1Atoms, "col-main")}</div><div class="rail-page-2">${renderColumn(blocks.railPage2Atoms, "col-rail")}</div><div class="main-content-2">${renderColumn(blocks.mainPage2Atoms, "col-main")}</div></div>`;
+
+  return `<!doctype html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>CV Print</title><link rel="stylesheet" href="${cssHref}" /></head><body><main class="cv-print" id="cv-print-root">${fullContainer}</main></body></html>`;
 }
+
 
 function buildPdfForSlug(slug, cssHref) {
   const jsonPath = path.join("data", "cv", `${slug}.json`);
