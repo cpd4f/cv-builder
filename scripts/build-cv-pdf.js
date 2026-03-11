@@ -229,6 +229,7 @@ function paginate(mainFirstAtoms, mainLaterAtoms, railSkillsAtoms, railPage2Atom
     guard += 1;
     if (guard > 20) break;
   }
+  const compact = barelyMissed;
 
   return pages.filter((p) => p.main.length || p.rail.length);
 }
@@ -323,6 +324,28 @@ function composeFiveBlockLayout(items) {
       split.page1WorkItems.push(split.page2WorkItems.shift());
     }
   }
+  mainPage2Atoms.push(...sectionAtoms("Technical + IT", grouped.get("technical + it") || []));
+
+  grouped.delete("core competencies");
+  grouped.delete("work experience");
+  grouped.delete("technical + it");
+
+  [...grouped.keys()].sort().forEach((extraKey) => {
+    if (["topline skills", "education", "second page rail"].includes(extraKey)) return;
+    const title = extraKey.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    mainPage2Atoms.push(...sectionAtoms(title, grouped.get(extraKey) || []));
+  });
+
+  const railPage1Atoms = [];
+  railPage1Atoms.push(...sectionAtoms("Skills", grouped.get("topline skills") || [], { rail: true }));
+
+  const railPage2Atoms = [];
+  railPage2Atoms.push(...sectionAtoms("Education", grouped.get("education") || [], { rail: true }));
+  sortItems(grouped.get("second page rail") || []).forEach((item) => {
+    if (!item.title) return;
+    railPage2Atoms.push({ type: "section-title", title: item.title, units: 0.5 });
+    railPage2Atoms.push({ type: "entry", item: { ...item, content: item.content || "" }, hideTitle: true, units: estimateUnits(item, true) });
+  });
 
   const mainPage1Atoms = coreAtoms.concat(sectionAtomsOrdered("Work Experience", split.page1WorkItems));
   const mainPage2Atoms = [];
