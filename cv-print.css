@@ -33,7 +33,7 @@ body {
 .full-container {
   display: grid;
   grid-template-columns: minmax(0, 1.95fr) minmax(0, 1fr);
-  column-gap: 6mm;
+  column-gap: 7mm;
   width: 100%;
 }
 
@@ -75,6 +75,7 @@ body {
 
 .header {
   padding: 0 0 5mm;
+  margin-bottom: 1.5mm;
   border-bottom: 1px solid var(--rule);
   break-inside: avoid;
 }
@@ -105,7 +106,7 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   margin: 0 calc(-1 * var(--page-margin));
-  padding: 3mm var(--page-margin);
+  padding: 4mm var(--page-margin);
   background: var(--panel);
   color: var(--panel-text);
 }
@@ -116,7 +117,12 @@ body {
   font-weight: 600;
   border-right: 1px solid #4b555f;
   overflow-wrap: anywhere;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
+
+.contact-item i { width: 10px; text-align: center; }
 
 .contact-item:first-child { padding-left: 0; }
 .contact-item:last-child { padding-right: 0; border-right: 0; }
@@ -255,7 +261,7 @@ body {
   .content {
     display: grid;
     grid-template-columns: minmax(0, 1.95fr) minmax(0, 1fr);
-    column-gap: 6mm;
+    column-gap: 7mm;
     align-items: start;
   }
 }
@@ -269,7 +275,7 @@ body {
   .content {
     display: grid;
     grid-template-columns: minmax(0, 1.95fr) minmax(0, 1fr);
-    column-gap: 6mm;
+    column-gap: 7mm;
     align-items: start;
     width: 100%;
     break-inside: auto;

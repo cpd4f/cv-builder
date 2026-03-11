@@ -144,7 +144,7 @@ function toAtoms(items) {
   mainFirst.push(...sectionAtoms("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true }));
   mainFirst.push(...workAndTechAtoms(grouped.get("work experience") || [], grouped.get("technical + it") || []));
 
-  railSkills.push(...sectionAtoms("Skills", splitSkillsBullets(grouped.get("topline skills") || []), { rail: true }));
+  railSkills.push(...sectionAtoms("Skills", grouped.get("topline skills") || [], { rail: true }));
   railPage2.push(...sectionAtoms("Education", grouped.get("education") || [], { rail: true }));
 
   sortItems(grouped.get("second page rail") || []).forEach((item) => {
@@ -256,10 +256,18 @@ function renderColumn(atoms, cls) {
   return out.join("\n");
 }
 
+function iconClassForContact(text) {
+  const v = String(text || "").toLowerCase();
+  if (v.includes("@")) return "fa-solid fa-envelope";
+  if (v.includes("http") || v.includes("www.")) return "fa-solid fa-globe";
+  if (/[+()\d\s-]{7,}/.test(v)) return "fa-solid fa-phone";
+  return "fa-solid fa-address-card";
+}
+
 function renderContact(contacts) {
   const entries = contacts.filter((item) => String(item?.content || "").trim() !== "");
   if (!entries.length) return "";
-  return `<section class=\"contact-bar\">${entries.map((item) => `<div class=\"contact-item\"><span>${escapeHtml(item.content)}</span></div>`).join("")}</section>`;
+  return `<section class=\"contact-bar\">${entries.map((item) => `<div class=\"contact-item\"><i class=\"${iconClassForContact(item.content)}\" aria-hidden=\"true\"></i><span>${escapeHtml(item.content)}</span></div>`).join("")}</section>`;
 }
 
 function composeFiveBlockLayout(items) {
@@ -274,7 +282,10 @@ function composeFiveBlockLayout(items) {
 
   const mainPage1Atoms = coreAtoms.concat(sectionAtoms("Work Experience", page1WorkItems));
   const mainPage2Atoms = [];
-  if (page2WorkItems.length) mainPage2Atoms.push(...sectionAtoms("Work Experience", page2WorkItems));
+  if (page2WorkItems.length) {
+    mainPage2Atoms.push({ type: "section-title", title: "Work Experience (Cont.)", units: 0.5 });
+    page2WorkItems.forEach((item) => mainPage2Atoms.push({ type: "entry", item, hideTitle: false, units: estimateUnits(item, false) }));
+  }
   mainPage2Atoms.push(...sectionAtoms("Technical + IT", grouped.get("technical + it") || []));
 
   grouped.delete("core competencies");
@@ -288,7 +299,7 @@ function composeFiveBlockLayout(items) {
   });
 
   const railPage1Atoms = [];
-  railPage1Atoms.push(...sectionAtoms("Skills", splitSkillsBullets(grouped.get("topline skills") || []), { rail: true }));
+  railPage1Atoms.push(...sectionAtoms("Skills", grouped.get("topline skills") || [], { rail: true }));
 
   const railPage2Atoms = [];
   railPage2Atoms.push(...sectionAtoms("Education", grouped.get("education") || [], { rail: true }));
@@ -311,7 +322,7 @@ function renderDocument(cv, cssHref) {
 
   const fullContainer = `<div class="full-container"><div class="header-container">${headerHtml}</div><div class="rail-page-1">${renderColumn(blocks.railPage1Atoms, "col-rail")}</div><div class="main-content-1">${renderColumn(blocks.mainPage1Atoms, "col-main")}</div><div class="rail-page-2">${renderColumn(blocks.railPage2Atoms, "col-rail")}</div><div class="main-content-2">${renderColumn(blocks.mainPage2Atoms, "col-main")}</div></div>`;
 
-  return `<!doctype html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>CV Print</title><link rel="stylesheet" href="${cssHref}" /></head><body><main class="cv-print" id="cv-print-root">${fullContainer}</main></body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>CV Print</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" /><link rel="stylesheet" href="${cssHref}" /></head><body><main class="cv-print" id="cv-print-root">${fullContainer}</main></body></html>`;
 }
 
 

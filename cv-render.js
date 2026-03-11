@@ -246,11 +246,19 @@
     host.innerHTML = `<h1>${item?.title || "CV"}</h1><h2>${item?.subtitle || ""}</h2><div class="header-summary">${markdownToHtml(item?.content || "")}</div>`;
   }
 
+  function iconClassForContact(text) {
+    const v = String(text || "").toLowerCase();
+    if (v.includes("@")) return "fa-solid fa-envelope";
+    if (v.includes("http") || v.includes("www.")) return "fa-solid fa-globe";
+    if (/[+()\d\s-]{7,}/.test(v)) return "fa-solid fa-phone";
+    return "fa-solid fa-address-card";
+  }
+
   function renderContact(host, items) {
     const entries = items.filter((item) => String(item?.content || "").trim() !== "");
     if (!entries.length) { host.style.display = "none"; return; }
     host.style.display = "grid";
-    host.innerHTML = entries.map((item) => `<div class="contact-item"><span>${item.content || ""}</span></div>`).join("");
+    host.innerHTML = entries.map((item) => `<div class="contact-item"><i class="${iconClassForContact(item.content)}" aria-hidden="true"></i><span>${item.content || ""}</span></div>`).join("");
   }
 
   function composeFiveBlockLayout(items) {
@@ -265,7 +273,10 @@
 
     const mainPage1Atoms = coreAtoms.concat(sectionEntries("Work Experience", page1WorkItems));
     const mainPage2Atoms = [];
-    if (page2WorkItems.length) mainPage2Atoms.push(...sectionEntries("Work Experience", page2WorkItems));
+    if (page2WorkItems.length) {
+      mainPage2Atoms.push({ type: "section-title", title: "Work Experience (Cont.)", units: 0.5 });
+      page2WorkItems.forEach((item) => mainPage2Atoms.push(makeEntry(item, false)));
+    }
     mainPage2Atoms.push(...sectionEntries("Technical + IT", grouped.get("technical + it") || []));
 
     grouped.delete("core competencies");
@@ -279,7 +290,7 @@
     });
 
     const railPage1Atoms = [];
-    railPage1Atoms.push(...sectionEntries("Skills", splitSkillsBullets(grouped.get("topline skills") || [])));
+    railPage1Atoms.push(...sectionEntries("Skills", grouped.get("topline skills") || []));
 
     const railPage2Atoms = [];
     railPage2Atoms.push(...sectionEntries("Education", grouped.get("education") || []));
@@ -316,7 +327,7 @@
     });
 
     const railAtoms = [];
-    railAtoms.push(...sectionEntries("Skills", splitSkillsBullets(grouped.get("topline skills") || [])));
+    railAtoms.push(...sectionEntries("Skills", grouped.get("topline skills") || []));
     railAtoms.push(...sectionEntries("Education", grouped.get("education") || []));
     sortItems(grouped.get("second page rail") || []).forEach((item) => {
       if (!item.title) return;
