@@ -42,8 +42,8 @@
     <div class="wrap">
       <h1>Embed this CV on any external site</h1>
       <p>
-        Use the script below to embed the full CV viewer layout for <strong>coleman-davis</strong>.
-        You can change <code>data-cv</code> to any available slug.
+        This embed is now <strong>non-iframe</strong>: it renders directly in the page, is responsive,
+        and is isolated from host-site CSS using <strong>Shadow DOM</strong>.
       </p>
 
       <section class="card">
@@ -53,7 +53,6 @@
   src="https://cpd4f.github.io/cv-builder/cv-embed.js"
   data-cv="coleman-davis"
   data-target="cv-embed-target"
-  data-height="1800"
 &gt;&lt;/script&gt;</code></pre>
       </section>
 
@@ -61,9 +60,8 @@
         <h2>Options</h2>
         <ul>
           <li><code>data-cv</code> (required): CV slug, e.g. <code>coleman-davis</code>.</li>
-          <li><code>data-target</code> (optional): container element id to place the iframe into.</li>
-          <li><code>data-height</code> (optional): iframe height (pixels like <code>1800</code> or CSS value like <code>120vh</code>).</li>
-          <li><code>data-base-url</code> (optional): override the base URL if you self-host these files.</li>
+          <li><code>data-target</code> (optional): container element id where the embed should render.</li>
+          <li><code>data-base-url</code> (optional): override base URL if you self-host files.</li>
         </ul>
       </section>
 
@@ -74,7 +72,6 @@
           src="./cv-embed.js"
           data-cv="coleman-davis"
           data-target="embed-host"
-          data-height="1800"
         ></script>
       </section>
     </div>
