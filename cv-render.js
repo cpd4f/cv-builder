@@ -258,14 +258,14 @@
     const grouped = groupBySection(source);
 
     const coreAtoms = sectionEntries("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true });
-    const workAtoms = sectionEntries("Work Experience", grouped.get("work experience") || []);
+    const workItems = sortItems(grouped.get("work experience") || []);
+    const maxWorkPage1Items = 3;
+    const page1WorkItems = workItems.slice(0, maxWorkPage1Items);
+    const page2WorkItems = workItems.slice(maxWorkPage1Items);
 
-    const coreUnits = coreAtoms.reduce((sum, atom) => sum + (atom.units || 0), 0);
-    const workBudget = Math.max(8, 120 - coreUnits);
-    const firstWork = fillPage(workAtoms, 0, workBudget);
-
-    const mainPage1Atoms = coreAtoms.concat(firstWork.atoms);
-    const mainPage2Atoms = workAtoms.slice(firstWork.nextIndex);
+    const mainPage1Atoms = coreAtoms.concat(sectionEntries("Work Experience", page1WorkItems));
+    const mainPage2Atoms = [];
+    if (page2WorkItems.length) mainPage2Atoms.push(...sectionEntries("Work Experience", page2WorkItems));
     mainPage2Atoms.push(...sectionEntries("Technical + IT", grouped.get("technical + it") || []));
 
     grouped.delete("core competencies");
