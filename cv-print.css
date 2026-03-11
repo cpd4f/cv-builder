@@ -76,6 +76,7 @@ body {
 
 .header {
   padding: 0 0 5mm;
+  margin-bottom: 1.5mm;
   border-bottom: 1px solid var(--rule);
   break-inside: avoid;
 }
@@ -153,6 +154,11 @@ body {
   line-height: 1.15;
   font-weight: 800;
   break-after: avoid;
+}
+
+.section-education {
+  break-before: auto;
+  page-break-before: auto;
 }
 
 .entry {
@@ -303,3 +309,4 @@ body {
     display: none !important;
   }
 }
+
