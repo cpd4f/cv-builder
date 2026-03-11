@@ -125,6 +125,17 @@ function sectionAtoms(title, items, opts = {}) {
   return out;
 }
 
+function sectionAtomsOrdered(title, items, opts = {}) {
+  if (!items.length) return [];
+  const normalized = key(title);
+  const out = [{ type: "section-title", title, units: 0.5 }];
+  items.forEach((item) => {
+    const hideTitle = opts.hideEntryTitleWhenSameAsSection && key(item.title) && key(item.title) === normalized;
+    out.push({ type: "entry", item, hideTitle, units: estimateUnits(item, opts.rail) });
+  });
+  return out;
+}
+
 function workAndTechAtoms(workItems, techItems) {
   const out = [];
   if (workItems.length || techItems.length) out.push({ type: "section-title", title: "Work Experience", units: 0.5 });
@@ -275,26 +286,27 @@ function composeFiveBlockLayout(items) {
   const grouped = groupBySection(source);
 
   const coreAtoms = sectionAtoms("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true });
-  const workItems = sortItems(grouped.get("work experience") || []);
+  const workItems = grouped.get("work experience") || [];
   const workPage1Budget = 23;
   const page1WorkItems = [];
   const page2WorkItems = [];
   let workUsed = 0;
+  let overflowStarted = false;
   workItems.forEach((item, idx) => {
     const units = estimateUnits(item, false);
-    if (idx === 0 || workUsed + units <= workPage1Budget) {
+    if (!overflowStarted && (idx === 0 || workUsed + units <= workPage1Budget)) {
       page1WorkItems.push(item);
       workUsed += units;
     } else {
+      overflowStarted = true;
       page2WorkItems.push(item);
     }
   });
 
-  const mainPage1Atoms = coreAtoms.concat(sectionAtoms("Work Experience", page1WorkItems));
+  const mainPage1Atoms = coreAtoms.concat(sectionAtomsOrdered("Work Experience", page1WorkItems));
   const mainPage2Atoms = [];
   if (page2WorkItems.length) {
-    mainPage2Atoms.push({ type: "section-title", title: "Work Experience (Cont.)", units: 0.5 });
-    page2WorkItems.forEach((item) => mainPage2Atoms.push({ type: "entry", item, hideTitle: false, units: estimateUnits(item, false) }));
+    mainPage2Atoms.push(...sectionAtomsOrdered("Work Experience (Cont.)", page2WorkItems));
   }
   mainPage2Atoms.push(...sectionAtoms("Technical + IT", grouped.get("technical + it") || []));
 

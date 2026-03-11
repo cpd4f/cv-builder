@@ -76,8 +76,7 @@ body {
 
 .header {
   padding: 0 0 5mm;
-  margin-bottom: 1.5mm;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 0;
   break-inside: avoid;
 }
 

@@ -70,6 +70,17 @@
     return out;
   }
 
+  function sectionEntriesOrdered(title, items, opts = {}) {
+    if (!items.length) return [];
+    const normalized = key(title);
+    const out = [{ type: "section-title", title, units: 0.5 }];
+    items.forEach((item) => {
+      const hideTitle = opts.hideEntryTitleWhenSameAsSection && key(item.title) && key(item.title) === normalized;
+      out.push(makeEntry(item, hideTitle));
+    });
+    return out;
+  }
+
   function workAndTechEntries(workItems, techItems) {
     const merged = [];
     if (workItems.length || techItems.length) merged.push({ type: "section-title", title: "Work Experience", units: 0.5 });
@@ -174,6 +185,9 @@
       mr = secondMain.nextIndex;
       rr = secondRail.nextIndex;
     }
+    return pages.filter((p) => p.main.length || p.rail.length);
+  }
+
 
     let guard = 0;
     while (mr < mainRemainder.length || rr < railRemainder.length) {
@@ -266,26 +280,27 @@
     const grouped = groupBySection(source);
 
     const coreAtoms = sectionEntries("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true });
-    const workItems = sortItems(grouped.get("work experience") || []);
+    const workItems = grouped.get("work experience") || [];
     const workPage1Budget = 23;
     const page1WorkItems = [];
     const page2WorkItems = [];
     let workUsed = 0;
+    let overflowStarted = false;
     workItems.forEach((item, idx) => {
       const units = estimateUnits(item, false);
-      if (idx === 0 || workUsed + units <= workPage1Budget) {
+      if (!overflowStarted && (idx === 0 || workUsed + units <= workPage1Budget)) {
         page1WorkItems.push(item);
         workUsed += units;
       } else {
+        overflowStarted = true;
         page2WorkItems.push(item);
       }
     });
 
-    const mainPage1Atoms = coreAtoms.concat(sectionEntries("Work Experience", page1WorkItems));
+    const mainPage1Atoms = coreAtoms.concat(sectionEntriesOrdered("Work Experience", page1WorkItems));
     const mainPage2Atoms = [];
     if (page2WorkItems.length) {
-      mainPage2Atoms.push({ type: "section-title", title: "Work Experience (Cont.)", units: 0.5 });
-      page2WorkItems.forEach((item) => mainPage2Atoms.push(makeEntry(item, false)));
+      mainPage2Atoms.push(...sectionEntriesOrdered("Work Experience (Cont.)", page2WorkItems));
     }
     mainPage2Atoms.push(...sectionEntries("Technical + IT", grouped.get("technical + it") || []));
 
