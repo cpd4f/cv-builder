@@ -229,6 +229,7 @@ function paginate(mainFirstAtoms, mainLaterAtoms, railSkillsAtoms, railPage2Atom
     guard += 1;
     if (guard > 20) break;
   }
+  const compact = barelyMissed;
 
   return pages.filter((p) => p.main.length || p.rail.length);
 }
@@ -323,6 +324,41 @@ function composeFiveBlockLayout(items) {
       split.page1WorkItems.push(split.page2WorkItems.shift());
     }
   }
+  mainPage2Atoms.push(...sectionAtoms("Technical + IT", grouped.get("technical + it") || []));
+
+  grouped.delete("core competencies");
+  grouped.delete("work experience");
+  grouped.delete("technical + it");
+
+  [...grouped.keys()].sort().forEach((extraKey) => {
+    if (["topline skills", "education", "second page rail"].includes(extraKey)) return;
+    const title = extraKey.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    mainPage2Atoms.push(...sectionAtoms(title, grouped.get(extraKey) || []));
+  });
+
+  const railFirstPageAtoms = [];
+  railFirstPageAtoms.push(...sectionAtoms("Skills", grouped.get("topline skills") || [], { rail: true }));
+
+  const railSecondPageAtoms = [];
+  railSecondPageAtoms.push(...sectionAtoms("Education", grouped.get("education") || [], { rail: true }));
+  sortItems(grouped.get("second page rail") || []).forEach((item) => {
+    if (!item.title) return;
+    railSecondPageAtoms.push({ type: "section-title", title: item.title, units: 0.5 });
+    railSecondPageAtoms.push({ type: "entry", item: { ...item, content: item.content || "" }, hideTitle: true, units: estimateUnits(item, true) });
+  });
+
+  return { mainPage1Atoms, mainPage2Atoms, railPage1Atoms: railFirstPageAtoms, railPage2Atoms: railSecondPageAtoms, compact };
+}
+
+function renderPdfDocument(cv, cssHref) {
+  const items = Array.isArray(cv.items) ? cv.items : [];
+  const header = items.find((item) => key(item.section) === "header") || {};
+  const contacts = items.filter((item) => key(item.section) === "contact");
+  const blocks = composeFiveBlockLayout(items);
+
+  const headerHtml = `<header class="header"><h1>${escapeHtml(header?.title || "CV")}</h1><h2>${escapeHtml(header?.subtitle || "")}</h2><div class="header-summary">${markdownToHtml(header?.content || "")}</div></header>${renderContact(contacts)}`;
+
+  const fullContainer = `<div class="full-container"><div class="header-container">${headerHtml}</div><div class="rail-page-1">${renderColumn(blocks.railPage1Atoms, "col-rail")}</div><div class="main-content-1">${renderColumn(blocks.mainPage1Atoms, "col-main")}</div><div class="rail-page-2">${renderColumn(blocks.railPage2Atoms, "col-rail")}</div><div class="main-content-2">${renderColumn(blocks.mainPage2Atoms, "col-main")}</div></div>`;
 
   const mainPage1Atoms = coreAtoms.concat(sectionAtomsOrdered("Work Experience", split.page1WorkItems));
   const mainPage2Atoms = [];
