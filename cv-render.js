@@ -92,19 +92,20 @@
   function toAtoms(items) {
     const grouped = groupBySection(items);
     const main = [];
-    const rail = [];
+    const railSkills = [];
+    const railLater = [];
 
     main.push(...sectionEntries("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true }));
     main.push(...sectionEntries("Work Experience", grouped.get("work experience") || []));
     main.push(...sectionEntries("Technical + IT", grouped.get("technical + it") || []));
 
-    rail.push(...sectionEntries("Skills", splitSkillsBullets(grouped.get("topline skills") || [])));
-    rail.push(...sectionEntries("Education", grouped.get("education") || []));
+    railSkills.push(...sectionEntries("Skills", splitSkillsBullets(grouped.get("topline skills") || [])));
+    railLater.push(...sectionEntries("Education", grouped.get("education") || []));
 
     sortItems(grouped.get("second page rail") || []).forEach((item) => {
       if (!item.title) return;
-      rail.push({ type: "section-title", title: item.title, units: 0.5 });
-      rail.push({ type: "entry", item: { ...item, content: item.content || "" }, hideTitle: true, units: estimateUnits(item, true) });
+      railLater.push({ type: "section-title", title: item.title, units: 0.5 });
+      railLater.push({ type: "entry", item: { ...item, content: item.content || "" }, hideTitle: true, units: estimateUnits(item, true) });
     });
 
     grouped.delete("core competencies");
@@ -119,7 +120,7 @@
       main.push(...sectionEntries(title, grouped.get(extraKey) || []));
     });
 
-    return { main, rail };
+    return { main, railSkills, railLater };
   }
 
   function fillPage(atoms, index, budget) {
@@ -136,20 +137,28 @@
     return { nextIndex: i, atoms: out };
   }
 
-  function paginate(mainAtoms, railAtoms) {
+  function paginate(mainAtoms, railSkillsAtoms, railLaterAtoms) {
     const pages = [];
-    let m = 0; let r = 0;
-    let page = 0;
-    while (m < mainAtoms.length || r < railAtoms.length) {
-      const mainBudget = page === 0 ? 85 : 110;
-      const railBudget = page === 0 ? 85 : 110;
-      const mainSlice = fillPage(mainAtoms, m, mainBudget);
-      const railSlice = fillPage(railAtoms, r, railBudget);
-      pages.push({ main: mainSlice.atoms, rail: railSlice.atoms, first: page === 0 });
+    let m = 0;
+    let rs = 0;
+
+    const firstMain = fillPage(mainAtoms, m, 85);
+    const firstRailSkills = fillPage(railSkillsAtoms, rs, 55);
+    pages.push({ main: firstMain.atoms, rail: firstRailSkills.atoms, first: true });
+    m = firstMain.nextIndex;
+    rs = firstRailSkills.nextIndex;
+
+    const railRemainder = railSkillsAtoms.slice(rs).concat(railLaterAtoms);
+    let rr = 0;
+    let guard = 0;
+    while (m < mainAtoms.length || rr < railRemainder.length) {
+      const mainSlice = fillPage(mainAtoms, m, 110);
+      const railSlice = fillPage(railRemainder, rr, 110);
+      pages.push({ main: mainSlice.atoms, rail: railSlice.atoms, first: false });
       m = mainSlice.nextIndex;
-      r = railSlice.nextIndex;
-      page += 1;
-      if (page > 20) break;
+      rr = railSlice.nextIndex;
+      guard += 1;
+      if (guard > 20) break;
     }
     return pages.filter((p) => p.main.length || p.rail.length);
   }
@@ -222,7 +231,7 @@
     const header = items.find((item) => key(item.section) === "header") || {};
     const contacts = items.filter((item) => key(item.section) === "contact");
     const atoms = toAtoms(items);
-    const pages = paginate(atoms.main, atoms.rail);
+    const pages = paginate(atoms.main, atoms.railSkills, atoms.railLater);
 
     root.innerHTML = "";
     pages.forEach((page, idx) => {
