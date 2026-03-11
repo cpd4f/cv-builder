@@ -68,6 +68,14 @@
     return out;
   }
 
+  function workAndTechEntries(workItems, techItems) {
+    const merged = [];
+    if (workItems.length || techItems.length) merged.push({ type: "section-title", title: "Work Experience", units: 0.5 });
+    sortItems(workItems).forEach((item) => merged.push(makeEntry(item, false)));
+    sortItems(techItems).forEach((item) => merged.push(makeEntry(item, false)));
+    return merged;
+  }
+
   function splitSkillsBullets(items) {
     const out = [];
     for (const item of items) {
@@ -86,7 +94,6 @@
       if (!grouped.has(section)) grouped.set(section, []);
       grouped.get(section).push(item);
     });
-    return grouped;
   }
 
   function toAtoms(items) {
@@ -98,8 +105,7 @@
     const railLater = [];
 
     mainFirst.push(...sectionEntries("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true }));
-    mainFirst.push(...sectionEntries("Work Experience", grouped.get("work experience") || []));
-    mainLater.push(...sectionEntries("Technical + IT", grouped.get("technical + it") || []));
+    mainFirst.push(...workAndTechEntries(grouped.get("work experience") || [], grouped.get("technical + it") || []));
 
     railSkills.push(...sectionEntries("Skills", splitSkillsBullets(grouped.get("topline skills") || [])));
     railPage2.push(...sectionEntries("Education", grouped.get("education") || []));
@@ -218,9 +224,7 @@
     atoms.forEach((atom) => {
       if (atom.type === "section-title") {
         section = document.createElement("section");
-        const normalized = key(atom.title);
-        const extraClass = normalized === "education" ? " section-education" : "";
-        section.className = `section ${cls}${extraClass}`;
+        section.className = `section ${cls}`;
         section.innerHTML = `<h3>${atom.title}</h3>`;
         host.appendChild(section);
         return;

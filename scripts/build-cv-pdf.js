@@ -122,6 +122,14 @@ function sectionAtoms(title, items, opts = {}) {
   return out;
 }
 
+function workAndTechAtoms(workItems, techItems) {
+  const out = [];
+  if (workItems.length || techItems.length) out.push({ type: "section-title", title: "Work Experience", units: 0.5 });
+  sortItems(workItems).forEach((item) => out.push({ type: "entry", item, hideTitle: false, units: estimateUnits(item, false) }));
+  sortItems(techItems).forEach((item) => out.push({ type: "entry", item, hideTitle: false, units: estimateUnits(item, false) }));
+  return out;
+}
+
 function toAtoms(items) {
   const grouped = groupBySection(items);
   const mainFirst = [];
@@ -131,8 +139,7 @@ function toAtoms(items) {
   const railLater = [];
 
   mainFirst.push(...sectionAtoms("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true }));
-  mainFirst.push(...sectionAtoms("Work Experience", grouped.get("work experience") || []));
-  mainLater.push(...sectionAtoms("Technical + IT", grouped.get("technical + it") || []));
+  mainFirst.push(...workAndTechAtoms(grouped.get("work experience") || [], grouped.get("technical + it") || []));
 
   railSkills.push(...sectionAtoms("Skills", splitSkillsBullets(grouped.get("topline skills") || []), { rail: true }));
   railPage2.push(...sectionAtoms("Education", grouped.get("education") || [], { rail: true }));
@@ -232,9 +239,7 @@ function renderColumn(atoms, cls) {
   atoms.forEach((atom) => {
     if (atom.type === "section-title") {
       if (open) out.push("</section>");
-      const normalized = key(atom.title);
-      const extraClass = normalized === "education" ? " section-education" : "";
-      out.push(`<section class=\"section ${cls}${extraClass}\"><h3>${escapeHtml(atom.title)}</h3>`);
+      out.push(`<section class=\"section ${cls}\"><h3>${escapeHtml(atom.title)}</h3>`);
       open = true;
       return;
     }
