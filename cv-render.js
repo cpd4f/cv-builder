@@ -257,13 +257,15 @@
     const source = Array.isArray(items) ? items : [];
     const grouped = groupBySection(source);
 
-    const mainFlow = [];
-    mainFlow.push(...sectionEntries("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true }));
-    mainFlow.push(...sectionEntries("Work Experience", grouped.get("work experience") || []));
+    const coreAtoms = sectionEntries("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true });
+    const workAtoms = sectionEntries("Work Experience", grouped.get("work experience") || []);
 
-    const firstMain = fillPage(mainFlow, 0, 120);
-    const mainPage1Atoms = firstMain.atoms;
-    const mainPage2Atoms = mainFlow.slice(firstMain.nextIndex);
+    const coreUnits = coreAtoms.reduce((sum, atom) => sum + (atom.units || 0), 0);
+    const workBudget = Math.max(8, 120 - coreUnits);
+    const firstWork = fillPage(workAtoms, 0, workBudget);
+
+    const mainPage1Atoms = coreAtoms.concat(firstWork.atoms);
+    const mainPage2Atoms = workAtoms.slice(firstWork.nextIndex);
     mainPage2Atoms.push(...sectionEntries("Technical + IT", grouped.get("technical + it") || []));
 
     grouped.delete("core competencies");
