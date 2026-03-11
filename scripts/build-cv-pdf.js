@@ -191,6 +191,8 @@ function paginate(mainAtoms, railSkillsAtoms, railLaterAtoms) {
     m = secondMain.nextIndex;
     rr = secondRail.nextIndex;
   }
+  return { nextIndex: i, atoms: out };
+}
 
   let guard = 0;
   while (m < mainAtoms.length || rr < railRemainder.length) {
