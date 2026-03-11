@@ -185,6 +185,9 @@
       mr = secondMain.nextIndex;
       rr = secondRail.nextIndex;
     }
+    return pages.filter((p) => p.main.length || p.rail.length);
+  }
+
 
     let guard = 0;
     while (mr < mainRemainder.length || rr < railRemainder.length) {
