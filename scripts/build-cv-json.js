@@ -260,6 +260,7 @@ async function main() {
 
   const cvRecord = await fetchCvRecord(issueRecordId);
   const result = await buildAndWriteCv(cvRecord);
+
   setOutput("record_id", issueRecordId);
   setOutput("slug", result.slug);
   setOutput("relative_path", result.relativePath);
