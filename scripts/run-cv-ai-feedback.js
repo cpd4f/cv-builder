@@ -1,25 +1,21 @@
 import fs from "fs";
-import path from "path";
 
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || "YOUR_AIRTABLE_BASE_ID";
 const CVS_TABLE_NAME = process.env.CVS_TABLE_NAME || "CVs";
-const CV_ITEMS_TABLE_NAME = process.env.CV_ITEMS_TABLE_NAME || "CV Items";
 const CVS_TABLE_ID = process.env.CVS_TABLE_ID || "tbl4GZ7jQcccKPyJu";
-const CV_ITEMS_TABLE_ID = process.env.CV_ITEMS_TABLE_ID || "tblTNlBDhAjF32Sna";
 
 const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const ISSUE_TITLE = process.env.ISSUE_TITLE || "";
 const ISSUE_BODY = process.env.ISSUE_BODY || "";
-const BUILD_ALL_CVS = String(process.env.BUILD_ALL_CVS || "").toLowerCase() === "true";
 const GITHUB_OUTPUT = process.env.GITHUB_OUTPUT;
 
 function logDebug(message, data) {
   if (data === undefined) {
-    console.log(`[build-cv-json] ${message}`);
+    console.log(`[cv-ai-feedback] ${message}`);
     return;
   }
-  console.log(`[build-cv-json] ${message}: ${JSON.stringify(data)}`);
+  console.log(`[cv-ai-feedback] ${message}: ${JSON.stringify(data)}`);
 }
 
 function setOutput(name, value) {
@@ -38,49 +34,8 @@ function parseRecordId(title, body) {
   return "";
 }
 
-function sanitizeSlug(slug) {
-  return String(slug || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9-_]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-function safeRelativePathFromSlug(slug) {
-  return `data/cv/${sanitizeSlug(slug)}.json`;
-}
-
-function safeRelativePath(inputPath, fallbackPath) {
-  const candidate = String(inputPath || "").trim();
-  if (!candidate) return fallbackPath;
-
-  const normalized = path.posix.normalize(candidate.replace(/\\/g, "/"));
-  const withoutLeading = normalized.replace(/^\/+/, "");
-  if (!withoutLeading || withoutLeading.startsWith("..") || withoutLeading.includes("/../")) {
-    throw new Error(`Unsafe GitHub Path: ${candidate}`);
-  }
-  return withoutLeading;
-}
-
 function valueOrNull(value) {
   return value === undefined ? null : value;
-}
-
-function pushContact(items, title, value) {
-  if (value !== undefined && value !== null && String(value).trim() !== "") {
-    items.push({ title, content: value, section: "contact" });
-  }
-}
-
-function pushCoreCompetencies(items, value) {
-  if (value !== undefined && value !== null && String(value).trim() !== "") {
-    items.push({
-      title: "Core Competencies",
-      content: value,
-      section: "core competencies"
-    });
-  }
 }
 
 function escapeFormulaString(value) {
@@ -89,7 +44,6 @@ function escapeFormulaString(value) {
 
 async function airtableGetJson(url, contextLabel) {
   logDebug(`Requesting Airtable (${contextLabel})`, url.replace(AIRTABLE_PAT || "", "***"));
-
   const res = await fetch(url, {
     headers: {
       Authorization: `Bearer ${AIRTABLE_PAT}`,
@@ -99,8 +53,26 @@ async function airtableGetJson(url, contextLabel) {
 
   if (!res.ok) {
     const text = await res.text();
-    logDebug(`Airtable error body (${contextLabel})`, text);
     throw new Error(`Airtable request failed (${res.status}) during ${contextLabel}: ${text}`);
+  }
+
+  return res.json();
+}
+
+async function airtablePatchJson(url, body, contextLabel) {
+  logDebug(`Patching Airtable (${contextLabel})`, url.replace(AIRTABLE_PAT || "", "***"));
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${AIRTABLE_PAT}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Airtable patch failed (${res.status}) during ${contextLabel}: ${text}`);
   }
 
   return res.json();
@@ -110,27 +82,6 @@ async function fetchCvRecord(recordId) {
   const tableRef = CVS_TABLE_ID || CVS_TABLE_NAME;
   const url = `https://api.airtable.com/v0/${encodeURIComponent(AIRTABLE_BASE_ID)}/${encodeURIComponent(tableRef)}/${encodeURIComponent(recordId)}`;
   return airtableGetJson(url, "fetchCvRecord");
-}
-
-async function fetchPublishedCvRecords() {
-  const records = [];
-  const tableRef = CVS_TABLE_ID || CVS_TABLE_NAME;
-  let offset = "";
-
-  do {
-    const params = new URLSearchParams({
-      filterByFormula: '{Status}="Publish"',
-      pageSize: "100"
-    });
-    if (offset) params.set("offset", offset);
-
-    const url = `https://api.airtable.com/v0/${encodeURIComponent(AIRTABLE_BASE_ID)}/${encodeURIComponent(tableRef)}?${params.toString()}`;
-    const data = await airtableGetJson(url, "fetchPublishedCvRecords");
-    records.push(...(data.records || []));
-    offset = data.offset || "";
-  } while (offset);
-
-  return records;
 }
 
 async function fetchCvItems(recordId, linkedItemIds = []) {
@@ -153,8 +104,10 @@ async function fetchCvItems(recordId, linkedItemIds = []) {
     });
     if (offset) params.set("offset", offset);
 
-    const tableRef = CV_ITEMS_TABLE_ID || CV_ITEMS_TABLE_NAME;
-    const url = `https://api.airtable.com/v0/${encodeURIComponent(AIRTABLE_BASE_ID)}/${encodeURIComponent(tableRef)}?${params.toString()}`;
+    const tableRef = process.env.CV_ITEMS_TABLE_ID || "tblTNlBDhAjF32Sna";
+    const tableName = process.env.CV_ITEMS_TABLE_NAME || "CV Items";
+    const ref = tableRef || tableName;
+    const url = `https://api.airtable.com/v0/${encodeURIComponent(AIRTABLE_BASE_ID)}/${encodeURIComponent(ref)}?${params.toString()}`;
     const data = await airtableGetJson(url, "fetchCvItems");
 
     out.push(...(data.records || []));
@@ -188,25 +141,36 @@ function compareManualSort(a, b) {
   return 0;
 }
 
-async function airtablePatchJson(url, body, contextLabel) {
-  logDebug(`Patching Airtable (${contextLabel})`, url.replace(AIRTABLE_PAT || "", "***"));
-
-  const res = await fetch(url, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${AIRTABLE_PAT}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(body)
+function buildCvPayload(cvRecord, cvItemRecords) {
+  const fields = cvRecord.fields || {};
+  const items = [];
+  items.push({
+    title: valueOrNull(fields["Person Name"]),
+    subtitle: valueOrNull(fields["CV Subtitle"]),
+    content: valueOrNull(fields["Intro Summary"]),
+    section: "header"
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    logDebug(`Airtable patch error body (${contextLabel})`, text);
-    throw new Error(`Airtable patch failed (${res.status}) during ${contextLabel}: ${text}`);
+  const pushContact = (title, value) => {
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      items.push({ title, content: value, section: "contact" });
+    }
+  };
+
+  pushContact("Email", fields["Contact: Email"]);
+  pushContact("Website", fields["Contact: Personal Website"]);
+  pushContact("Phone", fields["Contact: Phone Number"]);
+
+  if (fields["Core Competencies"] !== undefined && fields["Core Competencies"] !== null && String(fields["Core Competencies"]).trim() !== "") {
+    items.push({ title: "Core Competencies", content: fields["Core Competencies"], section: "core competencies" });
   }
 
-  return res.json();
+  cvItemRecords
+    .map(mapItem)
+    .sort(compareManualSort)
+    .forEach((item) => items.push(item));
+
+  return { slug: String(fields["Slug"] || ""), status: String(fields["Status"] || ""), items };
 }
 
 function cvItemsToStructuredText(cvJson) {
@@ -241,10 +205,7 @@ function cvItemsToStructuredText(cvJson) {
   return parts.join("\n");
 }
 
-
 async function generateOverallAiFeedback(cvJson) {
-  if (!OPENAI_API_KEY) throw new Error("Missing OPENAI_API_KEY secret.");
-
   const cvText = cvItemsToStructuredText(cvJson);
   const prompt = [
     "You are an expert CV reviewer.",
@@ -289,84 +250,26 @@ async function writeOverallAiFeedbackToCv(recordId, feedback) {
   await airtablePatchJson(url, { fields: { "Overall AI Feedback": feedback } }, "writeOverallAiFeedbackToCv");
 }
 
-async function buildAndWriteCv(cvRecord) {
-  const fields = cvRecord.fields || {};
-  const status = String(fields["Status"] || "").trim();
-  const slugRaw = fields["Slug"];
-  const slug = sanitizeSlug(slugRaw);
-  if (!slug) throw new Error(`CV record ${cvRecord.id} is missing a valid Slug.`);
-
-  const fallbackPath = safeRelativePathFromSlug(slug);
-  const relativePath = safeRelativePath(fields["GitHub Path"], fallbackPath);
-  const outputPath = path.resolve(relativePath);
-
-  if (status === "Draft") {
-    if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
-    logDebug("Draft status handled", { slug, relativePath, deleted: true });
-    return { slug, relativePath, action: "deleted" };
-  }
-
-  if (status !== "Publish") {
-    logDebug("Skipped non-publish CV", { slug, status });
-    return { slug, relativePath, action: "skipped" };
-  }
-
-  const items = [];
-  items.push({
-    title: valueOrNull(fields["Person Name"]),
-    subtitle: valueOrNull(fields["CV Subtitle"]),
-    content: valueOrNull(fields["Intro Summary"]),
-    section: "header"
-  });
-
-  pushContact(items, "Email", fields["Contact: Email"]);
-  pushContact(items, "Website", fields["Contact: Personal Website"]);
-  pushContact(items, "Phone", fields["Contact: Phone Number"]);
-  pushCoreCompetencies(items, fields["Core Competencies"]);
-
-  const linkedCvItems = Array.isArray(fields["CV Items"]) ? fields["CV Items"] : [];
-  const cvItems = await fetchCvItems(cvRecord.id, linkedCvItems);
-
-  cvItems
-    .map(mapItem)
-    .sort(compareManualSort)
-    .forEach((item) => items.push(item));
-
-  const output = { slug, status, items };
-  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-  fs.writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`, "utf8");
-
-  logDebug("Wrote CV JSON", { slug, relativePath, itemCount: items.length });
-  return { slug, relativePath, action: "written", output };
-}
-
 async function main() {
   if (!AIRTABLE_PAT) throw new Error("Missing AIRTABLE_PAT secret.");
+  if (!OPENAI_API_KEY) throw new Error("Missing OPENAI_API_KEY secret.");
   if (!AIRTABLE_BASE_ID || AIRTABLE_BASE_ID === "YOUR_AIRTABLE_BASE_ID") {
     throw new Error("AIRTABLE_BASE_ID is not configured.");
   }
 
-  const issueRecordId = parseRecordId(ISSUE_TITLE, ISSUE_BODY);
-  const buildAll = BUILD_ALL_CVS || !issueRecordId;
+  const recordId = parseRecordId(ISSUE_TITLE, ISSUE_BODY);
+  if (!recordId) throw new Error("No trigger record id found in issue title/body.");
 
-  if (buildAll) {
-    const records = await fetchPublishedCvRecords();
-    logDebug("Building all published CVs", { count: records.length });
-    for (const record of records) {
-      await buildAndWriteCv(record);
-    }
-    setOutput("action", "written_all");
-    setOutput("count", records.length);
-    return;
-  }
+  const cvRecord = await fetchCvRecord(recordId);
+  const linkedCvItems = Array.isArray(cvRecord?.fields?.["CV Items"]) ? cvRecord.fields["CV Items"] : [];
+  const cvItems = await fetchCvItems(recordId, linkedCvItems);
+  const cvPayload = buildCvPayload(cvRecord, cvItems);
+  const feedback = await generateOverallAiFeedback(cvPayload);
+  await writeOverallAiFeedbackToCv(recordId, feedback);
 
-  const cvRecord = await fetchCvRecord(issueRecordId);
-  const result = await buildAndWriteCv(cvRecord);
-
-  setOutput("record_id", issueRecordId);
-  setOutput("slug", result.slug);
-  setOutput("relative_path", result.relativePath);
-  setOutput("action", result.action);
+  logDebug("Wrote Overall AI Feedback", { recordId, chars: feedback.length });
+  setOutput("record_id", recordId);
+  setOutput("ai_feedback_written", "true");
 }
 
 main().catch((err) => {
