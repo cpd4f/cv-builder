@@ -35,7 +35,7 @@
       "start": "2024-10-01",
       "end": null,
       "dispdate": "Oct. 2024 – Present",
-      "content": "Full-time consulting role supporting a U.S.-based national membership organization on digital strategy, content operations, and platform improvement. Strengthen systems, workflows, and analytics to enhance organization-wide digital communications.\n\n**Key Contributions:**\n- Improved web, email, social, and multimedia platforms to enhance clarity, usability, and engagement.\n- Built and refined workflows, dashboards, and reporting tools to enable coordinated, data-driven decisions.\n- Delivered CMS development, technical troubleshooting, and maintenance for large, high-traffic digital properties.\n- Advised teams on governance, best practices, and operational efficiency across digital functions.\n",
+      "content": "Support a U.S.-based national membership organization on digital strategy, campaign platforms, content operations and enterprise web improvement.\n- Build and refine digital systems, workflows and analytics that support coordinated organization-wide communications.\n- Develop campaign and storytelling experiences within the organization’s Drupal platform, including custom microsite structures, modular content sections and downloadable member-facing toolkits.\n- Deliver CMS development, front-end implementation and technical troubleshooting for large public-facing web properties.\n- Advise on governance, usability and operational best practices across web, email, social and multimedia channels.\n- Lead development of an AI-enabled search initiative, shaping retrieval strategy, structured content workflows and user-facing discovery design.\n",
       "section": "Work Experience",
       "manualsort": "a0"
     },
@@ -46,7 +46,7 @@
       "start": "2022-03-01",
       "end": "2024-06-01",
       "dispdate": "Mar. 2022 – Jun. 2024",
-      "content": "Led the digital communications function for a national membership and policy organization, managing a team of four, the communications budget, and all digital channels. Directed digital strategy, platform modernization, multi-channel content delivery, and organization-wide workflows, analytics, and governance.\n\n**Key Achievements:**\n- Oversaw full redesign and migration of a 10,000+ page Drupal website, coordinating across teams and vendors.\n- Built and managed a broadcast-quality video studio for weekly and event-based productions.\n- Developed content governance systems, project workflows, and cross-department standards.\n- Expanded analytics and reporting using GA4, MS Clarity, Power BI, Looker Studio, BigQuery.\n- Directed multi-channel communications aligned with national advocacy priorities.\n- Strengthened long-term planning, team development, and organizational coordination.\n",
+      "content": "Led NACo’s digital communications function across website, email newsletters, social media and video, managing the team responsible for delivering the organization’s core digital channels, along with enterprise platform strategy, analytics, governance, team leadership and budget oversight.\n- Led the redesign and migration of NACo’s 10,000+ page website into a new Drupal platform supporting 3.5 million annual page views, 6,000+ average daily users and 50+ internal publishers.\n- Led the team responsible for delivering all organizational email newsletters, reaching tens of thousands of county officials and public-sector stakeholders.\n- Managed NACo’s full social media presence across platforms with thousands of followers, supporting advocacy, campaigns, events and day-to-day organizational communications.\n- Directed the platform’s long-term structure and governance, including information architecture, publishing standards, vendor coordination and post-launch stewardship.\n- Built NACo’s first broadcast-quality in-house video studio, expanding capacity for recurring advocacy programming, event production and faster in-house multimedia delivery.\n- Expanded the organization’s analytics infrastructure across GA4, Microsoft Clarity, Power BI, Looker Studio and BigQuery, improving reporting for leadership and strategic decision-making.\n",
       "section": "Work Experience",
       "manualsort": "a1"
     },
@@ -57,7 +57,7 @@
       "start": "2018-09-01",
       "end": "2022-03-01",
       "dispdate": "Sept. 2018 – Mar. 2022",
-      "content": "Led daily operations of the digital media team and coordinated multi-channel communications across web, email, social media, and video. Strengthened workflows and cross-department coordination, supported major advocacy and public-facing initiatives, and oversaw newsletters and a weekly advocacy video update.\n",
+      "content": "Led day-to-day digital communications operations across web, email, social media and video, helping scale NACo’s editorial coordination and advocacy communications.\n- Managed four recurring weekly newsletters reaching tens of thousands of county officials and public-sector stakeholders.\n- Produced and expanded a weekly advocacy video update, helping establish video as a recurring policy communications channel.\n- Strengthened editorial planning and coordination across communications, advocacy and program teams.\n- Helped improve the consistency and effectiveness of NACo’s digital publishing workflows.\n",
       "section": "Work Experience",
       "manualsort": "a2"
     },
@@ -68,7 +68,7 @@
       "start": null,
       "end": null,
       "dispdate": null,
-      "content": "- Strategic content planning\n- Multi-channel communications (web, email, social, video)\n- Content strategy, governance & editorial workflows\n- Advocacy messaging & policy communication\n- UX, accessibility & audience engagement\n",
+      "content": "Enterprise digital strategy • Editorial systems and governance • Multi-channel communications leadership • Public-sector and advocacy messaging • Audience-focused content planning\n",
       "section": "Topline Skills",
       "manualsort": "a3"
     },
@@ -79,7 +79,7 @@
       "start": null,
       "end": null,
       "dispdate": null,
-      "content": "- Drupal, WordPress, SharePoint, Power Pages, GitHub Pages\n- Leveraging AI in product development and user-facing systems\n- HTML, CSS, jQuery, JavaScript\n- API integrations, automation, data pipelines\n- Airtable systems, scripts, workflow architecture\n- Website QA, Google Tag Manager, technical troubleshooting\n",
+      "content": "Drupal, WordPress, SharePoint, Power Pages • CMS modernization • HTML, CSS, JavaScript, jQuery • API integrations • Workflow automation • Airtable systems • AI-enabled search experiences\n",
       "section": "Topline Skills",
       "manualsort": "a4"
     },
@@ -90,7 +90,7 @@
       "start": null,
       "end": null,
       "dispdate": null,
-      "content": "- GA4, Microsoft Clarity, Looker Studio, Power BI, BigQuery\n- KPI frameworks & dashboard development\n- SEO (technical, metadata, on-page)\n- Data analysis for leadership & stakeholder decision-making\n",
+      "content": "GA4 • Microsoft Clarity • Looker Studio • Power BI • BigQuery • KPI design • Leadership reporting • SEO and performance analysis\n",
       "section": "Topline Skills",
       "manualsort": "a5"
     },
@@ -101,7 +101,7 @@
       "start": null,
       "end": null,
       "dispdate": null,
-      "content": "- Video production & editing (Premiere, Audition)\n- Livestreaming, PTZ camera systems, studio workflows\n- Hybrid & virtual event technical direction\n",
+      "content": "Video production and editing • Livestreaming • PTZ camera systems • Studio operations • Hybrid and virtual event production\n",
       "section": "Topline Skills",
       "manualsort": "a6"
     },
@@ -117,57 +117,46 @@
       "manualsort": "a7"
     },
     {
-      "title": "Advocacy & Communications Frameworks",
+      "title": "Web Platforms & CMS",
       "subtitle": null,
       "location": null,
       "start": null,
       "end": null,
       "dispdate": null,
-      "content": "Narrative development • Policy translation & analysis • Advocacy messaging • Stakeholder engagement • Public-facing communications • Campaign and toolkit development (web/email/social)\n",
-      "section": "Technical + IT",
-      "manualsort": "a8"
-    },
-    {
-      "title": "Web Platforms & Technical Systems",
-      "subtitle": null,
-      "location": null,
-      "start": null,
-      "end": null,
-      "dispdate": null,
-      "content": "CMS administration (Drupal, WordPress, SharePoint, Power Pages) • Information architecture & content modeling • Web governance & publishing workflows • HTML5/CSS3 • JavaScript & jQuery (functional scripting) • API integrations • Custom AI tools & platforms • Google Tag Manager • GitHub actions & Cloudfare workers • Website QA, performance monitoring & troubleshooting\n",
+      "content": "Drupal • WordPress • SharePoint • Power Pages • GitHub Pages\n",
       "section": "Technical + IT",
       "manualsort": "a9"
     },
     {
-      "title": "Data, Analytics & Optimization",
+      "title": "Coding & Technical Implementation",
       "subtitle": null,
       "location": null,
       "start": null,
       "end": null,
       "dispdate": null,
-      "content": "GA4 • Microsoft Clarity • Looker Studio • Power BI • BigQuery • KPI frameworks • User behavior analysis • SEO auditing & tuning • A/B testing • Leadership dashboards & insights\n",
+      "content": "HTML5 • CSS3 • JavaScript • jQuery • API integrations • Google Tag Manager • Cloudflare Workers • GitHub Actions\n",
       "section": "Technical + IT",
       "manualsort": "aA"
     },
     {
-      "title": "Workflow Architecture, Automation & Collaboration Tools",
+      "title": "Automation & Workflow Systems",
       "subtitle": null,
       "location": null,
       "start": null,
       "end": null,
       "dispdate": null,
-      "content": "Airtable development & interfaces • Multi-step workflow logic • Event/conference data systems • Jira • Asana • Basecamp • MS Teams / SharePoint • Slack • Trello • Zapier (API-connected workflows) • Power Automate (custom flows, automated approvals, integrations) • Data syncing with external systems\n",
+      "content": "Airtable • Power Automate • Zapier • Jira • Asana • Basecamp • Slack • Teams • Trello\n",
       "section": "Technical + IT",
       "manualsort": "aB"
     },
     {
-      "title": "Multimedia & Studio Production",
+      "title": "Email & Engagement Systems",
       "subtitle": null,
       "location": null,
       "start": null,
       "end": null,
       "dispdate": null,
-      "content": "Adobe Creative Suite (Photoshop, Illustrator, Premiere Pro, Audition) • Podcast production • Livestream operations • PTZ camera systems • Studio workflows • Hybrid & virtual event production\n",
+      "content": "Dynamics 365 Customer Insights / Journeys • Higher Logic • Mailchimp\n",
       "section": "Technical + IT",
       "manualsort": "aC"
     },
@@ -200,7 +189,7 @@
       "start": null,
       "end": null,
       "dispdate": null,
-      "content": "Stakeholder coordination • Cross-cultural communication • Team leadership & coaching • Strategic planning • Clear writing & editing • Problem-solving in complex organizations • Adaptability & initiative\n",
+      "content": "Cross-department coordination • Stakeholder communication • Team leadership • Strategic planning • Clear writing and editing • Problem-solving • Adaptability\n",
       "section": "Second Page Rail",
       "manualsort": "aF"
     },
