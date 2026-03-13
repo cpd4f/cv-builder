@@ -62,9 +62,10 @@
   function sectionEntries(title, items, opts = {}) {
     if (!items.length) return [];
     const normalized = key(title);
-    const out = [{ type: "section-title", title, units: 0.5 }];
+    const out = [];
+    if (!opts.hideSectionTitle) out.push({ type: "section-title", title, units: 0.5 });
     sortItems(items).forEach((item) => {
-      const hideTitle = opts.hideEntryTitleWhenSameAsSection && key(item.title) && key(item.title) === normalized;
+      const hideTitle = opts.hideAllEntryTitles || (opts.hideEntryTitleWhenSameAsSection && key(item.title) && key(item.title) === normalized);
       out.push(makeEntry(item, hideTitle));
     });
     return out;
@@ -73,9 +74,10 @@
   function sectionEntriesOrdered(title, items, opts = {}) {
     if (!items.length) return [];
     const normalized = key(title);
-    const out = [{ type: "section-title", title, units: 0.5 }];
+    const out = [];
+    if (!opts.hideSectionTitle) out.push({ type: "section-title", title, units: 0.5 });
     items.forEach((item) => {
-      const hideTitle = opts.hideEntryTitleWhenSameAsSection && key(item.title) && key(item.title) === normalized;
+      const hideTitle = opts.hideAllEntryTitles || (opts.hideEntryTitleWhenSameAsSection && key(item.title) && key(item.title) === normalized);
       out.push(makeEntry(item, hideTitle));
     });
     return out;
@@ -133,10 +135,13 @@
 
     grouped.delete("core competencies");
     grouped.delete("work experience");
+    mainLater.push(...sectionEntries("CV Footer", grouped.get("footer") || [], { hideSectionTitle: true, hideAllEntryTitles: true }));
+
     grouped.delete("technical + it");
     grouped.delete("topline skills");
     grouped.delete("education");
     grouped.delete("second page rail");
+    grouped.delete("footer");
 
     [...grouped.keys()].sort().forEach((extraKey) => {
       const title = extraKey.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
@@ -321,13 +326,15 @@
       mainPage2Atoms.push(...sectionEntriesOrdered("Work Experience (Cont.)", split.page2WorkItems));
     }
     mainPage2Atoms.push(...sectionEntries("Technical + IT", grouped.get("technical + it") || []));
+    mainPage2Atoms.push(...sectionEntries("CV Footer", grouped.get("footer") || [], { hideSectionTitle: true, hideAllEntryTitles: true }));
 
     grouped.delete("core competencies");
     grouped.delete("work experience");
     grouped.delete("technical + it");
+    grouped.delete("footer");
 
     [...grouped.keys()].sort().forEach((extraKey) => {
-      if (["topline skills", "education", "second page rail"].includes(extraKey)) return;
+      if (["topline skills", "education", "second page rail", "footer"].includes(extraKey)) return;
       const title = extraKey.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
       mainPage2Atoms.push(...sectionEntries(title, grouped.get(extraKey) || []));
     });
@@ -358,13 +365,15 @@
     const mainAtoms = [];
     mainAtoms.push(...sectionEntries("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true }));
     mainAtoms.push(...workAndTechEntries(grouped.get("work experience") || [], grouped.get("technical + it") || []));
+    mainAtoms.push(...sectionEntries("CV Footer", grouped.get("footer") || [], { hideSectionTitle: true, hideAllEntryTitles: true }));
 
     grouped.delete("core competencies");
     grouped.delete("work experience");
     grouped.delete("technical + it");
+    grouped.delete("footer");
 
     [...grouped.keys()].sort().forEach((extraKey) => {
-      if (["topline skills", "education", "second page rail"].includes(extraKey)) return;
+      if (["topline skills", "education", "second page rail", "footer"].includes(extraKey)) return;
       const title = extraKey.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
       mainAtoms.push(...sectionEntries(title, grouped.get(extraKey) || []));
     });

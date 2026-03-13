@@ -165,6 +165,10 @@ function buildCvPayload(cvRecord, cvItemRecords) {
     items.push({ title: "Core Competencies", content: fields["Core Competencies"], section: "core competencies" });
   }
 
+  if (fields["CV_Footer"] !== undefined && fields["CV_Footer"] !== null && String(fields["CV_Footer"]).trim() !== "") {
+    items.push({ title: "CV Footer", content: fields["CV_Footer"], section: "footer" });
+  }
+
   cvItemRecords
     .map(mapItem)
     .sort(compareManualSort)

@@ -261,12 +261,13 @@
       mainCol.innerHTML =
         sectionHtml("Core Competencies", grouped.get("core competencies") || [], true) +
         sectionHtml("Work Experience", grouped.get("work experience") || [], false) +
-        sectionHtml("Technical + IT", grouped.get("technical + it") || [], false);
+        sectionHtml("Technical + IT", grouped.get("technical + it") || [], false) +
+        footerHtml(grouped.get("footer") || []);
 
       railCol.innerHTML =
         sectionHtml("Skills", grouped.get("topline skills") || [], false) +
         sectionHtml("Education", grouped.get("education") || [], false) +
-        sectionHtml("Second Page Rail", grouped.get("second page rail") || [], false);
+        titledItemsAsSectionsHtml(grouped.get("second page rail") || []);
     })
     .catch(function (error) {
       const page = shadow.querySelector(".cv-embed-page");

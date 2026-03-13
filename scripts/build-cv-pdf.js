@@ -117,9 +117,10 @@ function groupBySection(items) {
 function sectionAtoms(title, items, opts = {}) {
   if (!items.length) return [];
   const normalized = key(title);
-  const out = [{ type: "section-title", title, units: 0.5 }];
+  const out = [];
+  if (!opts.hideSectionTitle) out.push({ type: "section-title", title, units: 0.5 });
   sortItems(items).forEach((item) => {
-    const hideTitle = opts.hideEntryTitleWhenSameAsSection && key(item.title) && key(item.title) === normalized;
+    const hideTitle = opts.hideAllEntryTitles || (opts.hideEntryTitleWhenSameAsSection && key(item.title) && key(item.title) === normalized);
     out.push({ type: "entry", item, hideTitle, units: estimateUnits(item, opts.rail) });
   });
   return out;
@@ -128,9 +129,10 @@ function sectionAtoms(title, items, opts = {}) {
 function sectionAtomsOrdered(title, items, opts = {}) {
   if (!items.length) return [];
   const normalized = key(title);
-  const out = [{ type: "section-title", title, units: 0.5 }];
+  const out = [];
+  if (!opts.hideSectionTitle) out.push({ type: "section-title", title, units: 0.5 });
   items.forEach((item) => {
-    const hideTitle = opts.hideEntryTitleWhenSameAsSection && key(item.title) && key(item.title) === normalized;
+    const hideTitle = opts.hideAllEntryTitles || (opts.hideEntryTitleWhenSameAsSection && key(item.title) && key(item.title) === normalized);
     out.push({ type: "entry", item, hideTitle, units: estimateUnits(item, opts.rail) });
   });
   return out;
@@ -154,6 +156,7 @@ function toAtoms(items) {
 
   mainFirst.push(...sectionAtoms("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true }));
   mainFirst.push(...workAndTechAtoms(grouped.get("work experience") || [], grouped.get("technical + it") || []));
+  mainLater.push(...sectionAtoms("CV Footer", grouped.get("footer") || [], { hideSectionTitle: true, hideAllEntryTitles: true }));
 
   railSkills.push(...sectionAtoms("Skills", grouped.get("topline skills") || [], { rail: true }));
   railPage2.push(...sectionAtoms("Education", grouped.get("education") || [], { rail: true }));
@@ -170,6 +173,7 @@ function toAtoms(items) {
   grouped.delete("topline skills");
   grouped.delete("education");
   grouped.delete("second page rail");
+  grouped.delete("footer");
 
   [...grouped.keys()].sort().forEach((extraKey) => {
     const title = extraKey.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
@@ -330,13 +334,15 @@ function composeFiveBlockLayout(items) {
     mainPage2Atoms.push(...sectionAtomsOrdered("Work Experience (Cont.)", split.page2WorkItems));
   }
   mainPage2Atoms.push(...sectionAtoms("Technical + IT", grouped.get("technical + it") || []));
+  mainPage2Atoms.push(...sectionAtoms("CV Footer", grouped.get("footer") || [], { hideSectionTitle: true, hideAllEntryTitles: true }));
 
   grouped.delete("core competencies");
   grouped.delete("work experience");
   grouped.delete("technical + it");
+  grouped.delete("footer");
 
   [...grouped.keys()].sort().forEach((extraKey) => {
-    if (["topline skills", "education", "second page rail"].includes(extraKey)) return;
+    if (["topline skills", "education", "second page rail", "footer"].includes(extraKey)) return;
     const title = extraKey.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
     mainPage2Atoms.push(...sectionAtoms(title, grouped.get(extraKey) || []));
   });
