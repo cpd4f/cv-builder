@@ -29,6 +29,11 @@
       "section": "core competencies"
     },
     {
+      "title": "CV Footer",
+      "content": "## Recent Projects\n- **AI Hybrid Search:** Designed an AI-enabled legislative search experience combining hybrid retrieval, structured content workflows, vector search and bill-level AI chat to improve discovery of complex policy content.\n- **We Are Counties Microsite:** Built a Drupal 10 campaign microsite with custom navigation, interactive storytelling modules, downloadable resources and a modular structure designed for continued campaign growth.\n- **Organization Anniversary Campaign:** Developed a multi-part digital campaign combining editorial storytelling, archival media, web features and a 10×20-foot interactive conference display connected to the main site.\n- **Advocacy Video Series:** Built a recurring advocacy video program spanning editorial planning, production and distribution across website, email and social channels.\n",
+      "section": "footer"
+    },
+    {
       "title": "Strategic Communications Consultant",
       "subtitle": "Freelance (full-time engagement)",
       "location": "Belgium (Remote)",
