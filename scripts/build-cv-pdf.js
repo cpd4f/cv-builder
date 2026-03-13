@@ -190,61 +190,6 @@ function toAtoms(items) {
 }
 
 
-function fillPage(atoms, index, budget) {
-  const out = [];
-  let used = 0;
-  let i = index;
-  while (i < atoms.length) {
-    const next = atoms[i];
-    if (used + next.units > budget && out.length) break;
-    out.push(next);
-    used += next.units;
-    i += 1;
-  }
-  return { nextIndex: i, atoms: out };
-}
-
-function paginate(mainFirstAtoms, mainLaterAtoms, railSkillsAtoms, railPage2Atoms, railLaterAtoms) {
-  const pages = [];
-  let mf = 0;
-  let rs = 0;
-
-  const firstMain = fillPage(mainFirstAtoms, mf, 85);
-  const firstRail = fillPage(railSkillsAtoms, rs, 55);
-  pages.push({ main: firstMain.atoms, rail: firstRail.atoms, first: true });
-  mf = firstMain.nextIndex;
-  rs = firstRail.nextIndex;
-
-  const mainRemainder = mainFirstAtoms.slice(mf).concat(mainLaterAtoms);
-  const railRemainder = railPage2Atoms.concat(railSkillsAtoms.slice(rs), railLaterAtoms);
-
-  let mr = 0;
-  let rr = 0;
-
-  if (mr < mainRemainder.length || rr < railRemainder.length) {
-    const secondMain = fillPage(mainRemainder, mr, 98);
-    const secondRail = fillPage(railRemainder, rr, 220);
-    pages.push({ main: secondMain.atoms, rail: secondRail.atoms, first: false });
-    mr = secondMain.nextIndex;
-    rr = secondRail.nextIndex;
-  }
-  return { nextIndex: i, atoms: out };
-}
-
-  let guard = 0;
-  while (mr < mainRemainder.length || rr < railRemainder.length) {
-    const mainSlice = fillPage(mainRemainder, mr, 110);
-    const railSlice = fillPage(railRemainder, rr, 110);
-    pages.push({ main: mainSlice.atoms, rail: railSlice.atoms, first: false });
-    mr = mainSlice.nextIndex;
-    rr = railSlice.nextIndex;
-    guard += 1;
-    if (guard > 20) break;
-  }
-
-  return pages.filter((p) => p.main.length || p.rail.length);
-}
-
 
 function renderEntry(atom) {
   const item = atom.item;
@@ -278,6 +223,25 @@ function renderColumn(atoms, cls) {
   if (open) out.push("</section>");
   return out.join("\n");
 }
+
+function renderFooterHtml(techItems, footerItems) {
+  const sections = [];
+
+  const tech = sortItems(techItems || []);
+  if (tech.length) {
+    const techEntries = tech.map((item) => renderEntry({ type: "entry", item, hideTitle: false, units: estimateUnits(item, false) })).join("\n");
+    sections.push(`<section class="section footer-tech"><h3>Technical + IT</h3><div class="tech-grid">${techEntries}</div></section>`);
+  }
+
+  const footer = sortItems(footerItems || []);
+  if (footer.length) {
+    const footerEntries = footer.map((item) => renderEntry({ type: "entry", item: { ...item, title: "" }, hideTitle: true, units: estimateUnits(item, false) })).join("\n");
+    sections.push(`<section class="section footer-block">${footerEntries}</section>`);
+  }
+
+  return sections.join("\n");
+}
+
 
 function iconClassForContact(text) {
   const v = String(text || "").toLowerCase();
@@ -335,46 +299,12 @@ function composeFiveBlockLayout(items) {
       split.page1WorkItems.push(split.page2WorkItems.shift());
     }
   }
-  const compact = barelyMissed;
 
   const mainPage1Atoms = coreAtoms.concat(sectionAtomsOrdered("Work Experience", split.page1WorkItems));
   const mainPage2Atoms = [];
   if (split.page2WorkItems.length) {
     mainPage2Atoms.push(...sectionAtomsOrdered("Work Experience (Cont.)", split.page2WorkItems));
   }
-  mainPage2Atoms.push(...sectionAtoms("Technical + IT", grouped.get("technical + it") || []));
-  mainPage2Atoms.push(...sectionAtoms("CV Footer", grouped.get("footer") || [], { hideSectionTitle: true, hideAllEntryTitles: true }));
-
-  grouped.delete("core competencies");
-  grouped.delete("work experience");
-  grouped.delete("technical + it");
-  grouped.delete("footer");
-
-  [...grouped.keys()].sort().forEach((extraKey) => {
-    if (["topline skills", "education", "second page rail", "footer"].includes(extraKey)) return;
-    const title = extraKey.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-    mainPage2Atoms.push(...sectionAtoms(title, grouped.get(extraKey) || []));
-  });
-
-  const railFirstPageAtoms = [];
-  railFirstPageAtoms.push(...sectionAtoms("Skills", grouped.get("topline skills") || [], { rail: true }));
-
-  const railSecondPageAtoms = [];
-  railSecondPageAtoms.push(...sectionAtoms("Education", grouped.get("education") || [], { rail: true }));
-  sortItems(grouped.get("second page rail") || []).forEach((item) => {
-    if (!item.title) return;
-    railSecondPageAtoms.push({ type: "section-title", title: item.title, units: 0.5 });
-    railSecondPageAtoms.push({ type: "entry", item: { ...item, content: item.content || "" }, hideTitle: true, units: estimateUnits(item, true) });
-  });
-
-  return { mainPage1Atoms, mainPage2Atoms, railPage1Atoms: railFirstPageAtoms, railPage2Atoms: railSecondPageAtoms, compact };
-}
-
-function renderPdfDocumentHtml(cv, cssHref) {
-  const items = Array.isArray(cv.items) ? cv.items : [];
-  const header = items.find((item) => key(item.section) === "header") || {};
-  const contacts = items.filter((item) => key(item.section) === "contact");
-  const blocks = composeFiveBlockLayout(items);
 
   const footerTechItems = sortItems(grouped.get("technical + it") || []);
   const footerItems = sortItems(grouped.get("footer") || []);
