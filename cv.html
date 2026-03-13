@@ -44,7 +44,6 @@
         margin: 0 auto 12px;
         display: flex;
         justify-content: flex-end;
-        gap: 10px;
       }
 
       .btn {
@@ -142,8 +141,7 @@
   <body>
     <div class="shell">
       <div class="actions">
-        <a class="btn" id="print-link" href="#">Print / PDF</a>
-        <button class="btn" id="share-btn">Share</button>
+        <a class="btn" id="pdf-link" href="#" target="_blank" rel="noopener noreferrer">View PDF</a>
       </div>
 
       <main class="page">
@@ -181,14 +179,7 @@
             railEl: document.getElementById("rail-col")
           });
 
-          document.getElementById("print-link").href = `cv-print.html?cv=${encodeURIComponent(slug)}`;
-
-          const personName = items.find((item) => window.CvRender.key(item.section) === "header")?.title || "CV";
-          document.getElementById("share-btn").addEventListener("click", async () => {
-            const url = window.location.href;
-            await navigator.clipboard.writeText(`Check out the CV of ${personName}: ${url}`);
-            alert("Copied CV link to clipboard.");
-          });
+          document.getElementById("pdf-link").href = `dist/${encodeURIComponent(slug)}.pdf`;
         } catch (error) {
           document.body.innerHTML = `<div class="error">${error.message}</div>`;
         }
