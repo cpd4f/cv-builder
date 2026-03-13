@@ -8,6 +8,7 @@ const CVS_TABLE_ID = process.env.CVS_TABLE_ID || "tbl4GZ7jQcccKPyJu";
 const CV_ITEMS_TABLE_ID = process.env.CV_ITEMS_TABLE_ID || "tblTNlBDhAjF32Sna";
 
 const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const ISSUE_TITLE = process.env.ISSUE_TITLE || "";
 const ISSUE_BODY = process.env.ISSUE_BODY || "";
 const BUILD_ALL_CVS = String(process.env.BUILD_ALL_CVS || "").toLowerCase() === "true";
@@ -244,6 +245,107 @@ function compareManualSort(a, b) {
   return 0;
 }
 
+async function airtablePatchJson(url, body, contextLabel) {
+  logDebug(`Patching Airtable (${contextLabel})`, url.replace(AIRTABLE_PAT || "", "***"));
+
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${AIRTABLE_PAT}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    logDebug(`Airtable patch error body (${contextLabel})`, text);
+    throw new Error(`Airtable patch failed (${res.status}) during ${contextLabel}: ${text}`);
+  }
+
+  return res.json();
+}
+
+function cvItemsToStructuredText(cvJson) {
+  const items = Array.isArray(cvJson?.items) ? cvJson.items : [];
+  const sectionMap = new Map();
+
+  for (const item of items) {
+    const section = String(item?.section || "").trim() || "(unsectioned)";
+    if (!sectionMap.has(section)) sectionMap.set(section, []);
+    sectionMap.get(section).push(item);
+  }
+
+  const parts = [];
+  parts.push(`Slug: ${cvJson?.slug || ""}`);
+
+  for (const [section, entries] of sectionMap.entries()) {
+    parts.push(`\n## ${section}`);
+    entries.forEach((entry, index) => {
+      const title = entry?.title ? `title="${entry.title}"` : "title=";
+      const subtitle = entry?.subtitle ? ` subtitle="${entry.subtitle}"` : "";
+      const location = entry?.location ? ` location="${entry.location}"` : "";
+      const dispdate = entry?.dispdate ? ` date="${entry.dispdate}"` : "";
+      const content = String(entry?.content || "").trim();
+      parts.push(`- [${index + 1}] ${title}${subtitle}${location}${dispdate}`);
+      if (content) {
+        const oneLineContent = content.split("\n").map((line) => line.replace(/\r/g, "").trim()).filter(Boolean).join(" ");
+        parts.push(`  content: ${oneLineContent}`);
+      }
+    });
+  }
+
+  return parts.join("\n");
+}
+
+
+async function generateOverallAiFeedback(cvJson) {
+  if (!OPENAI_API_KEY) throw new Error("Missing OPENAI_API_KEY secret.");
+
+  const cvText = cvItemsToStructuredText(cvJson);
+  const prompt = [
+    "You are an expert CV reviewer.",
+    "Assess this CV for clarity, impact, structure, and credibility.",
+    "Return concise feedback in plain text with:",
+    "1) Overall assessment (2-3 sentences)",
+    "2) Top strengths (3 bullets)",
+    "3) Top improvements (3 bullets)",
+    "Keep output under 220 words."
+  ].join("\n");
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "gpt-5.4",
+      messages: [
+        { role: "system", content: "You provide actionable CV quality feedback." },
+        { role: "user", content: `${prompt}\n\nCV DATA:\n${cvText}` }
+      ],
+      temperature: 0.3
+    })
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`OpenAI API failed (${response.status}): ${text}`);
+  }
+
+  const data = await response.json();
+  const feedback = data?.choices?.[0]?.message?.content?.trim();
+  if (!feedback) throw new Error("OpenAI API returned empty feedback.");
+  return feedback;
+}
+
+async function writeOverallAiFeedbackToCv(recordId, feedback) {
+  const tableRef = CVS_TABLE_ID || CVS_TABLE_NAME;
+  const url = `https://api.airtable.com/v0/${encodeURIComponent(AIRTABLE_BASE_ID)}/${encodeURIComponent(tableRef)}/${encodeURIComponent(recordId)}`;
+  await airtablePatchJson(url, { fields: { "Overall AI Feedback": feedback } }, "writeOverallAiFeedbackToCv");
+}
+
 async function buildAndWriteCv(cvRecord) {
   const fields = cvRecord.fields || {};
   const status = String(fields["Status"] || "").trim();
@@ -301,7 +403,7 @@ async function buildAndWriteCv(cvRecord) {
   fs.writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`, "utf8");
 
   logDebug("Wrote CV JSON", { slug, relativePath, itemCount: items.length });
-  return { slug, relativePath, action: "written" };
+  return { slug, relativePath, action: "written", output };
 }
 
 async function main() {

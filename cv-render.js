@@ -190,6 +190,8 @@
       mr = secondMain.nextIndex;
       rr = secondRail.nextIndex;
     }
+    return { nextIndex: i, atoms: out };
+  }
 
     let guard = 0;
     while (mr < mainRemainder.length || rr < railRemainder.length) {
