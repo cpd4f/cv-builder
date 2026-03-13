@@ -222,6 +222,14 @@ async function buildAndWriteCv(cvRecord) {
   pushContact(items, "Phone", fields["Contact: Phone Number"]);
   pushCoreCompetencies(items, fields["Core Competencies"]);
 
+  if (fields["CV_Footer"] !== undefined && fields["CV_Footer"] !== null && String(fields["CV_Footer"]).trim() !== "") {
+    items.push({
+      title: "CV Footer",
+      content: valueOrNull(fields["CV_Footer"]),
+      section: "footer"
+    });
+  }
+
   const linkedCvItems = Array.isArray(fields["CV Items"]) ? fields["CV Items"] : [];
   const cvItems = await fetchCvItems(cvRecord.id, linkedCvItems);
 
@@ -260,6 +268,7 @@ async function main() {
 
   const cvRecord = await fetchCvRecord(issueRecordId);
   const result = await buildAndWriteCv(cvRecord);
+
   setOutput("record_id", issueRecordId);
   setOutput("slug", result.slug);
   setOutput("relative_path", result.relativePath);
