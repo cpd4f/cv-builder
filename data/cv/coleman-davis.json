@@ -46,7 +46,7 @@
       "start": "2022-03-01",
       "end": "2024-06-01",
       "dispdate": "Mar. 2022 – Jun. 2024",
-      "content": "Led NACo’s digital communications function across website, email newsletters, social media and video, managing the team responsible for delivering the organization’s core digital channels, along with enterprise platform strategy, analytics, governance, team leadership and budget oversight.\n- Led the redesign and migration of NACo’s 10,000+ page website into a new Drupal platform supporting 3.5 million annual page views, 6,000+ average daily users and 50+ internal publishers.\n- Led the team responsible for delivering all organizational email newsletters, reaching tens of thousands of county officials and public-sector stakeholders.\n- Managed NACo’s full social media presence across platforms with thousands of followers, supporting advocacy, campaigns, events and day-to-day organizational communications.\n- Directed the platform’s long-term structure and governance, including information architecture, publishing standards, vendor coordination and post-launch stewardship.\n- Built NACo’s first broadcast-quality in-house video studio, expanding capacity for recurring advocacy programming, event production and faster in-house multimedia delivery.\n- Expanded the organization’s analytics infrastructure across GA4, Microsoft Clarity, Power BI, Looker Studio and BigQuery, improving reporting for leadership and strategic decision-making.\n",
+      "content": "Led NACo’s digital communications team, overseeing the organization’s website, email, social media and video platforms, along with digital strategy, analytics, governance and budget management.\n- Led the redesign and migration of NACo’s 10,000+ page website into a new Drupal platform supporting 3.5 million annual page views, 6,000+ average daily users and 50+ internal publishers.\n- Directed NACo’s core digital communications channels, including email newsletters reaching tens of thousands of county officials and social media platforms serving thousands of followers.\n- Built NACo’s first broadcast-quality in-house video studio, expanding in-house capacity for advocacy programming, event production and recurring multimedia content.\n- Expanded the organization’s analytics infrastructure across GA4, Microsoft Clarity, Power BI, Looker Studio and BigQuery, improving reporting and strategic decision-making.\n- Strengthened digital operations through clearer governance, publishing standards and cross-department planning systems.\n",
       "section": "Work Experience",
       "manualsort": "a1"
     },
@@ -159,6 +159,17 @@
       "content": "Dynamics 365 Customer Insights / Journeys • Higher Logic • Mailchimp\n",
       "section": "Technical + IT",
       "manualsort": "aC"
+    },
+    {
+      "title": "Data, Analytics & Optimization",
+      "subtitle": null,
+      "location": null,
+      "start": null,
+      "end": null,
+      "dispdate": null,
+      "content": "GA4 • Microsoft Clarity • Looker Studio • Power BI • BigQuery • SEO • A/B testing • Dashboarding\n",
+      "section": "Technical + IT",
+      "manualsort": "aCV"
     },
     {
       "title": "Work Eligibility",
