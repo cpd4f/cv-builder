@@ -62,6 +62,12 @@
         return;
       }
       flush();
+      const heading = t.match(/^(#{1,6})\s+(.*)$/);
+      if (heading) {
+        const level = Math.min(6, heading[1].length);
+        chunks.push("<h" + level + ">" + inlineMarkdownToHtml(heading[2]) + "</h" + level + ">");
+        return;
+      }
       if (t) chunks.push("<p>" + inlineMarkdownToHtml(t) + "</p>");
     });
     flush();
@@ -120,6 +126,27 @@
     return sortItems(items).map(function (item) {
       return renderEntry({ ...item, title: "" });
     }).join("\n");
+  }
+
+  function renderFooterContentHtml(techItems, footerItems) {
+    const parts = [];
+    const tech = sortItems(techItems || []);
+    if (tech.length) {
+      parts.push('<section class="section footer-tech"><h3>Technical + IT</h3><div class="tech-grid">');
+      tech.forEach(function (item) {
+        parts.push(renderEntry(item));
+      });
+      parts.push('</div></section>');
+    }
+    const footer = sortItems(footerItems || []);
+    if (footer.length) {
+      parts.push('<section class="section footer-block">');
+      footer.forEach(function (item) {
+        parts.push(renderEntry({ ...item, title: "" }));
+      });
+      parts.push('</section>');
+    }
+    return parts.join("\n");
   }
 
   function groupBySection(items) {
@@ -209,6 +236,10 @@
         gap: 12mm;
         padding: 12mm 16mm 16mm;
       }
+      .footer { grid-column: 1 / -1; }
+      .tech-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+      .tech-grid .entry { margin-bottom: 0; }
+      .footer-block { margin-top: 12px; }
       .section { margin-bottom: 22px; }
       .section h3 { margin: 0 0 8px; font-size: 13pt; font-weight: 700; }
       .entry { margin-bottom: 16px; }
@@ -232,6 +263,7 @@
         .contact-bar { grid-template-columns: 1fr; }
         .contact-item { padding-left: 0; }
         .contact-item:last-child { padding-left: 0; }
+        .tech-grid { grid-template-columns: 1fr; }
       }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -242,6 +274,7 @@
         <section class="content">
           <div id="main-col"></div>
           <div id="rail-col"></div>
+          <div class="footer" id="footer-col"></div>
         </section>
       </main>
     </div>
@@ -271,17 +304,18 @@
 
       const mainCol = shadow.getElementById("main-col");
       const railCol = shadow.getElementById("rail-col");
+      const footerCol = shadow.getElementById("footer-col");
 
       mainCol.innerHTML =
         sectionHtml("Core Competencies", grouped.get("core competencies") || [], true) +
-        sectionHtml("Work Experience", grouped.get("work experience") || [], false) +
-        sectionHtml("Technical + IT", grouped.get("technical + it") || [], false) +
-        footerHtml(grouped.get("footer") || []);
+        sectionHtml("Work Experience", grouped.get("work experience") || [], false);
 
       railCol.innerHTML =
         sectionHtml("Skills", grouped.get("topline skills") || [], false) +
         sectionHtml("Education", grouped.get("education") || [], false) +
         titledItemsAsSectionsHtml(grouped.get("second page rail") || []);
+
+      footerCol.innerHTML = renderFooterContentHtml(grouped.get("technical + it") || [], grouped.get("footer") || []);
     })
     .catch(function (error) {
       const page = shadow.querySelector(".cv-embed-page");

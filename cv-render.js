@@ -190,6 +190,8 @@
       mr = secondMain.nextIndex;
       rr = secondRail.nextIndex;
     }
+    return { nextIndex: i, atoms: out };
+  }
 
     let guard = 0;
     while (mr < mainRemainder.length || rr < railRemainder.length) {
@@ -256,6 +258,35 @@
       }
       section.appendChild(renderEntryAtom(atom));
     });
+  }
+
+  function renderFooterContent(host, techItems, footerItems) {
+    if (!host) return;
+    host.innerHTML = "";
+
+    const tech = sortItems(techItems || []);
+    if (tech.length) {
+      const techSection = document.createElement("section");
+      techSection.className = "section footer-tech";
+      techSection.innerHTML = "<h3>Technical + IT</h3>";
+      const techGrid = document.createElement("div");
+      techGrid.className = "tech-grid";
+      tech.forEach((item) => {
+        techGrid.appendChild(renderEntryAtom({ type: "entry", item, hideTitle: false, units: estimateUnits(item, false) }));
+      });
+      techSection.appendChild(techGrid);
+      host.appendChild(techSection);
+    }
+
+    const footer = sortItems(footerItems || []);
+    if (footer.length) {
+      const footerSection = document.createElement("section");
+      footerSection.className = "section footer-block";
+      footer.forEach((item) => {
+        footerSection.appendChild(renderEntryAtom({ type: "entry", item: { ...item, title: "" }, hideTitle: true, units: estimateUnits(item, false) }));
+      });
+      host.appendChild(footerSection);
+    }
   }
 
   function renderHeader(host, item) {
@@ -325,8 +356,8 @@
     if (split.page2WorkItems.length) {
       mainPage2Atoms.push(...sectionEntriesOrdered("Work Experience (Cont.)", split.page2WorkItems));
     }
-    mainPage2Atoms.push(...sectionEntries("Technical + IT", grouped.get("technical + it") || []));
-    mainPage2Atoms.push(...sectionEntries("CV Footer", grouped.get("footer") || [], { hideSectionTitle: true, hideAllEntryTitles: true }));
+    const footerTechItems = sortItems(grouped.get("technical + it") || []);
+    const footerItems = sortItems(grouped.get("footer") || []);
 
     grouped.delete("core competencies");
     grouped.delete("work experience");
@@ -350,10 +381,10 @@
       railPage2Atoms.push({ type: "entry", item: { ...item, content: item.content || "" }, hideTitle: true, units: estimateUnits(item, true) });
     });
 
-    return { mainPage1Atoms, mainPage2Atoms, railPage1Atoms, railPage2Atoms, compact };
+    return { mainPage1Atoms, mainPage2Atoms, railPage1Atoms, railPage2Atoms, footerTechItems, footerItems, compact };
   }
 
-  function renderStandardCv({ items, headerEl, contactEl, mainEl, railEl }) {
+  function renderStandardCv({ items, headerEl, contactEl, mainEl, railEl, footerEl }) {
     const source = Array.isArray(items) ? items : [];
     const grouped = groupBySection(source);
     const header = source.find((item) => key(item.section) === "header") || {};
@@ -364,8 +395,10 @@
 
     const mainAtoms = [];
     mainAtoms.push(...sectionEntries("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true }));
-    mainAtoms.push(...workAndTechEntries(grouped.get("work experience") || [], grouped.get("technical + it") || []));
-    mainAtoms.push(...sectionEntries("CV Footer", grouped.get("footer") || [], { hideSectionTitle: true, hideAllEntryTitles: true }));
+    mainAtoms.push(...sectionEntries("Work Experience", grouped.get("work experience") || []));
+
+    const footerTechItems = sortItems(grouped.get("technical + it") || []);
+    const footerItems = sortItems(grouped.get("footer") || []);
 
     grouped.delete("core competencies");
     grouped.delete("work experience");
@@ -389,6 +422,14 @@
 
     renderColumnAtoms(mainEl, mainAtoms, "col-main");
     renderColumnAtoms(railEl, railAtoms, "col-rail");
+    if (footerEl) {
+      renderFooterContent(footerEl, footerTechItems, footerItems);
+    } else if (mainEl) {
+      const fallbackFooter = document.createElement("div");
+      fallbackFooter.className = "footer";
+      renderFooterContent(fallbackFooter, footerTechItems, footerItems);
+      mainEl.appendChild(fallbackFooter);
+    }
   }
 
   function renderPaginatedCv(root, cv) {
@@ -430,7 +471,11 @@
     mainPage2.className = "main-content-2";
     renderColumnAtoms(mainPage2, blocks.mainPage2Atoms, "col-main");
 
-    full.append(headerContainer, railPage1, mainPage1, railPage2, mainPage2);
+    const footer = document.createElement("div");
+    footer.className = "footer";
+    renderFooterContent(footer, blocks.footerTechItems, blocks.footerItems);
+
+    full.append(headerContainer, railPage1, mainPage1, railPage2, mainPage2, footer);
     root.appendChild(full);
   }
 

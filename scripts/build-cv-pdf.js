@@ -76,6 +76,12 @@ function markdownToHtml(markdown) {
     const bullet = t.match(/^[-*]\s+(.*)$/);
     if (bullet) { list.push(bullet[1]); return; }
     flush();
+    const heading = t.match(/^(#{1,6})\s+(.*)$/);
+    if (heading) {
+      const level = Math.min(6, heading[1].length);
+      chunks.push(`<h${level}>${inlineMarkdownToHtml(heading[2])}</h${level}>`);
+      return;
+    }
     if (t) chunks.push(`<p>${inlineMarkdownToHtml(t)}</p>`);
   });
   flush();
@@ -222,6 +228,8 @@ function paginate(mainFirstAtoms, mainLaterAtoms, railSkillsAtoms, railPage2Atom
     mr = secondMain.nextIndex;
     rr = secondRail.nextIndex;
   }
+  return { nextIndex: i, atoms: out };
+}
 
   let guard = 0;
   while (mr < mainRemainder.length || rr < railRemainder.length) {
@@ -327,6 +335,7 @@ function composeFiveBlockLayout(items) {
       split.page1WorkItems.push(split.page2WorkItems.shift());
     }
   }
+  const compact = barelyMissed;
 
   const mainPage1Atoms = coreAtoms.concat(sectionAtomsOrdered("Work Experience", split.page1WorkItems));
   const mainPage2Atoms = [];
@@ -367,9 +376,43 @@ function renderPdfDocumentHtml(cv, cssHref) {
   const contacts = items.filter((item) => key(item.section) === "contact");
   const blocks = composeFiveBlockLayout(items);
 
+  const footerTechItems = sortItems(grouped.get("technical + it") || []);
+  const footerItems = sortItems(grouped.get("footer") || []);
+
+  grouped.delete("core competencies");
+  grouped.delete("work experience");
+  grouped.delete("technical + it");
+  grouped.delete("footer");
+
+  [...grouped.keys()].sort().forEach((extraKey) => {
+    if (["topline skills", "education", "second page rail", "footer"].includes(extraKey)) return;
+    const title = extraKey.split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    mainPage2Atoms.push(...sectionAtoms(title, grouped.get(extraKey) || []));
+  });
+
+  const railFirstPageAtoms = [];
+  railFirstPageAtoms.push(...sectionAtoms("Skills", grouped.get("topline skills") || [], { rail: true }));
+
+  const railSecondPageAtoms = [];
+  railSecondPageAtoms.push(...sectionAtoms("Education", grouped.get("education") || [], { rail: true }));
+  sortItems(grouped.get("second page rail") || []).forEach((item) => {
+    if (!item.title) return;
+    railSecondPageAtoms.push({ type: "section-title", title: item.title, units: 0.5 });
+    railSecondPageAtoms.push({ type: "entry", item: { ...item, content: item.content || "" }, hideTitle: true, units: estimateUnits(item, true) });
+  });
+
+  return { mainPage1Atoms, mainPage2Atoms, railPage1Atoms: railFirstPageAtoms, railPage2Atoms: railSecondPageAtoms, footerTechItems, footerItems, compact };
+}
+
+function renderPdfDocumentHtml(cv, cssHref) {
+  const items = Array.isArray(cv.items) ? cv.items : [];
+  const header = items.find((item) => key(item.section) === "header") || {};
+  const contacts = items.filter((item) => key(item.section) === "contact");
+  const blocks = composeFiveBlockLayout(items);
+
   const headerHtml = `<header class="header"><h1>${escapeHtml(header?.title || "CV")}</h1><h2>${escapeHtml(header?.subtitle || "")}</h2><div class="header-summary">${markdownToHtml(header?.content || "")}</div></header>${renderContact(contacts)}`;
 
-  const fullContainer = `<div class="full-container"><div class="header-container">${headerHtml}</div><div class="rail-page-1">${renderColumn(blocks.railPage1Atoms, "col-rail")}</div><div class="main-content-1">${renderColumn(blocks.mainPage1Atoms, "col-main")}</div><div class="rail-page-2">${renderColumn(blocks.railPage2Atoms, "col-rail")}</div><div class="main-content-2">${renderColumn(blocks.mainPage2Atoms, "col-main")}</div></div>`;
+  const fullContainer = `<div class="full-container"><div class="header-container">${headerHtml}</div><div class="rail-page-1">${renderColumn(blocks.railPage1Atoms, "col-rail")}</div><div class="main-content-1">${renderColumn(blocks.mainPage1Atoms, "col-main")}</div><div class="rail-page-2">${renderColumn(blocks.railPage2Atoms, "col-rail")}</div><div class="main-content-2">${renderColumn(blocks.mainPage2Atoms, "col-main")}</div><div class="footer">${renderFooterHtml(blocks.footerTechItems, blocks.footerItems)}</div></div>`;
 
   return `<!doctype html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>CV Print</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" /><link rel="stylesheet" href="${cssHref}" /></head><body><main class="cv-print${blocks.compact ? " compact" : ""}" id="cv-print-root">${fullContainer}</main></body></html>`;
 }

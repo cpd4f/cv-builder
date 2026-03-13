@@ -71,32 +71,58 @@ function valueOrNull(value) {
 function normalizeRichTextFieldValue(value) {
   if (value === undefined || value === null) return "";
   if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+
   if (Array.isArray(value)) {
-    return value
-      .map((part) => {
-        if (typeof part === "string") return part;
-        if (part && typeof part === "object") {
-          if (typeof part.text === "string") return part.text;
-          if (typeof part.plain_text === "string") return part.plain_text;
-          if (typeof part.value === "string") return part.value;
-        }
-        return "";
-      })
-      .join("")
-      .trim();
+    return value.map((part) => normalizeRichTextFieldValue(part)).join("").trim();
   }
+
   if (typeof value === "object") {
-    if (typeof value.text === "string") return value.text;
-    if (typeof value.plain_text === "string") return value.plain_text;
-    if (typeof value.value === "string") return value.value;
+    const directKeys = ["text", "plain_text", "value", "content", "name"];
+    for (const key of directKeys) {
+      if (typeof value[key] === "string") return value[key];
+    }
+
+    const nestedKeys = ["text", "value", "content", "children", "richText", "rich_text"];
+    const nestedParts = [];
+    for (const key of nestedKeys) {
+      if (value[key] !== undefined && value[key] !== null) {
+        const normalized = normalizeRichTextFieldValue(value[key]);
+        if (normalized) nestedParts.push(normalized);
+      }
+    }
+    if (nestedParts.length) return nestedParts.join(" ").trim();
+
+    const fallback = [];
+    for (const v of Object.values(value)) {
+      const normalized = normalizeRichTextFieldValue(v);
+      if (normalized) fallback.push(normalized);
+    }
+    return fallback.join(" ").trim();
   }
+
   return String(value);
 }
 
+
 function getCvFooterValue(fields) {
-  const raw = fields["CV_Footer"] ?? fields["CV Footer"];
-  return normalizeRichTextFieldValue(raw);
+  const direct = [fields["CV_Footer"], fields["CV Footer"]];
+  for (const candidate of direct) {
+    const normalized = normalizeRichTextFieldValue(candidate);
+    if (normalized) return normalized;
+  }
+
+  const normalizeFieldName = (name) => String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const target = "cvfooter";
+  for (const [fieldName, fieldValue] of Object.entries(fields || {})) {
+    if (normalizeFieldName(fieldName) !== target) continue;
+    const normalized = normalizeRichTextFieldValue(fieldValue);
+    if (normalized) return normalized;
+  }
+
+  return "";
 }
+
 
 function pushContact(items, title, value) {
   if (value !== undefined && value !== null && String(value).trim() !== "") {
