@@ -1,11 +1,11 @@
 {
-  "slug": "coleman-davis",
+  "slug": "coleman-davis-backup",
   "status": "Publish",
   "items": [
     {
       "title": "Coleman DAVIS",
-      "subtitle": "Digital Platform & Communications Systems Leader",
-      "content": "Senior digital leader with more than 12 years of experience building the platforms, governance models and content operations behind high-volume public-sector communications. Leads enterprise web modernization, analytics infrastructure, editorial systems, multimedia production and AI-enabled user experiences for complex, mission-driven organizations.\n",
+      "subtitle": "Digital Communications & Strategy Lead",
+      "content": "Digital communications and strategy professional with more than 12 years experience leading web, content, email, social media, and multimedia programs. Expert in cross-channel communications, platform modernization, and building the workflows and systems that support complex, mission-driven organizations. Strong background in advocacy messaging, stakeholder coordination, and translating technical or policy issues into clear, accessible content.\n",
       "section": "header"
     },
     {
@@ -25,13 +25,8 @@
     },
     {
       "title": "Core Competencies",
-      "content": "Enterprise website modernization • Digital governance & editorial systems • Analytics and reporting infrastructure • Multi-channel communications operations • AI-enabled search and content experiences • Workflow automation and platform integration • Advocacy and public-sector communications • Multimedia production and livestream operations\n",
+      "content": "Digital strategy & transformation • Multi-channel communication • Web & CMS administration • Editorial workflow design • Data analytics & reporting • Workflow & systems architecture • Stakeholder & cross-department coordination • Policy & advocacy communication • Multimedia & live event production\n",
       "section": "core competencies"
-    },
-    {
-      "title": "CV Footer",
-      "content": "This is the footer content. IT DOES NOT SEEM TO TAKE!!!!\n",
-      "section": "footer"
     },
     {
       "title": "Strategic Communications Consultant",
@@ -230,17 +225,6 @@
       "content": "Coordinated innovation and research projects supporting organizational programs and policy work. Contributed to digital content production and multimedia materials, and launched the organization’s first podcast, overseeing planning, scripting, and production.\n",
       "section": "Work Experience",
       "manualsort": "aI"
-    },
-    {
-      "title": "Multimedia & Creative Tools",
-      "subtitle": null,
-      "location": null,
-      "start": null,
-      "end": null,
-      "dispdate": null,
-      "content": "Premiere Pro • Audition • Photoshop • Illustrator • Livestream studio workflows • Podcast production\n",
-      "section": "Technical + IT",
-      "manualsort": "aJ"
     }
   ]
 }
