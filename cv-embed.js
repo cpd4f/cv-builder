@@ -108,6 +108,20 @@
     return '<section class="section"><h3>' + escapeHtml(title) + "</h3>" + entries + "</section>";
   }
 
+
+  function titledItemsAsSectionsHtml(items) {
+    return sortItems(items).map(function (item) {
+      if (!item?.title) return "";
+      return '<section class="section"><h3>' + escapeHtml(item.title) + "</h3>" + renderEntry({ ...item, title: "" }) + "</section>";
+    }).join("\n");
+  }
+
+  function footerHtml(items) {
+    return sortItems(items).map(function (item) {
+      return renderEntry({ ...item, title: "" });
+    }).join("\n");
+  }
+
   function groupBySection(items) {
     const grouped = new Map();
     (Array.isArray(items) ? items : []).forEach(function (item) {

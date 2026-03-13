@@ -67,6 +67,37 @@ function valueOrNull(value) {
   return value === undefined ? null : value;
 }
 
+
+function normalizeRichTextFieldValue(value) {
+  if (value === undefined || value === null) return "";
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) {
+    return value
+      .map((part) => {
+        if (typeof part === "string") return part;
+        if (part && typeof part === "object") {
+          if (typeof part.text === "string") return part.text;
+          if (typeof part.plain_text === "string") return part.plain_text;
+          if (typeof part.value === "string") return part.value;
+        }
+        return "";
+      })
+      .join("")
+      .trim();
+  }
+  if (typeof value === "object") {
+    if (typeof value.text === "string") return value.text;
+    if (typeof value.plain_text === "string") return value.plain_text;
+    if (typeof value.value === "string") return value.value;
+  }
+  return String(value);
+}
+
+function getCvFooterValue(fields) {
+  const raw = fields["CV_Footer"] ?? fields["CV Footer"];
+  return normalizeRichTextFieldValue(raw);
+}
+
 function pushContact(items, title, value) {
   if (value !== undefined && value !== null && String(value).trim() !== "") {
     items.push({ title, content: value, section: "contact" });
@@ -324,10 +355,11 @@ async function buildAndWriteCv(cvRecord) {
   pushContact(items, "Phone", fields["Contact: Phone Number"]);
   pushCoreCompetencies(items, fields["Core Competencies"]);
 
-  if (fields["CV_Footer"] !== undefined && fields["CV_Footer"] !== null && String(fields["CV_Footer"]).trim() !== "") {
+  const cvFooter = getCvFooterValue(fields);
+  if (String(cvFooter).trim() !== "") {
     items.push({
       title: "CV Footer",
-      content: valueOrNull(fields["CV_Footer"]),
+      content: valueOrNull(cvFooter),
       section: "footer"
     });
   }
