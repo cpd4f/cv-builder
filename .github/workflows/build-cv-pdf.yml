@@ -120,8 +120,7 @@ jobs:
 
           for attempt in 1 2 3; do
             echo "Push attempt ${attempt} to ${branch}"
-            git fetch origin "$branch"
-            git pull --rebase --autostash origin "$branch" || (git rebase --abort && false)
+            git pull --no-rebase -X ours origin "$branch"
             if git push origin "HEAD:${branch}"; then
               echo "Push succeeded"
               exit 0
