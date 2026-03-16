@@ -283,7 +283,8 @@ async function generateOverallAiFeedback(cvJson) {
   const cvText = cvItemsToStructuredText(cvJson);
   const prompt = [
     "You are an expert CV reviewer.",
-    "Assess this CV for clarity, impact, structure, and credibility.",
+    "Assess this CV for clarity, impact, structure, credibility, and writing quality.",
+    "Explicitly check for misspellings, typos, grammatical issues, and stylistic inconsistencies.",
     "Return concise feedback in plain text with:",
     "1) Overall assessment (2-3 sentences)",
     "2) Top strengths (3 bullets)",
@@ -372,8 +373,109 @@ function isFeedbackEligibleItem(item) {
   const hasTitle = String(item?.title || "").trim() !== "";
   const sectionKey = String(item?.section || "").trim().toLowerCase();
   if (!hasContent && !hasTitle) return false;
-  if (sectionKey === "header" || sectionKey === "contact") return false;
+  if (sectionKey === "header" || sectionKey === "contact" || sectionKey === "education" || sectionKey === "second page rail") return false;
   return true;
+}
+
+
+function getCvFieldTarget(cvPayload, key) {
+  const items = Array.isArray(cvPayload?.items) ? cvPayload.items : [];
+  if (key === "intro") {
+    const header = items.find((item) => String(item?.section || "").toLowerCase() === "header");
+    if (!header || String(header?.content || "").trim() === "") return null;
+    return {
+      fieldName: "AI Feedback Intro",
+      label: "CV Intro",
+      title: header?.title || "",
+      content: header?.content || "",
+      section: "header"
+    };
+  }
+
+  if (key === "core") {
+    const core = items.find((item) => String(item?.section || "").toLowerCase() === "core competencies");
+    if (!core || String(core?.content || "").trim() === "") return null;
+    return {
+      fieldName: "AI Feedback Core Competencies",
+      label: "Core Competencies",
+      title: core?.title || "Core Competencies",
+      content: core?.content || "",
+      section: "core competencies"
+    };
+  }
+
+  if (key === "footer") {
+    const footer = items.find((item) => String(item?.section || "").toLowerCase() === "footer");
+    if (!footer || String(footer?.content || "").trim() === "") return null;
+    return {
+      fieldName: "AI Feedback Footer",
+      label: "CV Footer",
+      title: footer?.title || "CV Footer",
+      content: footer?.content || "",
+      section: "footer"
+    };
+  }
+
+  return null;
+}
+
+function cvFieldTargetToStructuredText(target) {
+  const title = target?.title ? `title="${target.title}"` : "title=";
+  const section = target?.section ? ` section="${target.section}"` : "";
+  const content = String(target?.content || "").trim();
+  const oneLineContent = content
+    .split("\n")
+    .map((line) => line.replace(/\r/g, "").trim())
+    .filter(Boolean)
+    .join(" ");
+  return [`- ${title}${section}`, `  content: ${oneLineContent}`].join("\n");
+}
+
+async function generateCvFieldAiFeedback(cvJson, target) {
+  const cvText = cvItemsToStructuredText(cvJson);
+  const targetText = cvFieldTargetToStructuredText(target);
+  const prompt = [
+    "You are an expert CV editor. Review this specific CV-level block with full CV context.",
+    "Goal: improve this block for clarity, specificity, and impact while avoiding duplication with other CV sections.",
+    "Prioritize recency and relevance where applicable.",
+    "Check for typos, grammar issues, and style inconsistencies.",
+    "Return plain text under 150 words with:",
+    "1) Quick assessment (1-2 sentences)",
+    "2) Suggested rewrite improvements (2-4 bullets)",
+    "3) Duplicate/redundancy warnings (0-2 bullets, only if needed)"
+  ].join("\n");
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "gpt-5.4",
+      messages: [
+        { role: "system", content: "You provide actionable CV block-level feedback." },
+        { role: "user", content: `${prompt}\n\nTARGET BLOCK (${target.label}):\n${targetText}\n\nFULL CV CONTEXT:\n${cvText}` }
+      ],
+      temperature: 0.3
+    })
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`OpenAI API failed for CV field feedback (${response.status}): ${text}`);
+  }
+
+  const data = await response.json();
+  const feedback = data?.choices?.[0]?.message?.content?.trim();
+  if (!feedback) throw new Error("OpenAI API returned empty CV field feedback.");
+  return feedback;
+}
+
+async function writeCvFieldFeedback(recordId, fieldName, feedback) {
+  const tableRef = CVS_TABLE_ID || CVS_TABLE_NAME;
+  const url = `https://api.airtable.com/v0/${encodeURIComponent(AIRTABLE_BASE_ID)}/${encodeURIComponent(tableRef)}/${encodeURIComponent(recordId)}`;
+  await airtablePatchJson(url, { fields: { [fieldName]: feedback } }, "writeCvFieldFeedback");
 }
 async function writeOverallAiFeedbackToCv(recordId, feedback) {
   const tableRef = CVS_TABLE_ID || CVS_TABLE_NAME;
@@ -399,6 +501,18 @@ async function main() {
   await writeOverallAiFeedbackToCv(recordId, feedback);
   logDebug("Wrote Overall AI Feedback", { recordId, chars: feedback.length });
 
+  const cvFieldTargets = [
+    getCvFieldTarget(cvPayload, "intro"),
+    getCvFieldTarget(cvPayload, "core"),
+    getCvFieldTarget(cvPayload, "footer")
+  ].filter(Boolean);
+
+  for (const target of cvFieldTargets) {
+    const fieldFeedback = await generateCvFieldAiFeedback(cvPayload, target);
+    await writeCvFieldFeedback(recordId, target.fieldName, fieldFeedback);
+    logDebug("Wrote CV field AI Feedback", { recordId, fieldName: target.fieldName, chars: fieldFeedback.length });
+  }
+
   const mappedItems = cvItems.map(mapItem).sort(compareManualSort);
   const feedbackTargets = mappedItems
     .map((item, index) => ({ item, index }))
@@ -413,6 +527,7 @@ async function main() {
 
   setOutput("record_id", recordId);
   setOutput("ai_feedback_written", "true");
+  setOutput("ai_cv_field_feedback_written", String(cvFieldTargets.length));
   setOutput("ai_item_feedback_written", String(feedbackTargets.length));
 }
 
