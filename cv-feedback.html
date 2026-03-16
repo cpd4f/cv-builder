@@ -84,7 +84,7 @@
 
     .row {
       display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+      grid-template-columns: 1fr 1fr;
       gap: 12px;
       align-items: start;
     }
@@ -223,6 +223,25 @@
       return "";
     }
 
+
+    function orderedItems(items) {
+      const order = new Map([
+        ["header", 0],
+        ["core competencies", 1],
+        ["work experience", 2],
+        ["topline skills", 3],
+        ["technical + it", 4],
+        ["education", 5],
+        ["second page rail", 5],
+        ["footer", 6]
+      ]);
+      return (items || [])
+        .map((item, index) => ({ item, index, rank: order.has(String(item?.section || "").toLowerCase()) ? order.get(String(item?.section || "").toLowerCase()) : 99 }))
+        .filter(({ item }) => String(item?.section || "").toLowerCase() !== "contact")
+        .sort((a, b) => a.rank - b.rank || a.index - b.index)
+        .map(({ item }) => item);
+    }
+
     function renderItem(item, feedbackObj) {
       const row = document.createElement("article");
       row.className = "row";
@@ -267,7 +286,7 @@
           ? markdownToHtml(feedback.overall)
           : '<p class="empty">No overall feedback available.</p>';
 
-        const items = Array.isArray(cv?.items) ? cv.items : [];
+        const items = orderedItems(Array.isArray(cv?.items) ? cv.items : []);
         items.forEach((item) => rows.appendChild(renderItem(item, feedback)));
       } catch (error) {
         overall.innerHTML = '<p class="empty">No overall feedback available.</p>';

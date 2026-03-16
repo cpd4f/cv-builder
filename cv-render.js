@@ -190,6 +190,47 @@
       mr = secondMain.nextIndex;
       rr = secondRail.nextIndex;
     }
+    return { nextIndex: i, atoms: out };
+  }
+
+  function paginate(mainFirstAtoms, mainLaterAtoms, railSkillsAtoms, railPage2Atoms, railLaterAtoms) {
+    const pages = [];
+    let mf = 0;
+    let rs = 0;
+
+    const firstMain = fillPage(mainFirstAtoms, mf, 85);
+    const firstRail = fillPage(railSkillsAtoms, rs, 55);
+    pages.push({ main: firstMain.atoms, rail: firstRail.atoms, first: true });
+    mf = firstMain.nextIndex;
+    rs = firstRail.nextIndex;
+
+    const mainRemainder = mainFirstAtoms.slice(mf).concat(mainLaterAtoms);
+    const railRemainder = railPage2Atoms.concat(railSkillsAtoms.slice(rs), railLaterAtoms);
+
+    let mr = 0;
+    let rr = 0;
+
+    if (mr < mainRemainder.length || rr < railRemainder.length) {
+      const secondMain = fillPage(mainRemainder, mr, 98);
+      const secondRail = fillPage(railRemainder, rr, 220);
+      pages.push({ main: secondMain.atoms, rail: secondRail.atoms, first: false });
+      mr = secondMain.nextIndex;
+      rr = secondRail.nextIndex;
+    }
+    return pages.filter((p) => p.main.length || p.rail.length);
+  }
+
+
+    let guard = 0;
+    while (mr < mainRemainder.length || rr < railRemainder.length) {
+      const mainSlice = fillPage(mainRemainder, mr, 110);
+      const railSlice = fillPage(railRemainder, rr, 110);
+      pages.push({ main: mainSlice.atoms, rail: railSlice.atoms, first: false });
+      mr = mainSlice.nextIndex;
+      rr = railSlice.nextIndex;
+      guard += 1;
+      if (guard > 20) break;
+    }
     return pages.filter((p) => p.main.length || p.rail.length);
   }
 
