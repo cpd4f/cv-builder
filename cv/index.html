@@ -41,6 +41,7 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
     const slug=(new URLSearchParams(location.search).get('cv')||'').trim().toLowerCase();
+    const basePath=location.pathname.replace(/\/cv\/?$/,'');
     const key=(v)=>String(v||'').trim().toLowerCase();
     const sortItems=(items)=>[...(items||[])].sort((a,b)=>String(a?.manualsort||'').localeCompare(String(b?.manualsort||''),undefined,{numeric:true,sensitivity:'base'}));
     const md=(v)=>{const t=String(v||'');if(!t)return '';if(window.marked?.parse)return window.marked.parse(t);return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');};
@@ -80,11 +81,11 @@
     (async()=>{
       if(!slug){document.body.innerHTML='<div class="error">Missing <code>?cv=&lt;slug&gt;</code> query parameter.</div>';return;}
       try{
-        const res=await fetch(`../data/cv/${encodeURIComponent(slug)}.json`,{cache:'no-store'});
-        if(!res.ok) throw new Error(`Unable to load ../data/cv/${slug}.json (HTTP ${res.status})`);
+        const res=await fetch(`${basePath}/data/cv/${encodeURIComponent(slug)}.json`,{cache:'no-store'});
+        if(!res.ok) throw new Error(`Unable to load ${basePath}/data/cv/${slug}.json (HTTP ${res.status})`);
         const cv=await res.json();
         render(Array.isArray(cv?.items)?cv.items:[]);
-        document.getElementById('pdf-link').href=`../dist/${encodeURIComponent(slug)}.pdf`;
+        document.getElementById('pdf-link').href=`${basePath}/dist/${encodeURIComponent(slug)}.pdf`;
       }catch(e){document.body.innerHTML=`<div class="error">${e.message||String(e)}</div>`;}
     })();
   </script>
