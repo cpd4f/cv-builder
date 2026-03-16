@@ -161,7 +161,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="cv-render.js"></script>
     <script>
       const query = new URLSearchParams(window.location.search);
       const slug = (query.get("cv") || "").trim().toLowerCase();
@@ -302,11 +301,7 @@
             footerEl: document.getElementById("footer-col")
           };
 
-          if (window.CvRender?.renderStandardCv) {
-            window.CvRender.renderStandardCv(args);
-          } else {
-            renderFallbackCv(args);
-          }
+          renderFallbackCv(args);
 
           document.getElementById("pdf-link").href = `dist/${encodeURIComponent(slug)}.pdf`;
         } catch (error) {
