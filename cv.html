@@ -44,7 +44,6 @@
         margin: 0 auto 12px;
         display: flex;
         justify-content: flex-end;
-        gap: 10px;
       }
 
       .btn {
@@ -120,6 +119,10 @@
       .entry-content ul, .entry-content ol { margin: 0; padding-left: 0; list-style: none; }
       .entry-content li { margin: 0 0 5px; padding-left: 12px; position: relative; }
       .entry-content li::before { content: "•"; position: absolute; left: 0; }
+      .footer { grid-column: 1 / -1; margin-top: 8px; }
+      .tech-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+      .tech-grid .entry { margin-bottom: 0; }
+      .footer-block { margin-top: 12px; }
 
       .error {
         margin: 20px;
@@ -136,14 +139,14 @@
         .contact-bar { grid-template-columns: 1fr; }
         .contact-item { border-right: 0; border-bottom: 1px solid #4b555f; }
         .contact-item:last-child { border-bottom: 0; padding-left: 0; }
+        .tech-grid { grid-template-columns: 1fr; }
       }
     </style>
   </head>
   <body>
     <div class="shell">
       <div class="actions">
-        <a class="btn" id="print-link" href="#">Print / PDF</a>
-        <button class="btn" id="share-btn">Share</button>
+        <a class="btn" id="pdf-link" href="#" target="_blank" rel="noopener noreferrer">View PDF</a>
       </div>
 
       <main class="page">
@@ -152,6 +155,7 @@
         <section class="content">
           <div id="main-col"></div>
           <div id="rail-col"></div>
+          <div class="footer" id="footer-col"></div>
         </section>
       </main>
     </div>
@@ -162,6 +166,20 @@
       const query = new URLSearchParams(window.location.search);
       const slug = (query.get("cv") || "").trim().toLowerCase();
 
+      function ensureRendererLoaded() {
+        if (window.CvRender?.renderStandardCv) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = `cv-render.js?v=${Date.now()}`;
+          script.onload = () => {
+            if (window.CvRender?.renderStandardCv) resolve();
+            else reject(new Error("Renderer loaded but CvRender API is unavailable."));
+          };
+          script.onerror = () => reject(new Error("Failed to load cv-render.js."));
+          document.head.appendChild(script);
+        });
+      }
+
       async function init() {
         if (!slug) {
           document.body.innerHTML = '<div class="error">Missing <code>?cv=&lt;slug&gt;</code> query parameter.</div>';
@@ -169,6 +187,7 @@
         }
 
         try {
+          await ensureRendererLoaded();
           const response = await fetch(`data/cv/${encodeURIComponent(slug)}.json`, { cache: "no-store" });
           if (!response.ok) throw new Error(`Unable to load data/cv/${slug}.json (HTTP ${response.status})`);
           const cv = await response.json();
@@ -178,17 +197,11 @@
             headerEl: document.getElementById("header"),
             contactEl: document.getElementById("contact"),
             mainEl: document.getElementById("main-col"),
-            railEl: document.getElementById("rail-col")
+            railEl: document.getElementById("rail-col"),
+            footerEl: document.getElementById("footer-col")
           });
 
-          document.getElementById("print-link").href = `cv-print.html?cv=${encodeURIComponent(slug)}`;
-
-          const personName = items.find((item) => window.CvRender.key(item.section) === "header")?.title || "CV";
-          document.getElementById("share-btn").addEventListener("click", async () => {
-            const url = window.location.href;
-            await navigator.clipboard.writeText(`Check out the CV of ${personName}: ${url}`);
-            alert("Copied CV link to clipboard.");
-          });
+          document.getElementById("pdf-link").href = `dist/${encodeURIComponent(slug)}.pdf`;
         } catch (error) {
           document.body.innerHTML = `<div class="error">${error.message}</div>`;
         }
