@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CV Feedback</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --card: #fff;
+      --line: #d1d5db;
+      --text: #111827;
+      --muted: #6b7280;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      padding: 24px;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .toolbar input {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 14px;
+      width: 260px;
+    }
+    .toolbar button {
+      border: 0;
+      background: #111827;
+      color: #fff;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .card {
+      background: var(--card);
+      border: 2px solid #111827;
+      border-radius: 6px;
+      padding: 16px;
+    }
+    .overall { margin-bottom: 18px; }
+    .overall h2 { margin: 0 0 8px; font-size: 24px; }
+    .rows { display: grid; gap: 12px; }
+    .row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+    .item h3 { margin: 0 0 4px; font-size: 20px; }
+    .meta { color: var(--muted); font-size: 14px; margin-bottom: 6px; }
+    .section-chip {
+      display: inline-block;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 12px;
+      color: #374151;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+    .feedback h4 { margin: 0 0 6px; font-size: 18px; }
+    .empty { color: var(--muted); font-style: italic; }
+    .md p { margin: 0 0 6px; }
+    .md ul { margin: 0 0 6px; padding-left: 18px; }
+    .md h2, .md h3, .md h4 { margin: 8px 0 6px; }
+    .error { color: #b91c1c; }
+    @media (max-width: 900px) {
+      .row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="toolbar">
+      <label for="slug">CV slug</label>
+      <input id="slug" placeholder="coleman-davis" />
+      <button id="load" type="button">Load</button>
+    </div>
+
+    <section class="card overall">
+      <h2>Overall feedback</h2>
+      <div id="overall" class="md">Loading…</div>
+    </section>
+
+    <section id="rows" class="rows"></section>
+    <p id="status" class="error"></p>
+  </main>
+
+  <script>
+    function escapeHtml(input) {
+      return String(input ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function inlineMarkdownToHtml(input) {
+      const escaped = escapeHtml(input);
+      return escaped
+        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+        .replace(/\*(.+?)\*/g, "<em>$1</em>")
+        .replace(/`(.+?)`/g, "<code>$1</code>");
+    }
+
+    function markdownToHtml(input) {
+      const text = String(input || "").replace(/\r/g, "");
+      if (!text.trim()) return "";
+      const lines = text.split("\n");
+      const out = [];
+      let listOpen = false;
+
+      function closeList() {
+        if (!listOpen) return;
+        out.push("</ul>");
+        listOpen = false;
+      }
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line) { closeList(); continue; }
+        if (line.startsWith("## ")) { closeList(); out.push(`<h3>${inlineMarkdownToHtml(line.slice(3))}</h3>`); continue; }
+        if (line.startsWith("### ")) { closeList(); out.push(`<h4>${inlineMarkdownToHtml(line.slice(4))}</h4>`); continue; }
+        if (/^[-*]\s+/.test(line)) {
+          if (!listOpen) { out.push("<ul>"); listOpen = true; }
+          out.push(`<li>${inlineMarkdownToHtml(line.replace(/^[-*]\s+/, ""))}</li>`);
+          continue;
+        }
+        closeList();
+        out.push(`<p>${inlineMarkdownToHtml(line)}</p>`);
+      }
+      closeList();
+      return out.join("\n");
+    }
+
+    function displayDate(item) {
+      if (item?.dispdate) return item.dispdate;
+      const start = item?.start || "";
+      const end = item?.end || "Present";
+      if (!start) return "";
+      return `${start} – ${end}`;
+    }
+
+    function feedbackForItem(item, feedbackObj) {
+      const section = String(item?.section || "").toLowerCase();
+      if (item?.aiFeedback) return item.aiFeedback;
+      if (section === "header") return feedbackObj?.intro || "";
+      if (section === "core competencies") return feedbackObj?.coreCompetencies || "";
+      if (section === "footer") return feedbackObj?.footer || "";
+      return "";
+    }
+
+    function renderItem(item, feedbackObj) {
+      const row = document.createElement("article");
+      row.className = "row";
+
+      const itemCard = document.createElement("div");
+      itemCard.className = "card item";
+      const metaBits = [item?.subtitle, item?.location, displayDate(item)].filter(Boolean);
+      itemCard.innerHTML = `
+        <div class="section-chip">${escapeHtml(item?.section || "")}</div>
+        ${item?.title ? `<h3>${escapeHtml(item.title)}</h3>` : ""}
+        ${metaBits.length ? `<div class="meta">${escapeHtml(metaBits.join(" • "))}</div>` : ""}
+        <div class="md">${markdownToHtml(item?.content || "")}</div>
+      `;
+
+      const feedbackCard = document.createElement("div");
+      feedbackCard.className = "card feedback";
+      const feedback = feedbackForItem(item, feedbackObj);
+      feedbackCard.innerHTML = `
+        <h4>Item feedback</h4>
+        <div class="md">${feedback ? markdownToHtml(feedback) : '<p class="empty">No item feedback available.</p>'}</div>
+      `;
+
+      row.append(itemCard, feedbackCard);
+      return row;
+    }
+
+    async function loadCv(slug) {
+      const overall = document.getElementById("overall");
+      const rows = document.getElementById("rows");
+      const status = document.getElementById("status");
+      status.textContent = "";
+      overall.textContent = "Loading…";
+      rows.innerHTML = "";
+
+      try {
+        const res = await fetch(`./data/cv/${encodeURIComponent(slug)}.json`, { cache: "no-store" });
+        if (!res.ok) throw new Error(`Unable to load CV (${res.status})`);
+        const cv = await res.json();
+        const feedback = cv?.feedback || {};
+        overall.innerHTML = feedback?.overall ? markdownToHtml(feedback.overall) : '<p class="empty">No overall feedback available.</p>';
+
+        const items = Array.isArray(cv?.items) ? cv.items : [];
+        items.forEach((item) => rows.appendChild(renderItem(item, feedback)));
+      } catch (error) {
+        overall.innerHTML = '<p class="empty">No overall feedback available.</p>';
+        status.textContent = error?.message || String(error);
+      }
+    }
+
+    const params = new URLSearchParams(location.search);
+    const slugInput = document.getElementById("slug");
+    const initialSlug = params.get("cv") || "coleman-davis";
+    slugInput.value = initialSlug;
+
+    document.getElementById("load").addEventListener("click", () => {
+      const slug = slugInput.value.trim() || "coleman-davis";
+      const next = new URL(location.href);
+      next.searchParams.set("cv", slug);
+      history.replaceState(null, "", next);
+      loadCv(slug);
+    });
+
+    loadCv(initialSlug);
+  </script>
+</body>
+</html>
