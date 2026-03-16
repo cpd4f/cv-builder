@@ -3,6 +3,8 @@ import fs from "fs";
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID || "YOUR_AIRTABLE_BASE_ID";
 const CVS_TABLE_NAME = process.env.CVS_TABLE_NAME || "CVs";
 const CVS_TABLE_ID = process.env.CVS_TABLE_ID || "tbl4GZ7jQcccKPyJu";
+const CV_ITEMS_TABLE_NAME = process.env.CV_ITEMS_TABLE_NAME || "CV Items";
+const CV_ITEMS_TABLE_ID = process.env.CV_ITEMS_TABLE_ID || "tblTNlBDhAjF32Sna";
 
 const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -161,10 +163,8 @@ async function fetchCvItems(recordId, linkedItemIds = []) {
     });
     if (offset) params.set("offset", offset);
 
-    const tableRef = process.env.CV_ITEMS_TABLE_ID || "tblTNlBDhAjF32Sna";
-    const tableName = process.env.CV_ITEMS_TABLE_NAME || "CV Items";
-    const ref = tableRef || tableName;
-    const url = `https://api.airtable.com/v0/${encodeURIComponent(AIRTABLE_BASE_ID)}/${encodeURIComponent(ref)}?${params.toString()}`;
+    const tableRef = CV_ITEMS_TABLE_ID || CV_ITEMS_TABLE_NAME;
+    const url = `https://api.airtable.com/v0/${encodeURIComponent(AIRTABLE_BASE_ID)}/${encodeURIComponent(tableRef)}?${params.toString()}`;
     const data = await airtableGetJson(url, "fetchCvItems");
 
     out.push(...(data.records || []));
@@ -177,6 +177,7 @@ async function fetchCvItems(recordId, linkedItemIds = []) {
 function mapItem(record) {
   const f = record.fields || {};
   return {
+    recordId: record.id,
     title: valueOrNull(f["Headline"]),
     subtitle: valueOrNull(f["Organization / Subtitle"]),
     location: valueOrNull(f["Location"]),
@@ -235,6 +236,26 @@ function buildCvPayload(cvRecord, cvItemRecords) {
   return { slug: String(fields["Slug"] || ""), status: String(fields["Status"] || ""), items };
 }
 
+
+
+function cvItemToStructuredLine(item, index) {
+  const title = item?.title ? `title="${item.title}"` : "title=";
+  const subtitle = item?.subtitle ? ` subtitle="${item.subtitle}"` : "";
+  const location = item?.location ? ` location="${item.location}"` : "";
+  const dispdate = item?.dispdate ? ` date="${item.dispdate}"` : "";
+  const section = item?.section ? ` section="${item.section}"` : "";
+  const content = String(item?.content || "").trim();
+  const parts = [`- [${index + 1}] ${title}${subtitle}${location}${dispdate}${section}`];
+  if (content) {
+    const oneLineContent = content
+      .split("\n")
+      .map((line) => line.replace(/\r/g, "").trim())
+      .filter(Boolean)
+      .join(" ");
+    parts.push(`  content: ${oneLineContent}`);
+  }
+  return parts.join("\n");
+}
 function cvItemsToStructuredText(cvJson) {
   const items = Array.isArray(cvJson?.items) ? cvJson.items : [];
   const sectionMap = new Map();
@@ -251,16 +272,7 @@ function cvItemsToStructuredText(cvJson) {
   for (const [section, entries] of sectionMap.entries()) {
     parts.push(`\n## ${section}`);
     entries.forEach((entry, index) => {
-      const title = entry?.title ? `title="${entry.title}"` : "title=";
-      const subtitle = entry?.subtitle ? ` subtitle="${entry.subtitle}"` : "";
-      const location = entry?.location ? ` location="${entry.location}"` : "";
-      const dispdate = entry?.dispdate ? ` date="${entry.dispdate}"` : "";
-      const content = String(entry?.content || "").trim();
-      parts.push(`- [${index + 1}] ${title}${subtitle}${location}${dispdate}`);
-      if (content) {
-        const oneLineContent = content.split("\n").map((line) => line.replace(/\r/g, "").trim()).filter(Boolean).join(" ");
-        parts.push(`  content: ${oneLineContent}`);
-      }
+      parts.push(cvItemToStructuredLine(entry, index));
     });
   }
 
@@ -306,6 +318,63 @@ async function generateOverallAiFeedback(cvJson) {
   return feedback;
 }
 
+
+
+async function generateItemAiFeedback(cvJson, targetItem, targetIndex) {
+  const cvText = cvItemsToStructuredText(cvJson);
+  const targetText = cvItemToStructuredLine(targetItem, targetIndex);
+  const prompt = [
+    "You are an expert CV editor. You are reviewing one specific CV item with the full CV as context.",
+    "Goal: improve this single item while avoiding duplication with other entries.",
+    "Prioritize recency and impact: recent work experience should carry more weight than older roles.",
+    "Give specific rewrite guidance for phrasing, concision, and measurable outcomes where possible.",
+    "Return plain text under 160 words with:",
+    "1) Quick assessment (1-2 sentences)",
+    "2) Suggested edit (2-4 bullets)",
+    "3) Duplicate/redundancy warnings (0-2 bullets, only if needed)"
+  ].join("\n");
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "gpt-5.4",
+      messages: [
+        { role: "system", content: "You provide actionable, item-level CV feedback." },
+        { role: "user", content: `${prompt}\n\nTARGET ITEM:\n${targetText}\n\nFULL CV CONTEXT:\n${cvText}` }
+      ],
+      temperature: 0.3
+    })
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`OpenAI API failed for item feedback (${response.status}): ${text}`);
+  }
+
+  const data = await response.json();
+  const feedback = data?.choices?.[0]?.message?.content?.trim();
+  if (!feedback) throw new Error("OpenAI API returned empty item feedback.");
+  return feedback;
+}
+
+async function writeItemAiFeedback(recordId, feedback) {
+  const tableRef = CV_ITEMS_TABLE_ID || CV_ITEMS_TABLE_NAME;
+  const url = `https://api.airtable.com/v0/${encodeURIComponent(AIRTABLE_BASE_ID)}/${encodeURIComponent(tableRef)}/${encodeURIComponent(recordId)}`;
+  await airtablePatchJson(url, { fields: { "AI Feedback": feedback } }, "writeItemAiFeedback");
+}
+
+function isFeedbackEligibleItem(item) {
+  const hasContent = String(item?.content || "").trim() !== "";
+  const hasTitle = String(item?.title || "").trim() !== "";
+  const sectionKey = String(item?.section || "").trim().toLowerCase();
+  if (!hasContent && !hasTitle) return false;
+  if (sectionKey === "header" || sectionKey === "contact") return false;
+  return true;
+}
 async function writeOverallAiFeedbackToCv(recordId, feedback) {
   const tableRef = CVS_TABLE_ID || CVS_TABLE_NAME;
   const url = `https://api.airtable.com/v0/${encodeURIComponent(AIRTABLE_BASE_ID)}/${encodeURIComponent(tableRef)}/${encodeURIComponent(recordId)}`;
@@ -328,10 +397,23 @@ async function main() {
   const cvPayload = buildCvPayload(cvRecord, cvItems);
   const feedback = await generateOverallAiFeedback(cvPayload);
   await writeOverallAiFeedbackToCv(recordId, feedback);
-
   logDebug("Wrote Overall AI Feedback", { recordId, chars: feedback.length });
+
+  const mappedItems = cvItems.map(mapItem).sort(compareManualSort);
+  const feedbackTargets = mappedItems
+    .map((item, index) => ({ item, index }))
+    .filter(({ item }) => isFeedbackEligibleItem(item));
+
+  for (const target of feedbackTargets) {
+    if (!target.item.recordId) continue;
+    const itemFeedback = await generateItemAiFeedback(cvPayload, target.item, target.index);
+    await writeItemAiFeedback(target.item.recordId, itemFeedback);
+    logDebug("Wrote AI Feedback for CV Item", { itemRecordId: target.item.recordId, chars: itemFeedback.length });
+  }
+
   setOutput("record_id", recordId);
   setOutput("ai_feedback_written", "true");
+  setOutput("ai_item_feedback_written", String(feedbackTargets.length));
 }
 
 main().catch((err) => {

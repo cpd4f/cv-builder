@@ -176,10 +176,11 @@ A **non-iframe** embed that renders directly in the host page and isolates style
 - Converts CV JSON/content into structured prompt text.
 - Calls OpenAI using `OPENAI_API_KEY`.
 - Writes response to Airtable field: `Overall AI Feedback`.
+- Then (as the final step) generates **item-level** feedback for each eligible CV Item and writes it to that item's `AI Feedback` field in the `CV Items` table.
 
 ### Model
 
-- Configured for `gpt-5.4` per project requirement.
+- Configured for `gpt-5.4` per project requirement for both overall and item-level feedback generation.
 
 ### Required environment
 
