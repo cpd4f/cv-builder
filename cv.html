@@ -166,6 +166,20 @@
       const query = new URLSearchParams(window.location.search);
       const slug = (query.get("cv") || "").trim().toLowerCase();
 
+      function ensureRendererLoaded() {
+        if (window.CvRender?.renderStandardCv) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = `cv-render.js?v=${Date.now()}`;
+          script.onload = () => {
+            if (window.CvRender?.renderStandardCv) resolve();
+            else reject(new Error("Renderer loaded but CvRender API is unavailable."));
+          };
+          script.onerror = () => reject(new Error("Failed to load cv-render.js."));
+          document.head.appendChild(script);
+        });
+      }
+
       async function init() {
         if (!slug) {
           document.body.innerHTML = '<div class="error">Missing <code>?cv=&lt;slug&gt;</code> query parameter.</div>';
@@ -173,6 +187,7 @@
         }
 
         try {
+          await ensureRendererLoaded();
           const response = await fetch(`data/cv/${encodeURIComponent(slug)}.json`, { cache: "no-store" });
           if (!response.ok) throw new Error(`Unable to load data/cv/${slug}.json (HTTP ${response.status})`);
           const cv = await response.json();

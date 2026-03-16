@@ -4,86 +4,135 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CV Feedback</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #f3f4f6;
-      --card: #fff;
-      --line: #d1d5db;
-      --text: #111827;
-      --muted: #6b7280;
+      --md-bg: #f5f6fa;
+      --md-surface: #ffffff;
+      --md-surface-2: #f8f9fd;
+      --md-text: #1f2937;
+      --md-muted: #6b7280;
+      --md-primary: #2563eb;
+      --md-outline: #e5e7eb;
+      --md-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), 0 8px 24px rgba(15, 23, 42, 0.06);
+      --radius: 16px;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      padding: 24px;
+      font-family: Roboto, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+      background: linear-gradient(180deg, #f8f9ff 0%, var(--md-bg) 100%);
+      color: var(--md-text);
+      min-height: 100vh;
     }
-    .wrap { max-width: 1100px; margin: 0 auto; }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px 32px;
+    }
     .toolbar {
       display: flex;
       gap: 12px;
       align-items: center;
       margin-bottom: 16px;
+      flex-wrap: wrap;
     }
+    .toolbar label { font-weight: 500; color: var(--md-muted); }
     .toolbar input {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 8px 10px;
+      min-width: 240px;
+      border: 1px solid var(--md-outline);
+      background: var(--md-surface);
+      border-radius: 12px;
+      padding: 10px 12px;
       font-size: 14px;
-      width: 260px;
+      box-shadow: 0 1px 0 rgba(15,23,42,.02);
     }
     .toolbar button {
       border: 0;
-      background: #111827;
+      background: var(--md-primary);
       color: #fff;
       border-radius: 999px;
-      padding: 8px 14px;
+      padding: 10px 16px;
       font-weight: 600;
       cursor: pointer;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
     }
+    .toolbar button:hover { filter: brightness(0.97); }
+
     .card {
-      background: var(--card);
-      border: 2px solid #111827;
-      border-radius: 6px;
-      padding: 16px;
+      background: var(--md-surface);
+      border: 1px solid var(--md-outline);
+      border-radius: var(--radius);
+      box-shadow: var(--md-shadow);
     }
-    .overall { margin-bottom: 18px; }
-    .overall h2 { margin: 0 0 8px; font-size: 24px; }
+
+    .overall {
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .overall h1 {
+      margin: 0 0 12px;
+      font-size: 34px;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      font-weight: 700;
+    }
+
     .rows { display: grid; gap: 12px; }
+
     .row {
       display: grid;
-      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
       gap: 12px;
-      align-items: stretch;
+      align-items: start;
     }
-    .item h3 { margin: 0 0 4px; font-size: 20px; }
-    .meta { color: var(--muted); font-size: 14px; margin-bottom: 6px; }
+
+    .item-card,
+    .feedback-card { padding: 16px; }
+
     .section-chip {
-      display: inline-block;
-      border: 1px solid var(--line);
+      display: inline-flex;
       border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 12px;
-      color: #374151;
-      margin-bottom: 8px;
+      border: 1px solid #dbe2f1;
+      background: #eef3ff;
+      color: #3858a6;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .04em;
       text-transform: uppercase;
-      letter-spacing: .03em;
+      padding: 4px 10px;
+      margin-bottom: 10px;
     }
-    .feedback h4 { margin: 0 0 6px; font-size: 18px; }
-    .empty { color: var(--muted); font-style: italic; }
-    .md p { margin: 0 0 6px; }
-    .md ul { margin: 0 0 6px; padding-left: 18px; }
-    .md h2, .md h3, .md h4 { margin: 8px 0 6px; }
-    .error { color: #b91c1c; }
-    @media (max-width: 900px) {
+
+    .item-title { margin: 0 0 4px; font-size: 21px; line-height: 1.2; }
+    .meta { color: var(--md-muted); margin-bottom: 8px; font-size: 14px; }
+
+    .feedback-card {
+      background: var(--md-surface-2);
+      border-color: #e1e6f3;
+      position: sticky;
+      top: 10px;
+    }
+    .feedback-title { margin: 0 0 8px; font-size: 17px; font-weight: 600; }
+
+    .md p { margin: 0 0 8px; line-height: 1.48; }
+    .md ul, .md ol { margin: 0 0 8px; padding-left: 22px; }
+    .md li { margin-bottom: 4px; line-height: 1.45; }
+    .md h2, .md h3, .md h4 { margin: 10px 0 6px; line-height: 1.3; }
+    .empty { color: var(--md-muted); font-style: italic; }
+    .error { color: #b91c1c; margin-top: 12px; }
+
+    @media (max-width: 980px) {
       .row { grid-template-columns: 1fr; }
+      .feedback-card { position: static; }
+      .overall h1 { font-size: 28px; }
     }
   </style>
 </head>
 <body>
-  <main class="wrap">
+  <main class="container">
     <div class="toolbar">
       <label for="slug">CV slug</label>
       <input id="slug" placeholder="coleman-davis" />
@@ -91,7 +140,7 @@
     </div>
 
     <section class="card overall">
-      <h2>Overall feedback</h2>
+      <h1>Overall feedback</h1>
       <div id="overall" class="md">Loading…</div>
     </section>
 
@@ -122,27 +171,37 @@
       if (!text.trim()) return "";
       const lines = text.split("\n");
       const out = [];
-      let listOpen = false;
+      let listType = null;
 
       function closeList() {
-        if (!listOpen) return;
-        out.push("</ul>");
-        listOpen = false;
+        if (!listType) return;
+        out.push(listType === "ol" ? "</ol>" : "</ul>");
+        listType = null;
       }
 
       for (const rawLine of lines) {
         const line = rawLine.trim();
         if (!line) { closeList(); continue; }
+
         if (line.startsWith("## ")) { closeList(); out.push(`<h3>${inlineMarkdownToHtml(line.slice(3))}</h3>`); continue; }
         if (line.startsWith("### ")) { closeList(); out.push(`<h4>${inlineMarkdownToHtml(line.slice(4))}</h4>`); continue; }
+
+        if (/^\d+[.)]\s+/.test(line)) {
+          if (listType !== "ol") { closeList(); out.push("<ol>"); listType = "ol"; }
+          out.push(`<li>${inlineMarkdownToHtml(line.replace(/^\d+[.)]\s+/, ""))}</li>`);
+          continue;
+        }
+
         if (/^[-*]\s+/.test(line)) {
-          if (!listOpen) { out.push("<ul>"); listOpen = true; }
+          if (listType !== "ul") { closeList(); out.push("<ul>"); listType = "ul"; }
           out.push(`<li>${inlineMarkdownToHtml(line.replace(/^[-*]\s+/, ""))}</li>`);
           continue;
         }
+
         closeList();
         out.push(`<p>${inlineMarkdownToHtml(line)}</p>`);
       }
+
       closeList();
       return out.join("\n");
     }
@@ -168,25 +227,25 @@
       const row = document.createElement("article");
       row.className = "row";
 
-      const itemCard = document.createElement("div");
-      itemCard.className = "card item";
+      const left = document.createElement("div");
+      left.className = "card item-card";
       const metaBits = [item?.subtitle, item?.location, displayDate(item)].filter(Boolean);
-      itemCard.innerHTML = `
+      left.innerHTML = `
         <div class="section-chip">${escapeHtml(item?.section || "")}</div>
-        ${item?.title ? `<h3>${escapeHtml(item.title)}</h3>` : ""}
+        ${item?.title ? `<h2 class="item-title">${escapeHtml(item.title)}</h2>` : ""}
         ${metaBits.length ? `<div class="meta">${escapeHtml(metaBits.join(" • "))}</div>` : ""}
         <div class="md">${markdownToHtml(item?.content || "")}</div>
       `;
 
-      const feedbackCard = document.createElement("div");
-      feedbackCard.className = "card feedback";
+      const right = document.createElement("div");
+      right.className = "card feedback-card";
       const feedback = feedbackForItem(item, feedbackObj);
-      feedbackCard.innerHTML = `
-        <h4>Item feedback</h4>
+      right.innerHTML = `
+        <h3 class="feedback-title">Item feedback</h3>
         <div class="md">${feedback ? markdownToHtml(feedback) : '<p class="empty">No item feedback available.</p>'}</div>
       `;
 
-      row.append(itemCard, feedbackCard);
+      row.append(left, right);
       return row;
     }
 
@@ -203,7 +262,10 @@
         if (!res.ok) throw new Error(`Unable to load CV (${res.status})`);
         const cv = await res.json();
         const feedback = cv?.feedback || {};
-        overall.innerHTML = feedback?.overall ? markdownToHtml(feedback.overall) : '<p class="empty">No overall feedback available.</p>';
+
+        overall.innerHTML = feedback?.overall
+          ? markdownToHtml(feedback.overall)
+          : '<p class="empty">No overall feedback available.</p>';
 
         const items = Array.isArray(cv?.items) ? cv.items : [];
         items.forEach((item) => rows.appendChild(renderItem(item, feedback)));
