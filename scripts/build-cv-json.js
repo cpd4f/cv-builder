@@ -66,6 +66,63 @@ function valueOrNull(value) {
   return value === undefined ? null : value;
 }
 
+
+function normalizeRichTextFieldValue(value) {
+  if (value === undefined || value === null) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+
+  if (Array.isArray(value)) {
+    return value.map((part) => normalizeRichTextFieldValue(part)).join("").trim();
+  }
+
+  if (typeof value === "object") {
+    const directKeys = ["text", "plain_text", "value", "content", "name"];
+    for (const key of directKeys) {
+      if (typeof value[key] === "string") return value[key];
+    }
+
+    const nestedKeys = ["text", "value", "content", "children", "richText", "rich_text"];
+    const nestedParts = [];
+    for (const key of nestedKeys) {
+      if (value[key] !== undefined && value[key] !== null) {
+        const normalized = normalizeRichTextFieldValue(value[key]);
+        if (normalized) nestedParts.push(normalized);
+      }
+    }
+    if (nestedParts.length) return nestedParts.join(" ").trim();
+
+    const fallback = [];
+    for (const v of Object.values(value)) {
+      const normalized = normalizeRichTextFieldValue(v);
+      if (normalized) fallback.push(normalized);
+    }
+    return fallback.join(" ").trim();
+  }
+
+  return String(value);
+}
+
+
+function getCvFooterValue(fields) {
+  const direct = [fields["CV_Footer"], fields["CV Footer"]];
+  for (const candidate of direct) {
+    const normalized = normalizeRichTextFieldValue(candidate);
+    if (normalized) return normalized;
+  }
+
+  const normalizeFieldName = (name) => String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const target = "cvfooter";
+  for (const [fieldName, fieldValue] of Object.entries(fields || {})) {
+    if (normalizeFieldName(fieldName) !== target) continue;
+    const normalized = normalizeRichTextFieldValue(fieldValue);
+    if (normalized) return normalized;
+  }
+
+  return "";
+}
+
+
 function pushContact(items, title, value) {
   if (value !== undefined && value !== null && String(value).trim() !== "") {
     items.push({ title, content: value, section: "contact" });
@@ -222,6 +279,15 @@ async function buildAndWriteCv(cvRecord) {
   pushContact(items, "Phone", fields["Contact: Phone Number"]);
   pushCoreCompetencies(items, fields["Core Competencies"]);
 
+  const cvFooter = getCvFooterValue(fields);
+  if (String(cvFooter).trim() !== "") {
+    items.push({
+      title: "CV Footer",
+      content: valueOrNull(cvFooter),
+      section: "footer"
+    });
+  }
+
   const linkedCvItems = Array.isArray(fields["CV Items"]) ? fields["CV Items"] : [];
   const cvItems = await fetchCvItems(cvRecord.id, linkedCvItems);
 
@@ -260,6 +326,7 @@ async function main() {
 
   const cvRecord = await fetchCvRecord(issueRecordId);
   const result = await buildAndWriteCv(cvRecord);
+
   setOutput("record_id", issueRecordId);
   setOutput("slug", result.slug);
   setOutput("relative_path", result.relativePath);
