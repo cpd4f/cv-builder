@@ -44,7 +44,6 @@
         margin: 0 auto 12px;
         display: flex;
         justify-content: flex-end;
-        gap: 10px;
       }
 
       .btn {
@@ -120,6 +119,10 @@
       .entry-content ul, .entry-content ol { margin: 0; padding-left: 0; list-style: none; }
       .entry-content li { margin: 0 0 5px; padding-left: 12px; position: relative; }
       .entry-content li::before { content: "•"; position: absolute; left: 0; }
+      .footer { grid-column: 1 / -1; margin-top: 8px; }
+      .tech-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+      .tech-grid .entry { margin-bottom: 0; }
+      .footer-block { margin-top: 12px; }
 
       .error {
         margin: 20px;
@@ -136,14 +139,14 @@
         .contact-bar { grid-template-columns: 1fr; }
         .contact-item { border-right: 0; border-bottom: 1px solid #4b555f; }
         .contact-item:last-child { border-bottom: 0; padding-left: 0; }
+        .tech-grid { grid-template-columns: 1fr; }
       }
     </style>
   </head>
   <body>
     <div class="shell">
       <div class="actions">
-        <a class="btn" id="print-link" href="#">Print / PDF</a>
-        <button class="btn" id="share-btn">Share</button>
+        <a class="btn" id="pdf-link" href="#" target="_blank" rel="noopener noreferrer">View PDF</a>
       </div>
 
       <main class="page">
@@ -152,15 +155,129 @@
         <section class="content">
           <div id="main-col"></div>
           <div id="rail-col"></div>
+          <div class="footer" id="footer-col"></div>
         </section>
       </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="cv-render.js"></script>
     <script>
       const query = new URLSearchParams(window.location.search);
       const slug = (query.get("cv") || "").trim().toLowerCase();
+
+      function key(v) { return String(v || "").trim().toLowerCase(); }
+      function sortItems(items) {
+        return [...(items || [])].sort((a, b) => {
+          const ak = String(a?.manualsort || "").trim();
+          const bk = String(b?.manualsort || "").trim();
+          if (ak && bk) return ak.localeCompare(bk, undefined, { numeric: true, sensitivity: "base" });
+          if (ak) return -1;
+          if (bk) return 1;
+          return 0;
+        });
+      }
+      function markdownToHtml(value) {
+        const text = String(value || "");
+        if (!text) return "";
+        if (window.marked?.parse) return window.marked.parse(text);
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+      }
+      function displayDate(item) {
+        if (item?.dispdate) return item.dispdate;
+        const start = item?.start || "";
+        const end = item?.end || "Present";
+        return start ? `${start} – ${end}` : "";
+      }
+      function iconClassForContact(text) {
+        const v = String(text || "").toLowerCase();
+        if (v.includes("@")) return "fa-solid fa-envelope";
+        if (v.includes("http") || v.includes("www.")) return "fa-solid fa-globe";
+        if (/[+()\d\s-]{7,}/.test(v)) return "fa-solid fa-phone";
+        return "fa-solid fa-address-card";
+      }
+      function renderEntry(item, hideTitle = false) {
+        const article = document.createElement("article");
+        article.className = "entry";
+        if (item?.title && !hideTitle) {
+          const el = document.createElement("h4");
+          el.className = "entry-title";
+          el.textContent = item.title;
+          article.appendChild(el);
+        }
+        const meta = [item?.subtitle, item?.location].filter(Boolean).join(" • ");
+        if (meta) {
+          const el = document.createElement("div");
+          el.className = "entry-meta";
+          el.textContent = meta;
+          article.appendChild(el);
+        }
+        const date = displayDate(item);
+        if (date) {
+          const el = document.createElement("div");
+          el.className = "entry-date";
+          el.textContent = date;
+          article.appendChild(el);
+        }
+        if (item?.content) {
+          const el = document.createElement("div");
+          el.className = "entry-content";
+          el.innerHTML = markdownToHtml(item.content);
+          article.appendChild(el);
+        }
+        return article;
+      }
+      function renderSection(host, title, items, options = {}) {
+        if (!items.length) return;
+        const sec = document.createElement("section");
+        sec.className = "section";
+        if (!options.hideSectionTitle) {
+          const h3 = document.createElement("h3");
+          h3.textContent = title;
+          sec.appendChild(h3);
+        }
+        items.forEach((item) => sec.appendChild(renderEntry(item, options.hideAllEntryTitles || false)));
+        host.appendChild(sec);
+      }
+      function renderFallbackCv({ items, headerEl, contactEl, mainEl, railEl, footerEl }) {
+        const all = Array.isArray(items) ? items : [];
+        const header = all.find((item) => key(item.section) === "header") || {};
+        const contacts = all.filter((item) => key(item.section) === "contact");
+
+        headerEl.innerHTML = `<h1>${header?.title || "CV"}</h1><h2>${header?.subtitle || ""}</h2><div class="header-summary">${markdownToHtml(header?.content || "")}</div>`;
+        contactEl.innerHTML = contacts.map((item) => `<div class="contact-item"><i class="${iconClassForContact(item?.content)}" aria-hidden="true"></i><span>${item?.content || ""}</span></div>`).join("");
+
+        const grouped = new Map();
+        all.forEach((item) => {
+          const section = key(item.section);
+          if (!section || section === "header" || section === "contact") return;
+          if (!grouped.has(section)) grouped.set(section, []);
+          grouped.get(section).push(item);
+        });
+
+        mainEl.innerHTML = "";
+        railEl.innerHTML = "";
+        footerEl.innerHTML = "";
+
+        renderSection(mainEl, "Core Competencies", sortItems(grouped.get("core competencies") || []), { hideAllEntryTitles: true });
+        renderSection(mainEl, "Work Experience", sortItems(grouped.get("work experience") || []));
+        renderSection(mainEl, "Topline Skills", sortItems(grouped.get("topline skills") || []));
+
+        const tech = sortItems(grouped.get("technical + it") || []);
+        if (tech.length) {
+          const techWrap = document.createElement("section");
+          techWrap.className = "section footer-tech";
+          techWrap.innerHTML = `<h3>Technical + IT</h3><div class="tech-grid"></div>`;
+          const grid = techWrap.querySelector('.tech-grid');
+          tech.forEach((item) => grid.appendChild(renderEntry(item)));
+          footerEl.appendChild(techWrap);
+        }
+
+        renderSection(railEl, "Education", sortItems(grouped.get("education") || []));
+        const spr = sortItems(grouped.get("second page rail") || []);
+        spr.forEach((item) => renderSection(railEl, item?.title || "Second Page Rail", [{ ...item, title: "" }], { hideAllEntryTitles: true }));
+
+        renderSection(footerEl, "CV Footer", sortItems(grouped.get("footer") || []), { hideSectionTitle: true, hideAllEntryTitles: true });
+      }
 
       async function init() {
         if (!slug) {
@@ -173,22 +290,19 @@
           if (!response.ok) throw new Error(`Unable to load data/cv/${slug}.json (HTTP ${response.status})`);
           const cv = await response.json();
           const items = Array.isArray(cv.items) ? cv.items : [];
-          window.CvRender.renderStandardCv({
+
+          const args = {
             items,
             headerEl: document.getElementById("header"),
             contactEl: document.getElementById("contact"),
             mainEl: document.getElementById("main-col"),
-            railEl: document.getElementById("rail-col")
-          });
+            railEl: document.getElementById("rail-col"),
+            footerEl: document.getElementById("footer-col")
+          };
 
-          document.getElementById("print-link").href = `cv-print.html?cv=${encodeURIComponent(slug)}`;
+          renderFallbackCv(args);
 
-          const personName = items.find((item) => window.CvRender.key(item.section) === "header")?.title || "CV";
-          document.getElementById("share-btn").addEventListener("click", async () => {
-            const url = window.location.href;
-            await navigator.clipboard.writeText(`Check out the CV of ${personName}: ${url}`);
-            alert("Copied CV link to clipboard.");
-          });
+          document.getElementById("pdf-link").href = `dist/${encodeURIComponent(slug)}.pdf`;
         } catch (error) {
           document.body.innerHTML = `<div class="error">${error.message}</div>`;
         }
