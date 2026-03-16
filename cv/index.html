@@ -41,6 +41,7 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
     const slug=(new URLSearchParams(location.search).get('cv')||'').trim().toLowerCase();
+    function ensureRendererLoaded(){ return Promise.resolve(); }
     const basePath=location.pathname.replace(/\/cv\/?$/,'');
     const key=(v)=>String(v||'').trim().toLowerCase();
     const sortItems=(items)=>[...(items||[])].sort((a,b)=>String(a?.manualsort||'').localeCompare(String(b?.manualsort||''),undefined,{numeric:true,sensitivity:'base'}));

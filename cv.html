@@ -165,6 +165,8 @@
       const query = new URLSearchParams(window.location.search);
       const slug = (query.get("cv") || "").trim().toLowerCase();
 
+      function ensureRendererLoaded(){ return Promise.resolve(); }
+
       function key(v) { return String(v || "").trim().toLowerCase(); }
       function sortItems(items) {
         return [...(items || [])].sort((a, b) => {
