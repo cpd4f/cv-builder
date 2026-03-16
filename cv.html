@@ -181,8 +181,7 @@
         const text = String(value || "");
         if (!text) return "";
         if (window.marked?.parse) return window.marked.parse(text);
-        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/
-/g, "<br>");
+        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
       }
       function displayDate(item) {
         if (item?.dispdate) return item.dispdate;
