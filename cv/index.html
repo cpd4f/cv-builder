@@ -2,46 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CV Viewer</title>
   <style>
-    body {
-      margin: 0;
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: #f3f4f6;
-      color: #111827;
-    }
-    .shell {
-      max-width: 1240px;
-      margin: 0 auto;
-      padding: 16px 12px 28px;
-    }
-    .actions {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 10px;
-    }
-    .btn {
-      border: 0;
-      border-radius: 999px;
-      background: #1f2937;
-      color: #fff;
-      padding: 10px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      text-decoration: none;
-    }
-    #cv-embed-target {
-      min-height: 300px;
-    }
-    .error {
-      margin: 20px;
-      background: #fceaea;
-      border: 1px solid #f0c5c5;
-      color: #8b1111;
-      border-radius: 8px;
-      padding: 12px;
-    }
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: #f3f4f6; }
+    .shell { max-width: 1240px; margin: 0 auto; padding: 16px 12px 28px; }
+    .actions { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+    .btn { border: 0; border-radius: 999px; background: #1f2937; color: #fff; padding: 10px 16px; font-size: 13px; font-weight: 600; text-decoration: none; }
+    .error { margin: 20px; background: #fceaea; border: 1px solid #f0c5c5; color: #8b1111; border-radius: 8px; padding: 12px; }
   </style>
 </head>
 <body>
@@ -49,6 +17,7 @@
     <div class="actions">
       <a class="btn" id="pdf-link" href="#" target="_blank" rel="noopener noreferrer">View PDF</a>
     </div>
+
     <div id="cv-embed-target"></div>
   </main>
 
@@ -64,13 +33,9 @@
       document.getElementById("pdf-link").href = `${basePath}/dist/${encodeURIComponent(slug)}.pdf`;
 
       const script = document.createElement("script");
-      script.src = `${basePath}/cv-embed.js`;
-      script.dataset.cv = slug;
-      script.dataset.target = "cv-embed-target";
-      script.dataset.baseUrl = `${window.location.origin}${basePath}`;
-      script.onerror = function () {
-        document.body.innerHTML = '<div class="error">Unable to load CV renderer.</div>';
-      };
+      script.src = `${window.location.origin}${basePath}/cv-embed.js`;
+      script.setAttribute("data-cv", slug);
+      script.setAttribute("data-target", "cv-embed-target");
       document.body.appendChild(script);
     })();
   </script>
