@@ -1,6 +1,12 @@
 {
   "slug": "coleman-davis",
   "status": "Publish",
+  "feedback": {
+    "overall": "1. Overall assessment  \nStrong senior digital/public-sector CV with clear positioning, credible scope, and good evidence of progression. It reads professionally and is largely error-free, but it is somewhat dense and repetitive, with a few style inconsistencies and limited quantified outcomes beyond activity/scope metrics.\n\n1. Top strengths  \n- Clear leadership narrative: strong headline, coherent summary, and visible progression from coordinator to director to consultant.  \n- Credibility is high: recognizable platforms/tools, public-sector context, and concrete scale indicators like “10,000+ page website,” “3.5 million annual page views,” and “50+ internal publishers.”  \n- Writing is polished and specific overall, especially around governance, analytics, Drupal, multimedia, and AI-enabled search.\n\n1. Top improvements  \n- Reduce duplication across “Core Competencies,” “Topline Skills,” and “Technical + IT.” These sections overlap heavily; consolidating them would improve structure and scannability.  \n- Add more outcome-focused metrics: e.g., traffic growth, engagement lifts, production efficiencies, adoption rates, cost savings, or campaign results. Current bullets often describe responsibilities more than impact.  \n- Fix minor style inconsistencies: “Coleman DAVIS” capitalization looks unusual; punctuation in bullets is inconsistent; “social, and multimedia” has an unnecessary comma; “A2/Learning” is awkward—use “A2 (learning).” No major misspellings or grammar errors found.\n",
+    "intro": "Quick assessment: Strong, credible intro with clear seniority and domain focus. It aligns well with the CV, but it’s slightly dense and repeats several themes already covered in the subtitle, core competencies, and work experience.\n\nSuggested rewrite improvements:\n- Tighten the opening and make the value proposition more direct: “Digital platform and communications leader with 12+ years of experience modernizing public-sector web ecosystems, governance, and content operations.”\n- Replace “building the platforms” with more specific outcomes-oriented language such as “leading enterprise web modernization, analytics infrastructure, and editorial systems for high-volume, mission-driven organizations.”\n- Consider trimming “multimedia production” here, since it appears elsewhere in depth; use the intro to emphasize leadership, scale, and modernization.\n- Suggested rewrite: “Digital platform and communications leader with 12+ years of experience modernizing web ecosystems, governance models, and content operations for high-volume public-sector organizations. Leads enterprise website transformation, analytics and reporting infrastructure, editorial systems, and AI-enabled content experiences for complex, mission-driven teams.”\n\nDuplicate/redundancy warnings:\n- “AI-enabled user experiences” overlaps with core competencies and recent projects; “AI-enabled content experiences” may feel more specific.\n- “Platforms, governance models and content operations” echoes multiple skills sections; keep the intro higher-level.\n",
+    "coreCompetencies": "Quick assessment: Strong, relevant themes, but this block largely repeats the header and Topline Skills. It will be more effective if tightened, made more distinctive, and aligned to the most marketable leadership-level capabilities.\n\nSuggested rewrite improvements:\n- Replace broad phrases with sharper, executive-level wording: Enterprise web modernization • Digital governance and editorial operations • Analytics, dashboards and reporting systems • Cross-channel communications leadership • AI search and content discovery • Workflow automation and platform integration • Public-sector advocacy communications • Video, livestream and studio operations\n- Use parallel phrasing throughout; avoid mixing “systems,” “operations,” “infrastructure,” and “experiences” inconsistently.\n- Consider prioritizing the most recent/high-value strengths first: web modernization, governance, analytics, AI search, automation.\n- If space allows, swap “multi-channel communications operations” for “cross-channel communications leadership” to better reflect seniority.\n\nDuplicate/redundancy warnings:\n- “Enterprise website modernization,” “AI-enabled search,” and “analytics infrastructure” already appear in the header and Topline Skills.\n- “Multimedia production and livestream operations” overlaps heavily with the dedicated Multimedia and Technical sections.",
+    "footer": "Quick assessment: Strong, relevant project snapshot, but it reads dense and overlaps with the recent consulting and NACo experience. Tightening phrasing and adding clearer outcomes or scope would make it more distinctive and impactful.\n\nSuggested rewrite improvements:\n- Add a short lead-in such as “Selected Recent Projects” and keep each item to one crisp, parallel sentence.\n- Strengthen specificity with scale, audience, or result where possible (for example, legislative content, campaign growth, conference activation, recurring series cadence).\n- Use consistent verb style and cleaner phrasing: “Designed…,” “Built…,” “Developed…,” “Launched…”; replace “10×20-foot” with “10 x 20-foot” for style consistency.\n- Consider this tighter version: “Selected Recent Projects: AI Hybrid Search—Designed an AI-enabled legislative search experience using hybrid retrieval, vector search, structured content workflows, and bill-level chat. We Are Counties Microsite—Built a Drupal 10 campaign microsite with custom navigation, interactive storytelling modules, and reusable campaign components. Organization Anniversary Campaign—Developed a multi-part digital campaign featuring editorial storytelling, archival media, web features, and a 10 x 20-foot interactive conference display. Advocacy Video Series—Launched a recurring advocacy video series spanning editorial planning, production, and distribution across web, email, and social.”\n\nDuplicate/redundancy warnings:\n- AI Hybrid Search and the microsite closely repeat achievements already covered in the current consulting role.\n- Advocacy Video Series overlaps with multiple NACo roles unless framed as a distinct flagship program or named initiative.\n"
+  },
   "items": [
     {
       "title": "Coleman DAVIS",
@@ -34,6 +40,7 @@
       "section": "footer"
     },
     {
+      "recordId": "recYRZREb6DUtXnU3",
       "title": "Strategic Communications Consultant",
       "subtitle": "Freelance (full-time engagement)",
       "location": "Belgium (Remote)",
@@ -42,9 +49,11 @@
       "dispdate": "Oct. 2024 – Present",
       "content": "Support a U.S.-based national membership organization on digital strategy, campaign platforms, content operations and enterprise web improvement.\n- Build and refine digital systems, workflows and analytics that support coordinated organization-wide communications.\n- Develop campaign and storytelling experiences within the organization’s Drupal platform, including custom microsite structures, modular content sections and downloadable member-facing toolkits.\n- Deliver CMS development, front-end implementation and technical troubleshooting for large public-facing web properties.\n- Advise on governance, usability and operational best practices across web, email, social and multimedia channels.\n- Lead development of an AI-enabled search initiative, shaping retrieval strategy, structured content workflows and user-facing discovery design.\n",
       "section": "Work Experience",
-      "manualsort": "a0"
+      "manualsort": "a0",
+      "aiFeedback": "Quick assessment: Strong, relevant current role, but it reads as a broad service list rather than a high-impact recent engagement. Tighten it around outcomes, scope, and 2–3 signature contributions, especially since related project detail already appears elsewhere.\n\nSuggested edit\n- Open with scope + client type + value: “Embedded full-time as strategic communications consultant for a U.S. national membership organization, leading digital strategy, Drupal platform improvements, and content operations modernization.”\n- Consolidate overlapping bullets into 3–4 sharper ones focused on outcomes: platform modernization, campaign/microsite delivery, governance/workflow improvement, AI search initiative.\n- Add measurable signals where possible: number of sites/pages supported, users, publishers, campaign launches, toolkit downloads, workflow time saved, search/discovery improvements.\n- Use stronger verbs and less generic phrasing: replace “support,” “advise,” and “deliver” with “led,” “built,” “streamlined,” “launched,” “modernized.”\n\nDuplicate/redundancy warnings\n- “AI-enabled search initiative” overlaps with Recent Projects; keep this bullet high-level here and leave technical specifics to the project section.\n- Governance/workflows/Drupal modernization also echo the NACo role; emphasize what is new in this consulting engagement.\n"
     },
     {
+      "recordId": "recwQLxRbX2H0aXi3",
       "title": "Director of Digital Media",
       "subtitle": "National Association of Counties",
       "location": "Washington, DC, USA",
@@ -53,9 +62,11 @@
       "dispdate": "Mar. 2022 – Jun. 2024",
       "content": "Led NACo’s digital communications team, overseeing the organization’s website, email, social media and video platforms, along with digital strategy, analytics, governance and budget management.\n- Led the redesign and migration of NACo’s 10,000+ page website into a new Drupal platform supporting 3.5 million annual page views, 6,000+ average daily users and 50+ internal publishers.\n- Directed NACo’s core digital communications channels, including email newsletters reaching tens of thousands of county officials and social media platforms serving thousands of followers.\n- Built NACo’s first broadcast-quality in-house video studio, expanding in-house capacity for advocacy programming, event production and recurring multimedia content.\n- Expanded the organization’s analytics infrastructure across GA4, Microsoft Clarity, Power BI, Looker Studio and BigQuery, improving reporting and strategic decision-making.\n- Strengthened digital operations through clearer governance, publishing standards and cross-department planning systems.\n",
       "section": "Work Experience",
-      "manualsort": "a1"
+      "manualsort": "a1",
+      "aiFeedback": "Quick assessment: Strong, high-impact leadership entry with good scale metrics. It should be tightened to foreground the biggest outcomes and avoid repeating channel-management points already covered in the prior NACo role.\n\nSuggested edit\n- Open with a sharper scope/outcome line: “Directed NACo’s digital media function across web, email, social, video, analytics, governance, and budget management.”\n- Prioritize the biggest wins first and make verbs/results tighter: “Led redesign and migration of a 10,000+ page Drupal website serving 3.5M annual page views, 6,000+ daily users, and 50+ internal publishers.”\n- Combine channel oversight into one concise bullet with stronger outcome language; add metrics if available (open rates, follower growth, engagement, list size growth).\n- Rephrase operations bullets to show business impact: “Built NACo’s first in-house broadcast studio…” and “Implemented GA4, Clarity, Power BI, Looker Studio, and BigQuery reporting to improve leadership visibility and decision-making.”\n\nDuplicate/redundancy warnings\n- “Directed core digital communications channels” overlaps with the Associate Communications Director entry; keep this version strategic, not operational.\n- Video-program language may duplicate older NACo bullets; emphasize studio build-out and org-wide capacity here.\n"
     },
     {
+      "recordId": "recqxuWHT1RNeECei",
       "title": "Associate Communications Director",
       "subtitle": "National Association of Counties",
       "location": "Washington, DC, USA",
@@ -64,9 +75,11 @@
       "dispdate": "Sept. 2018 – Mar. 2022",
       "content": "Led day-to-day digital communications operations across web, email, social media and video, helping scale NACo’s editorial coordination and advocacy communications.\n- Managed four recurring weekly newsletters reaching tens of thousands of county officials and public-sector stakeholders.\n- Produced and expanded a weekly advocacy video update, helping establish video as a recurring policy communications channel.\n- Strengthened editorial planning and coordination across communications, advocacy and program teams.\n- Helped improve the consistency and effectiveness of NACo’s digital publishing workflows.\n",
       "section": "Work Experience",
-      "manualsort": "a2"
+      "manualsort": "a2",
+      "aiFeedback": "Quick assessment: Strong progression story, but this entry overlaps heavily with the later Director role and earlier Digital Media Manager role. Make it more specific to what you personally owned in 2018–2022 and tighten the phrasing around scale and outcomes.\n\nSuggested edit\n- Open with a sharper scope statement: “Managed NACo’s day-to-day digital communications operations across web, email, social and video, improving editorial coordination for advocacy and member communications.”\n- Replace “helping” language with direct ownership: “Managed four weekly newsletters reaching tens of thousands of county officials and public-sector stakeholders.”\n- Combine related bullets and emphasize channel-building: “Launched and produced a weekly advocacy video update, establishing video as a recurring policy communications channel.”\n- Add measurable or operational outcomes if available: email open/click growth, production volume, publishing turnaround time, stakeholder teams supported, or audience growth.\n\nDuplicate/redundancy warnings\n- “Improved workflows” and “strengthened coordination” overlap with the Director role’s governance/planning bullets; keep this version focused on execution and channel operations.\n- Weekly video updates also appear in the 2015–2018 role; frame this here as scaling/formalizing the series, not starting it.\n"
     },
     {
+      "recordId": "recruvP0rAWi7qAfb",
       "title": "Digital Strategy & Content Leadership",
       "subtitle": null,
       "location": null,
@@ -75,9 +88,11 @@
       "dispdate": null,
       "content": "- Enterprise digital strategy\n- Editorial systems and governance\n- Multi-channel communications leadership\n- Public-sector and advocacy messaging\n- Audience-focused content planning\n",
       "section": "Topline Skills",
-      "manualsort": "a3"
+      "manualsort": "a3",
+      "aiFeedback": "Quick assessment: Strong themes, but this skills block is too generic and overlaps heavily with the header and Core Competencies. Tighten it to emphasize senior leadership scope and public-sector relevance without repeating nearby language.\n\nSuggested edit:\n- Replace broad phrases with sharper, senior-level wording:\n- Enterprise digital strategy & governance\n- Editorial operations and publishing standards\n- Cross-channel communications leadership\n- Public-sector and advocacy content strategy\n- Audience-centered content planning\n- Keep terminology consistent with recent roles: use “cross-channel” or “organization-wide communications” rather than “multi-channel communications leadership.”\n- If space allows, make one item more outcome-oriented, e.g. “Enterprise digital strategy for high-volume public-sector communications.”\n- Consider reducing to 4 bullets to improve scanability and avoid a padded skills section.\n\nDuplicate/redundancy warnings:\n- “Enterprise digital strategy” and “Editorial systems and governance” duplicate the header and Core Competencies almost verbatim.\n- “Audience-focused content planning” overlaps with repeated editorial/planning language in NACo roles; keep only if phrased more distinctly.\n"
     },
     {
+      "recordId": "recLq4U8rWfc0B73y",
       "title": "Web Platforms & Technical Execution",
       "subtitle": null,
       "location": null,
@@ -86,9 +101,11 @@
       "dispdate": null,
       "content": "- Drupal\n- WordPress\n- SharePoint\n- Power Pages\n- CMS modernization\n- HTML, CSS, JavaScript and jQuery\n- API integrations\n- Workflow automation\n- Airtable systems\n- AI-enabled search experiences\n",
       "section": "Topline Skills",
-      "manualsort": "a4"
+      "manualsort": "a4",
+      "aiFeedback": "Quick assessment: Strong category, but it reads like a raw keyword dump and overlaps heavily with the “Technical + IT” section. For a topline skills area, make it more selective, grouped, and tied to the candidate’s most recent/highest-impact work.\n\nSuggested edit:\n- Rewrite as grouped capabilities, not a long tool list: “Drupal and enterprise CMS modernization • Front-end implementation (HTML, CSS, JavaScript, jQuery) • API integrations and workflow automation • Airtable-based content systems • AI-enabled search and discovery experiences”\n- Prioritize recent strengths proven in 2022–present roles: Drupal, CMS modernization, AI-enabled search, integrations/automation.\n- Consider dropping lower-evidence or less central platforms here (e.g., SharePoint, Power Pages, WordPress) unless they are important for target roles.\n- Replace “AI-enabled search experiences” with “AI-enabled search and discovery” for sharper phrasing.\n\nDuplicate/redundancy warnings:\n- This item duplicates much of “Technical + IT”; keep Topline Skills higher-level and leave full platform/tool inventory to the technical section.\n- “CMS modernization” and “workflow automation” already echo Core Competencies; avoid repeating identical phrasing.\n"
     },
     {
+      "recordId": "recJEuZGtRXzrvlr5",
       "title": "Analytics, Insights & Optimization",
       "subtitle": null,
       "location": null,
@@ -97,9 +114,11 @@
       "dispdate": null,
       "content": "- GA4\n- Microsoft Clarity\n- Looker Studio\n- Power BI\n- BigQuery\n- KPI design\n- Leadership reporting\n- SEO and performance analysis\n",
       "section": "Topline Skills",
-      "manualsort": "a5"
+      "manualsort": "a5",
+      "aiFeedback": "Quick assessment: Strong, relevant tools list for a senior digital leader, but it reads as a generic inventory and overlaps heavily with the “Technical + IT” analytics section. This Topline Skills item should emphasize higher-level capability and decision-making, not repeat software names.\n\nSuggested edit:\n- Reframe from tool list to strategic analytics capability, e.g.: “Analytics strategy, KPI design, executive reporting, SEO/performance analysis, dashboarding, and insight generation across GA4, BigQuery, Power BI, Looker Studio, and Microsoft Clarity.”\n- Lead with business value, not platforms: put “KPI design,” “executive/leadership reporting,” and “optimization” before tools.\n- Tighten phrasing: change “Leadership reporting” to “Executive reporting” or “Executive dashboards.”\n- If space allows, add an outcome-oriented qualifier such as “for enterprise web performance and content decision-making.”\n\nDuplicate/redundancy warnings:\n- This is highly redundant with “Technical + IT > Data, Analytics & Optimization”; keep tools there and make this section more strategic.\n- “Analytics and reporting infrastructure” already appears in Core Competencies, so avoid repeating that exact phrasing.\n"
     },
     {
+      "recordId": "rec0Su1hT3HeIXrBs",
       "title": "Multimedia Production & Event Delivery",
       "subtitle": null,
       "location": null,
@@ -108,9 +127,11 @@
       "dispdate": null,
       "content": "- Video production and editing\n- Livestreaming\n- PTZ camera systems\n- Studio operations\n- Hybrid and virtual event production\n",
       "section": "Topline Skills",
-      "manualsort": "a6"
+      "manualsort": "a6",
+      "aiFeedback": "Quick assessment: This skill block is relevant, but it overlaps heavily with both Core Competencies and Technical + IT. Tighten it to emphasize higher-value, recent capabilities tied to studio buildout and event delivery rather than generic production terms.\n\nSuggested edit\n- Replace broad items with sharper, outcome-oriented phrasing:\n- Broadcast-quality video production\n- Livestream and hybrid event delivery\n- PTZ and multi-camera studio systems\n- In-house studio operations and run-of-show execution\n- Consider renaming the heading to “Video, Studio & Live Event Production” for clarity and stronger positioning.\n- If space allows, add one scale cue in parentheses, e.g., “hybrid event delivery” → “hybrid event delivery for advocacy and member events.”\n\nDuplicate/redundancy warnings\n- “Video production and editing” overlaps with “Multimedia production” in Core Competencies and “Premiere Pro… Podcast production” in Technical + IT.\n- “Livestreaming” and “Studio operations” are already evidenced in NACo roles; avoid repeating low-detail versions here.\n"
     },
     {
+      "recordId": "recHq7yPbu4Tzwh3s",
       "title": "University of Virginia",
       "subtitle": "Bachelor of Arts (BA), Economics & History",
       "location": "Charlottesville, Virginia, USA",
@@ -119,9 +140,11 @@
       "dispdate": "Aug. 2008 – Jun. 2012",
       "content": "Ranked among the top public universities in the United States\n",
       "section": "Education",
-      "manualsort": "a7"
+      "manualsort": "a7",
+      "aiFeedback": "Quick assessment: The current line adds little value and reads like generic school marketing. For an experienced candidate, this education entry should be minimal and factual unless you have honors or distinctions worth adding.\n\nSuggested edit:\n- Replace the content line entirely with no body text; the degree, school, location, and dates are sufficient.\n- If applicable, swap in a concrete credential instead: “Relevant coursework: …” or “Honors: …” only if genuinely strong and still relevant.\n- Tighten the subtitle to “B.A., Economics and History” for cleaner formatting.\n- Consider dropping dates if you want to reduce age signaling and keep focus on recent senior experience.\n\nDuplicate/redundancy warnings:\n- “Ranked among the top public universities…” is generic and not candidate-specific, so it weakens the entry rather than strengthening it.\n- Avoid adding coursework unless it clearly supports current digital strategy/communications work; otherwise it will feel disconnected from the stronger recent experience.\n"
     },
     {
+      "recordId": "rec6HhDQDqRdLphN0",
       "title": "Web Platforms & CMS",
       "subtitle": null,
       "location": null,
@@ -130,9 +153,11 @@
       "dispdate": null,
       "content": "Drupal • WordPress • SharePoint • Power Pages • GitHub Pages\n",
       "section": "Technical + IT",
-      "manualsort": "a9"
+      "manualsort": "a9",
+      "aiFeedback": "Quick assessment: This item is clear but too generic and duplicates the stronger “Web Platforms & Technical Execution” skills section. It should either add proficiency/context or be tightened to emphasize the most relevant, recent platforms.\n\nSuggested edit:\n- Reorder by relevance/recency: “Drupal • WordPress • SharePoint • Power Pages • GitHub Pages” is fine, but consider “Drupal (enterprise/public-sector) • WordPress • SharePoint • Power Pages • GitHub Pages.”\n- Add light qualifiers only where they strengthen credibility, e.g. “Drupal (migration, microsites, governance)” or “SharePoint (intranet/content management)” if accurate.\n- If space allows, make it outcome-oriented via label change: “CMS & Web Platforms” instead of “Web Platforms & CMS” for cleaner phrasing.\n- Keep GitHub Pages only if it reflects meaningful recent use; otherwise replace with a more relevant platform or remove.\n\nDuplicate/redundancy warnings:\n- This largely repeats “Topline Skills > Web Platforms & Technical Execution,” which already lists Drupal, WordPress, and related capabilities.\n- Avoid repeating platform names elsewhere unless this section adds proficiency, specialization, or context.\n"
     },
     {
+      "recordId": "rec8jBjuzbcrgNOIX",
       "title": "Coding & Technical Implementation",
       "subtitle": null,
       "location": null,
@@ -141,9 +166,11 @@
       "dispdate": null,
       "content": "HTML5 • CSS3 • JavaScript • jQuery • API integrations • Google Tag Manager • Cloudflare Workers • GitHub Actions\n",
       "section": "Technical + IT",
-      "manualsort": "aA"
+      "manualsort": "aA",
+      "aiFeedback": "Quick assessment: Solid technical stack, but this item reads as a generic keyword list and overlaps heavily with “Web Platforms & Technical Execution” in Topline Skills. Tighten it to emphasize implementation tools you actively use in recent work and group them more strategically.\n\nSuggested edit:\n- Rewrite as: “Front-end implementation: HTML5, CSS3, JavaScript, jQuery”\n- Add a second grouped phrase: “Technical delivery: API integrations, Google Tag Manager, Cloudflare Workers, GitHub Actions”\n- If accurate, replace older/basic terms with stronger specifics tied to recent work, e.g., “custom Drupal front-end implementation,” “deployment automation,” or “serverless scripting”\n- Consider dropping version numbers (“HTML5,” “CSS3”) for cleaner phrasing unless needed for ATS\n\nDuplicate/redundancy warnings:\n- Duplicates “HTML, CSS, JavaScript and jQuery” and “API integrations” already listed under Topline Skills; keep one section broader and this one more tool-specific\n- “Workflow automation” appears elsewhere; avoid adding it here unless you specify the technical mechanism (e.g., GitHub Actions, Workers)\n"
     },
     {
+      "recordId": "recQc1dzrsUztMbI7",
       "title": "Automation & Workflow Systems",
       "subtitle": null,
       "location": null,
@@ -152,9 +179,11 @@
       "dispdate": null,
       "content": "Airtable • Power Automate • Zapier • Jira • Asana • Basecamp • Slack • Teams • Trello\n",
       "section": "Technical + IT",
-      "manualsort": "aB"
+      "manualsort": "aB",
+      "aiFeedback": "Quick assessment: Solid tool coverage, but this reads as a generic software list rather than evidence of workflow automation capability. Since “workflow automation” already appears in Core Competencies and Topline Skills, this item should be tighter and more systems-focused.\n\nSuggested edit:\n- Reframe to emphasize function, not just tools: “Workflow Automation & Collaboration Systems” or “Automation, PM & Collaboration Tools.”\n- Group tools by use case for faster scanning: “Automation: Airtable, Power Automate, Zapier | Project/work management: Jira, Asana, Trello, Basecamp | Team collaboration: Slack, Teams.”\n- Consider dropping one lower-value/older PM tool if space is tight; keep the strongest/recently relevant platforms first.\n- If accurate, add a light qualifier to show applied use: “used to build editorial, approval and cross-team coordination workflows.”\n\nDuplicate/redundancy warnings:\n- “Airtable systems” and “Workflow automation” already appear under Topline Skills; avoid repeating the same phrasing here.\n- Slack and Teams are common workplace tools; they add less differentiation than Airtable/Power Automate/Zapier.\n"
     },
     {
+      "recordId": "recvRraURBK0gZXWR",
       "title": "Email & Engagement Systems",
       "subtitle": null,
       "location": null,
@@ -163,9 +192,11 @@
       "dispdate": null,
       "content": "Dynamics 365 Customer Insights / Journeys • Higher Logic • Mailchimp\n",
       "section": "Technical + IT",
-      "manualsort": "aC"
+      "manualsort": "aC",
+      "aiFeedback": "Quick assessment: Relevant tools, but this item is too bare and reads like a generic software list. It should better signal enterprise email/engagement capability and align with the stronger recent experience leading large-scale newsletter and member communications.\n\nSuggested edit\n- Rename to: Email Marketing & Member Engagement Platforms\n- Rewrite as: Dynamics 365 Customer Insights / Journeys • Higher Logic • Mailchimp\n- If accurate, add scope in parentheses to show level of use, e.g. “Higher Logic (member email/newsletters)” or “Dynamics 365 Customer Insights / Journeys (campaign automation)”\n- Keep only platforms you’ve used meaningfully in recent roles; order by strongest/recentest platform rather than alphabetically\n\nDuplicate/redundancy warnings\n- This item overlaps with work experience bullets about email newsletters and digital channels; don’t repeat outcomes here—save metrics for recent roles\n- “Engagement” may feel vague given the rest of the CV; clarify with “member,” “email,” or “campaign automation” to make the category sharper\n"
     },
     {
+      "recordId": "recMul7SiURKNtDok",
       "title": "Data, Analytics & Optimization",
       "subtitle": null,
       "location": null,
@@ -174,9 +205,11 @@
       "dispdate": null,
       "content": "GA4 • Microsoft Clarity • Looker Studio • Power BI • BigQuery • SEO • A/B testing • Dashboarding\n",
       "section": "Technical + IT",
-      "manualsort": "aCV"
+      "manualsort": "aCV",
+      "aiFeedback": "Quick assessment: Solid tool coverage, but this item is too generic and overlaps heavily with “Topline Skills.” In the technical section, it should read as a concise tools/methods list, with stronger specificity and less repetition.\n\nSuggested edit\n- Tighten and group by function: “GA4 • BigQuery • Looker Studio • Power BI • Microsoft Clarity • Google Search Console • A/B testing • SEO analysis”\n- Replace vague “Dashboarding” with the actual platforms already listed, or with “KPI reporting” if you want a capability rather than a tool.\n- Consider adding “Google Search Console” if SEO is important; “SEO” alone is broad compared with the rest of the item.\n- If space allows, order by strongest/recently evidenced tools first: “GA4 • BigQuery • Power BI • Looker Studio • Microsoft Clarity …”\n\nDuplicate/redundancy warnings\n- This largely duplicates “Topline Skills > Analytics, Insights & Optimization.” Keep one version tools-only and let the other emphasize outcomes/capabilities.\n- “A/B testing” is not supported elsewhere in recent experience; remove it unless you can point to a concrete example.\n"
     },
     {
+      "recordId": "reci1Eyc23hjPitir",
       "title": "Work Eligibility",
       "subtitle": null,
       "location": null,
@@ -185,9 +218,11 @@
       "dispdate": null,
       "content": "Full legal authorization to work in Belgium (Visa D + residence permit / carte de séjour)\n",
       "section": "Second Page Rail",
-      "manualsort": "aD"
+      "manualsort": "aD",
+      "aiFeedback": "Quick assessment: Useful for Belgium-based applications, but the phrasing is a bit legalistic and takes more space than needed. This should read as a clear status note, not a headline achievement.\n\nSuggested edit:\n- Rewrite for brevity and recruiter scanability: “Authorized to work in Belgium (Visa D and residence permit).”\n- If accurate, make it stronger and simpler: “Fully authorized to work in Belgium; residence permit in place.”\n- Avoid the French term unless the role specifically requires bilingual administrative terminology; “residence permit” is usually enough.\n- Consider moving this into the contact/header area for local applications, since eligibility matters more there than in a secondary rail.\n\nDuplicate/redundancy warnings:\n- No major duplication, but this item is lower-value than recent experience; keep it very short so it doesn’t compete for attention.\n- If location/contact already signals Belgium and applications are local, this may be optional rather than essential.\n"
     },
     {
+      "recordId": "reckY6dNMRZ5S1q5n",
       "title": "Languages",
       "subtitle": null,
       "location": null,
@@ -196,9 +231,11 @@
       "dispdate": null,
       "content": "**English** (Native)\n**French** (A2/Learning)\n",
       "section": "Second Page Rail",
-      "manualsort": "aE"
+      "manualsort": "aE",
+      "aiFeedback": "Quick assessment: This item is clear but too compressed and visually awkward. It should be reformatted for quick scanning and framed honestly so French supports your Belgium-based role without overstating proficiency.\n\nSuggested edit\n- Rewrite as a simple line: Languages: English (native) | French (A2, currently improving)\n- Use lowercase proficiency style for consistency and cleaner tone: native, A2, conversational/basic if accurate.\n- If relevant to target roles, add practical context only if true: French (A2, professional working improvement underway)\n- Keep it concise; this section is supporting information, not a selling point versus your recent digital leadership experience.\n\nDuplicate/redundancy warnings\n- No major duplication, but avoid overdesign/bolding here; the CV already has strong skills sections competing for attention.\n- If space is tight, this can stay in the rail and should not be repeated in the header, summary, or cover letter unless language is job-relevant.\n"
     },
     {
+      "recordId": "recGNmT6wY8YyiOMH",
       "title": "Soft Skills",
       "subtitle": null,
       "location": null,
@@ -207,9 +244,11 @@
       "dispdate": null,
       "content": "Cross-department coordination • Stakeholder communication • Team leadership • Strategic planning • Clear writing and editing • Problem-solving • Adaptability\n",
       "section": "Second Page Rail",
-      "manualsort": "aF"
+      "manualsort": "aF",
+      "aiFeedback": "Quick assessment: This section is too generic and largely repeats strengths already proven in the summary and core competencies. On a senior CV, “soft skills” should either be removed or reframed as leadership traits tied to scope and outcomes.\n\nSuggested edit:\n- Rename to “Leadership Strengths” or “Management & Collaboration” to sound more senior and less filler.\n- Cut generic items like “Problem-solving” and “Adaptability”; keep only traits that support target roles.\n- Tighten to 4–5 items max, e.g.: Cross-functional leadership • Executive stakeholder management • Editorial judgment • Team development • Strategic planning\n- If space is tight, remove this section entirely and use the room for quantified achievements in recent roles.\n\nDuplicate/redundancy warnings:\n- “Cross-department coordination” and “Stakeholder communication” duplicate the header summary and Core Competencies.\n- “Team leadership” and “Strategic planning” are already demonstrated more credibly in the 2022–2024 Director role.\n"
     },
     {
+      "recordId": "recOfhOozXBan7ijq",
       "title": "References",
       "subtitle": null,
       "location": null,
@@ -218,9 +257,11 @@
       "dispdate": null,
       "content": "References available upon request.\n",
       "section": "Second Page Rail",
-      "manualsort": "aG"
+      "manualsort": "aG",
+      "aiFeedback": "Quick assessment: This item adds little value and uses space that could better support recent, higher-impact experience. “References available upon request” is assumed by most employers and usually should be removed.\n\nSuggested edit:\n- Delete the “References” entry entirely.\n- Use the freed space for stronger supporting content instead, such as a brief “Selected Results” rail item with 1–2 metrics from recent roles.\n- If references are specifically requested, provide them separately rather than on the CV.\n- If you want a replacement rail item, consider “Work Authorization” or “Languages,” which are more useful and already present here.\n\nDuplicate/redundancy warnings:\n- This section is redundant because reference availability is standard and does not differentiate you.\n- Keeping it may weaken the second-page rail by displacing more relevant, recent qualifications.\n"
     },
     {
+      "recordId": "recLQVQ18UN8BfgBp",
       "title": "Digital Media Manager / Producer",
       "subtitle": "National Association of Counties",
       "location": "Washington, DC, USA",
@@ -229,9 +270,11 @@
       "dispdate": "Apr. 2015 – Sept. 2018",
       "content": "Advanced through two digital roles, supporting the creation of the organization’s first in-house digital team and strengthening workflows across web, email, social, and multimedia. Contributed to a major website refresh and produced high-impact digital content—including livestreams and weekly video updates—while providing day-to-day guidance to a digital media associate.\n",
       "section": "Work Experience",
-      "manualsort": "aH"
+      "manualsort": "aH",
+      "aiFeedback": "Quick assessment: Solid progression story, but the item is still broad and overlaps with the stronger 2018–2024 NACo entries. Make this one more foundational and execution-focused, with 1–2 concrete outputs or scale indicators.\n\nSuggested edit\n- Rewrite to emphasize early-team building and production execution: “Promoted across two digital roles to help establish NACo’s first in-house digital media function, improving workflows across web, email, social and multimedia.”\n- Add 1–2 measurable details if available: website refresh scope, livestream/event volume, weekly video cadence, audience growth, or production turnaround improvements.\n- Tighten the second sentence around distinct contributions: “Supported a major website refresh, produced recurring livestreams and weekly video updates, and supervised a digital media associate.”\n- If true, add a result clause: “...increasing content consistency, expanding in-house production capacity, and reducing reliance on external support.”\n\nDuplicate/redundancy warnings\n- “Weekly video updates” overlaps with the Associate Communications Director entry; keep this item focused on launching/building the capability rather than scaling it.\n- Avoid repeating governance/operations language already covered more strongly in later NACo roles.\n"
     },
     {
+      "recordId": "recdH3okPpfD1bUQz",
       "title": "County Solutions & Innovations Coordinator",
       "subtitle": "National Association of Counties",
       "location": "Washington, DC, USA",
@@ -240,9 +283,11 @@
       "dispdate": "Dec. 2013 – Apr. 2015",
       "content": "Coordinated innovation and research projects supporting organizational programs and policy work. Contributed to digital content production and multimedia materials, and launched the organization’s first podcast, overseeing planning, scripting, and production.\n",
       "section": "Work Experience",
-      "manualsort": "aI"
+      "manualsort": "aI",
+      "aiFeedback": "Quick assessment: Solid early-career entry, but it reads generic and underplays the strongest differentiator: launching NACo’s first podcast. Since this is an older role, keep it concise and emphasize foundational digital/media impact rather than broad coordination.\n\nSuggested edit\n- Rewrite to foreground the standout achievement: “Coordinated innovation and research initiatives supporting county-focused programs and policy communications.”\n- Add the clearest impact point: “Launched NACo’s first podcast, leading concept development, scripting, guest coordination and production.”\n- Tighten the digital support line: “Produced digital and multimedia content to support organizational storytelling and program outreach.”\n- If possible, add scale or output metrics: number of episodes, audience/listens, stakeholders supported, or projects delivered.\n\nDuplicate/redundancy warnings\n- Avoid repeating broad “digital content production and multimedia materials” language already covered more strongly in later NACo roles.\n- Don’t overemphasize policy/program coordination if no measurable outcomes; later roles already establish communications leadership.\n"
     },
     {
+      "recordId": "recNcDultl6VKofa9",
       "title": "Multimedia & Creative Tools",
       "subtitle": null,
       "location": null,
@@ -251,7 +296,8 @@
       "dispdate": null,
       "content": "Premiere Pro • Audition • Photoshop • Illustrator • Livestream studio workflows • Podcast production\n",
       "section": "Technical + IT",
-      "manualsort": "aJ"
+      "manualsort": "aJ",
+      "aiFeedback": "Quick assessment: Solid supporting skills list, but it reads a bit generic and overlaps with stronger multimedia claims already established in recent roles. Tighten it to emphasize tools over broader functions, and use more current, senior-level phrasing.\n\nSuggested edit:\n- Rewrite as: “Adobe Premiere Pro • Adobe Audition • Adobe Photoshop • Adobe Illustrator • Broadcast/livestream studio production • Podcast editing & production”\n- Keep naming conventions consistent with other technical lists by using full product names.\n- Replace “Livestream studio workflows” with a clearer capability phrase like “Broadcast/livestream studio production” or “Studio operations” for stronger professional tone.\n- If accurate, consider adding one higher-value tool/system actually used in recent roles (e.g., PTZ camera systems, streaming platforms) instead of generic “workflows.”\n\nDuplicate/redundancy warnings:\n- “Podcast production” is already evidenced in the 2013–2015 role; keep it only if still relevant to current positioning.\n- “Livestream”/studio capability overlaps with Topline Skills; avoid repeating the same wording exactly.\n"
     }
   ]
 }
