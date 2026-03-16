@@ -16,6 +16,7 @@ A static CV publishing pipeline that:
 - `scripts/run-cv-ai-feedback.js` — Airtable CV ➜ OpenAI feedback ➜ Airtable update (`Overall AI Feedback`).
 - `cv-render.js` — browser renderer shared by viewer/print/embed flows.
 - `cv.html` — viewer page for a single CV with a PDF link.
+- `cv-feedback.html` — CV + AI feedback review page (overall and item-level feedback side-by-side).
 - `cv-print.html` + `cv-print.css` — print-focused paginated view.
 - `cv-embed.js` + `cv-embed.html` — non-iframe embeddable widget + usage/instructions page.
 - `.github/workflows/cv-ai-feedback.yml` — issue/manual-trigger workflow for AI feedback runs.
@@ -217,6 +218,7 @@ Behavior:
 5. Serve repository root with any static server and test:
    - `/cv?cv=coleman-davis`
    - `/cv-print.html?cv=coleman-davis`
+   - `/cv-feedback.html?cv=coleman-davis`
    - `/cv-embed.html`
 
 ---

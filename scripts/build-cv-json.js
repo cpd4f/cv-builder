@@ -224,6 +224,7 @@ async function fetchCvItems(recordId, linkedItemIds = []) {
 function mapItem(record) {
   const f = record.fields || {};
   return {
+    recordId: record.id,
     title: valueOrNull(f["Headline"]),
     subtitle: valueOrNull(f["Organization / Subtitle"]),
     location: valueOrNull(f["Location"]),
@@ -232,7 +233,8 @@ function mapItem(record) {
     dispdate: valueOrNull(f["Display Date"]),
     content: valueOrNull(f["Content"]),
     section: valueOrNull(f["Section"]),
-    manualsort: valueOrNull(f["Manual sort"])
+    manualsort: valueOrNull(f["Manual sort"]),
+    aiFeedback: valueOrNull(normalizeRichTextFieldValue(f["AI Feedback"]))
   };
 }
 
@@ -398,7 +400,17 @@ async function buildAndWriteCv(cvRecord) {
     .sort(compareManualSort)
     .forEach((item) => items.push(item));
 
-  const output = { slug, status, items };
+  const output = {
+    slug,
+    status,
+    feedback: {
+      overall: valueOrNull(normalizeRichTextFieldValue(fields["Overall AI Feedback"])),
+      intro: valueOrNull(normalizeRichTextFieldValue(fields["AI Feedback Intro"])),
+      coreCompetencies: valueOrNull(normalizeRichTextFieldValue(fields["AI Feedback Core Competencies"])),
+      footer: valueOrNull(normalizeRichTextFieldValue(fields["AI Feedback Footer"]))
+    },
+    items
+  };
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`, "utf8");
 
