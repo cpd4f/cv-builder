@@ -5,7 +5,8 @@
   "scripts": {
     "build:json": "node scripts/build-cv-json.js",
     "pdf:build": "node scripts/build-cv-pdf.js",
-    "pdf:preview": "vivliostyle preview cv-print.html"
+    "pdf:preview": "vivliostyle preview cv-print.html",
+    "ai:feedback": "node scripts/run-cv-ai-feedback.js"
   },
   "devDependencies": {
     "@vivliostyle/cli": "^8.15.1"
