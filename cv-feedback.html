@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CV Feedback</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --md-bg: #f5f6fa;
+      --md-surface: #ffffff;
+      --md-surface-2: #f8f9fd;
+      --md-text: #1f2937;
+      --md-muted: #6b7280;
+      --md-primary: #2563eb;
+      --md-outline: #e5e7eb;
+      --md-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), 0 8px 24px rgba(15, 23, 42, 0.06);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Roboto, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+      background: linear-gradient(180deg, #f8f9ff 0%, var(--md-bg) 100%);
+      color: var(--md-text);
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px 32px;
+    }
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .toolbar label { font-weight: 500; color: var(--md-muted); }
+    .toolbar input {
+      min-width: 240px;
+      border: 1px solid var(--md-outline);
+      background: var(--md-surface);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+      box-shadow: 0 1px 0 rgba(15,23,42,.02);
+    }
+    .toolbar button {
+      border: 0;
+      background: var(--md-primary);
+      color: #fff;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+    }
+    .toolbar button:hover { filter: brightness(0.97); }
+
+    .card {
+      background: var(--md-surface);
+      border: 1px solid var(--md-outline);
+      border-radius: var(--radius);
+      box-shadow: var(--md-shadow);
+    }
+
+    .overall {
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .overall h1 {
+      margin: 0 0 12px;
+      font-size: 34px;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      font-weight: 700;
+    }
+
+    .rows { display: grid; gap: 12px; }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .item-card,
+    .feedback-card { padding: 16px; }
+
+    .section-chip {
+      display: inline-flex;
+      border-radius: 999px;
+      border: 1px solid #dbe2f1;
+      background: #eef3ff;
+      color: #3858a6;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      margin-bottom: 10px;
+    }
+
+    .item-title { margin: 0 0 4px; font-size: 21px; line-height: 1.2; }
+    .meta { color: var(--md-muted); margin-bottom: 8px; font-size: 14px; }
+
+    .feedback-card {
+      background: var(--md-surface-2);
+      border-color: #e1e6f3;
+      position: sticky;
+      top: 10px;
+    }
+    .feedback-title { margin: 0 0 8px; font-size: 17px; font-weight: 600; }
+
+    .md p { margin: 0 0 8px; line-height: 1.48; }
+    .md ul, .md ol { margin: 0 0 8px; padding-left: 22px; }
+    .md li { margin-bottom: 4px; line-height: 1.45; }
+    .md h2, .md h3, .md h4 { margin: 10px 0 6px; line-height: 1.3; }
+    .empty { color: var(--md-muted); font-style: italic; }
+    .error { color: #b91c1c; margin-top: 12px; }
+
+    @media (max-width: 980px) {
+      .row { grid-template-columns: 1fr; }
+      .feedback-card { position: static; }
+      .overall h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="toolbar">
+      <label for="slug">CV slug</label>
+      <input id="slug" placeholder="coleman-davis" />
+      <button id="load" type="button">Load</button>
+    </div>
+
+    <section class="card overall">
+      <h1>Overall feedback</h1>
+      <div id="overall" class="md">Loading…</div>
+    </section>
+
+    <section id="rows" class="rows"></section>
+    <p id="status" class="error"></p>
+  </main>
+
+  <script>
+    function escapeHtml(input) {
+      return String(input ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function inlineMarkdownToHtml(input) {
+      const escaped = escapeHtml(input);
+      return escaped
+        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+        .replace(/\*(.+?)\*/g, "<em>$1</em>")
+        .replace(/`(.+?)`/g, "<code>$1</code>");
+    }
+
+    function markdownToHtml(input) {
+      const text = String(input || "").replace(/\r/g, "");
+      if (!text.trim()) return "";
+      const lines = text.split("\n");
+      const out = [];
+      let listType = null;
+
+      function closeList() {
+        if (!listType) return;
+        out.push(listType === "ol" ? "</ol>" : "</ul>");
+        listType = null;
+      }
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line) { closeList(); continue; }
+
+        if (line.startsWith("## ")) { closeList(); out.push(`<h3>${inlineMarkdownToHtml(line.slice(3))}</h3>`); continue; }
+        if (line.startsWith("### ")) { closeList(); out.push(`<h4>${inlineMarkdownToHtml(line.slice(4))}</h4>`); continue; }
+
+        if (/^\d+[.)]\s+/.test(line)) {
+          if (listType !== "ol") { closeList(); out.push("<ol>"); listType = "ol"; }
+          out.push(`<li>${inlineMarkdownToHtml(line.replace(/^\d+[.)]\s+/, ""))}</li>`);
+          continue;
+        }
+
+        if (/^[-*]\s+/.test(line)) {
+          if (listType !== "ul") { closeList(); out.push("<ul>"); listType = "ul"; }
+          out.push(`<li>${inlineMarkdownToHtml(line.replace(/^[-*]\s+/, ""))}</li>`);
+          continue;
+        }
+
+        closeList();
+        out.push(`<p>${inlineMarkdownToHtml(line)}</p>`);
+      }
+
+      closeList();
+      return out.join("\n");
+    }
+
+    function displayDate(item) {
+      if (item?.dispdate) return item.dispdate;
+      const start = item?.start || "";
+      const end = item?.end || "Present";
+      if (!start) return "";
+      return `${start} – ${end}`;
+    }
+
+    function feedbackForItem(item, feedbackObj) {
+      const section = String(item?.section || "").toLowerCase();
+      if (item?.aiFeedback) return item.aiFeedback;
+      if (section === "header") return feedbackObj?.intro || "";
+      if (section === "core competencies") return feedbackObj?.coreCompetencies || "";
+      if (section === "footer") return feedbackObj?.footer || "";
+      return "";
+    }
+
+
+    function orderedItems(items) {
+      const order = new Map([
+        ["header", 0],
+        ["core competencies", 1],
+        ["work experience", 2],
+        ["topline skills", 3],
+        ["technical + it", 4],
+        ["education", 5],
+        ["second page rail", 5],
+        ["footer", 6]
+      ]);
+      return (items || [])
+        .map((item, index) => ({ item, index, rank: order.has(String(item?.section || "").toLowerCase()) ? order.get(String(item?.section || "").toLowerCase()) : 99 }))
+        .filter(({ item }) => String(item?.section || "").toLowerCase() !== "contact")
+        .sort((a, b) => a.rank - b.rank || a.index - b.index)
+        .map(({ item }) => item);
+    }
+
+    function renderItem(item, feedbackObj) {
+      const row = document.createElement("article");
+      row.className = "row";
+
+      const left = document.createElement("div");
+      left.className = "card item-card";
+      const metaBits = [item?.subtitle, item?.location, displayDate(item)].filter(Boolean);
+      left.innerHTML = `
+        <div class="section-chip">${escapeHtml(item?.section || "")}</div>
+        ${item?.title ? `<h2 class="item-title">${escapeHtml(item.title)}</h2>` : ""}
+        ${metaBits.length ? `<div class="meta">${escapeHtml(metaBits.join(" • "))}</div>` : ""}
+        <div class="md">${markdownToHtml(item?.content || "")}</div>
+      `;
+
+      const right = document.createElement("div");
+      right.className = "card feedback-card";
+      const feedback = feedbackForItem(item, feedbackObj);
+      right.innerHTML = `
+        <h3 class="feedback-title">Item feedback</h3>
+        <div class="md">${feedback ? markdownToHtml(feedback) : '<p class="empty">No item feedback available.</p>'}</div>
+      `;
+
+      row.append(left, right);
+      return row;
+    }
+
+    async function loadCv(slug) {
+      const overall = document.getElementById("overall");
+      const rows = document.getElementById("rows");
+      const status = document.getElementById("status");
+      status.textContent = "";
+      overall.textContent = "Loading…";
+      rows.innerHTML = "";
+
+      try {
+        const res = await fetch(`./data/cv/${encodeURIComponent(slug)}.json`, { cache: "no-store" });
+        if (!res.ok) throw new Error(`Unable to load CV (${res.status})`);
+        const cv = await res.json();
+        const feedback = cv?.feedback || {};
+
+        overall.innerHTML = feedback?.overall
+          ? markdownToHtml(feedback.overall)
+          : '<p class="empty">No overall feedback available.</p>';
+
+        const items = orderedItems(Array.isArray(cv?.items) ? cv.items : []);
+        items.forEach((item) => rows.appendChild(renderItem(item, feedback)));
+      } catch (error) {
+        overall.innerHTML = '<p class="empty">No overall feedback available.</p>';
+        status.textContent = error?.message || String(error);
+      }
+    }
+
+    const params = new URLSearchParams(location.search);
+    const slugInput = document.getElementById("slug");
+    const initialSlug = params.get("cv") || "coleman-davis";
+    slugInput.value = initialSlug;
+
+    document.getElementById("load").addEventListener("click", () => {
+      const slug = slugInput.value.trim() || "coleman-davis";
+      const next = new URL(location.href);
+      next.searchParams.set("cv", slug);
+      history.replaceState(null, "", next);
+      loadCv(slug);
+    });
+
+    loadCv(initialSlug);
+  </script>
+</body>
+</html>
