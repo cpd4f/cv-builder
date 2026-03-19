@@ -337,20 +337,25 @@ function composeFiveBlockLayout(items) {
 function composeSecondaryLayout(items) {
   const source = Array.isArray(items) ? items : [];
   const grouped = groupBySection(source);
-  const mainAtoms = [];
+  const coreAtoms = sectionAtoms("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true });
+  const workItems = sortItems(grouped.get("work experience") || []);
+  const coreUnits = coreAtoms.reduce((sum, atom) => sum + (atom.units || 0), 0);
+  const page1WorkBudget = Math.max(8, 38 - coreUnits);
+  const split = splitWorkPageOne(workItems, page1WorkBudget);
 
-  mainAtoms.push(...sectionAtoms("Core Competencies", grouped.get("core competencies") || [], { hideEntryTitleWhenSameAsSection: true }));
-  mainAtoms.push(...workAndTechAtoms(grouped.get("work experience") || [], grouped.get("technical + it") || []));
-  mainAtoms.push(...sectionAtoms("Skills", splitSkillsBullets(grouped.get("topline skills") || []), { hideEntryTitleWhenSameAsSection: true }));
-  mainAtoms.push(...sectionAtoms("Education", grouped.get("education") || []));
-  sortItems(grouped.get("second page rail") || []).forEach((item) => {
-    if (!item.title) return;
-    mainAtoms.push({ type: "section-title", title: item.title, units: 0.5 });
-    mainAtoms.push({ type: "entry", item: { ...item, content: item.content || "" }, hideTitle: true, units: estimateUnits(item, false) });
-  });
+  const page1MainAtoms = [...coreAtoms, ...sectionAtomsOrdered("Work Experience", split.page1WorkItems)];
+  const page2MainAtoms = [];
+  if (split.page2WorkItems.length) {
+    page2MainAtoms.push(...sectionAtomsOrdered("Work Experience (Cont.)", split.page2WorkItems));
+  }
+  page2MainAtoms.push(...sectionAtoms("Technical + IT", grouped.get("technical + it") || []));
+  page2MainAtoms.push(...sectionAtoms("Recent Projects", grouped.get("recent projects") || []));
 
-  const footerItems = sortItems(grouped.get("footer") || []);
-  return { mainAtoms, footerItems };
+  const page2RailAtoms = [];
+  page2RailAtoms.push(...sectionAtoms("Skills", splitSkillsBullets(grouped.get("topline skills") || []), { rail: true }));
+  page2RailAtoms.push(...sectionAtoms("Education", grouped.get("education") || [], { rail: true }));
+
+  return { page1MainAtoms, page2MainAtoms, page2RailAtoms };
 }
 
 function renderPdfDocumentHtml(cv, cssHref, layoutName = "primary") {
@@ -360,7 +365,7 @@ function renderPdfDocumentHtml(cv, cssHref, layoutName = "primary") {
   if (layoutName === "secondary") {
     const secondary = composeSecondaryLayout(items);
     const headerHtml = `<header class="header"><h1>${escapeHtml(header?.title || "CV")}</h1><h2>${escapeHtml(header?.subtitle || "")}</h2><div class="header-summary">${markdownToHtml(header?.content || "")}</div></header>${renderContact(contacts)}`;
-    const fullContainer = `<div class="secondary-container"><div class="header-container">${headerHtml}</div><div class="secondary-main">${renderColumn(secondary.mainAtoms, "col-main")}</div><div class="footer">${renderFooterHtml([], secondary.footerItems)}</div></div>`;
+    const fullContainer = `<div class="secondary-container"><section class="print-page secondary-page-1"><div class="header-container">${headerHtml}</div><div class="secondary-main">${renderColumn(secondary.page1MainAtoms, "col-main")}</div></section><section class="print-page secondary-page-2"><div class="content secondary-content"><div class="main-col">${renderColumn(secondary.page2MainAtoms, "col-main")}</div><aside class="rail-col">${renderColumn(secondary.page2RailAtoms, "col-rail")}</aside></div></section></div>`;
     return `<!doctype html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>CV Print</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" /><link rel="stylesheet" href="${cssHref}" /></head><body><main class="cv-print layout-secondary" id="cv-print-root">${fullContainer}</main></body></html>`;
   }
   const blocks = composeFiveBlockLayout(items);
@@ -372,62 +377,9 @@ function renderPdfDocumentHtml(cv, cssHref, layoutName = "primary") {
   return `<!doctype html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>CV Print</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" /><link rel="stylesheet" href="${cssHref}" /></head><body><main class="cv-print${blocks.compact ? " compact" : ""}" id="cv-print-root">${fullContainer}</main></body></html>`;
 }
 
-function summarizeAtoms(atoms) {
-  const summary = { sections: 0, entries: 0, sectionTitles: [] };
-  (atoms || []).forEach((atom) => {
-    if (atom.type === "section-title") {
-      summary.sections += 1;
-      summary.sectionTitles.push(atom.title);
-      return;
-    }
-    if (atom.type === "entry") summary.entries += 1;
-  });
-  return summary;
-}
-
-function buildPdfRecap(slug, cv, blocks, options = {}) {
-  const header = (Array.isArray(cv.items) ? cv.items : []).find((item) => key(item.section) === "header") || {};
-  const page1Main = summarizeAtoms(blocks.mainPage1Atoms);
-  const page2Main = summarizeAtoms(blocks.mainPage2Atoms);
-  const page1Rail = summarizeAtoms(blocks.railPage1Atoms);
-  const page2Rail = summarizeAtoms(blocks.railPage2Atoms);
-
-  const lines = [
-    `# PDF Recap: ${slug}`,
-    "",
-    `- Generated: ${new Date().toISOString()}`,
-    `- CV title: ${String(header.title || "Untitled CV")}`,
-    `- CV subtitle: ${String(header.subtitle || "").trim() || "n/a"}`,
-    `- Layout mode: ${blocks.compact ? "compact" : "standard"}`,
-    `- HTTP mode: ${options.useHttpMode ? "enabled" : "disabled"}`,
-    `- Legacy press-ready mode: ${options.useLegacyPressReady ? "enabled" : "disabled"}`,
-    "",
-    "## Page content totals",
-    "",
-    `- Page 1 main column: ${page1Main.sections} sections, ${page1Main.entries} entries`,
-    `- Page 1 rail column: ${page1Rail.sections} sections, ${page1Rail.entries} entries`,
-    `- Page 2 main column: ${page2Main.sections} sections, ${page2Main.entries} entries`,
-    `- Page 2 rail column: ${page2Rail.sections} sections, ${page2Rail.entries} entries`,
-    `- Footer technical items: ${(blocks.footerTechItems || []).length}`,
-    `- Footer items: ${(blocks.footerItems || []).length}`,
-    "",
-    "## Section titles by column",
-    "",
-    `- Page 1 main: ${page1Main.sectionTitles.join(", ") || "none"}`,
-    `- Page 1 rail: ${page1Rail.sectionTitles.join(", ") || "none"}`,
-    `- Page 2 main: ${page2Main.sectionTitles.join(", ") || "none"}`,
-    `- Page 2 rail: ${page2Rail.sectionTitles.join(", ") || "none"}`,
-    "",
-  ];
-
-  return lines.join("\n");
-}
-
 
 function buildPdfForSlug(slug, cssHref) {
   const jsonPath = path.join("data", "cv", `${slug}.json`);
-  const recapPath = path.join("dist", `${slug}.pdf-recap.md`);
-  const secondaryRecapPath = path.join("dist", `${slug}.secondary.pdf-recap.md`);
   const tmpPath = path.join(".tmp", `cv-print-${slug}.html`);
   const secondaryTmpPath = path.join(".tmp", `cv-print-${slug}.secondary.html`);
   const cv = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
@@ -441,26 +393,9 @@ function buildPdfForSlug(slug, cssHref) {
   const useHttpMode = process.env.CV_PDF_USE_HTTP === "1";
   // Keep text selectable/searchable by default; opt into legacy PDF/X if needed.
   const useLegacyPressReady = process.env.CV_PDF_LEGACY_PRESS_READY === "1";
-  const skipPdfBuild = process.env.CV_PDF_RECAP_ONLY === "1";
   const layoutSelection = String(process.env.CV_PDF_LAYOUTS || "both").toLowerCase();
   const shouldBuildPrimary = layoutSelection === "both" || layoutSelection === "primary";
   const shouldBuildSecondary = layoutSelection === "both" || layoutSelection === "secondary";
-  fs.writeFileSync(recapPath, buildPdfRecap(slug, cv, blocks, { useHttpMode, useLegacyPressReady }), "utf8");
-  console.log(`[build-cv-pdf] Wrote recap: ${recapPath}`);
-  fs.writeFileSync(secondaryRecapPath, buildPdfRecap(`${slug} (secondary)`, cv, {
-    compact: false,
-    mainPage1Atoms: secondaryBlocks.mainAtoms,
-    mainPage2Atoms: [],
-    railPage1Atoms: [],
-    railPage2Atoms: [],
-    footerTechItems: [],
-    footerItems: secondaryBlocks.footerItems,
-  }, { useHttpMode, useLegacyPressReady }), "utf8");
-  console.log(`[build-cv-pdf] Wrote recap: ${secondaryRecapPath}`);
-  if (skipPdfBuild) {
-    console.log(`[build-cv-pdf] CV_PDF_RECAP_ONLY=1 set; skipping PDF build for ${slug}`);
-    return;
-  }
   if (shouldBuildPrimary) {
     const outputPath = path.join("dist", `${slug}.pdf`);
     const cmd = ["vivliostyle", "build", tmpPath, "-o", outputPath];
