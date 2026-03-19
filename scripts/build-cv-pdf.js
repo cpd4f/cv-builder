@@ -377,11 +377,14 @@ function renderPdfDocumentHtml(cv, cssHref, layoutName = "primary") {
   return `<!doctype html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>CV Print</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" /><link rel="stylesheet" href="${cssHref}" /></head><body><main class="cv-print${blocks.compact ? " compact" : ""}" id="cv-print-root">${fullContainer}</main></body></html>`;
 }
 
+
 function buildPdfForSlug(slug, cssHref) {
   const jsonPath = path.join("data", "cv", `${slug}.json`);
   const tmpPath = path.join(".tmp", `cv-print-${slug}.html`);
   const secondaryTmpPath = path.join(".tmp", `cv-print-${slug}.secondary.html`);
   const cv = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
+  const blocks = composeFiveBlockLayout(Array.isArray(cv.items) ? cv.items : []);
+  const secondaryBlocks = composeSecondaryLayout(Array.isArray(cv.items) ? cv.items : []);
   fs.mkdirSync(path.dirname(tmpPath), { recursive: true });
   fs.writeFileSync(tmpPath, renderPdfDocumentHtml(cv, cssHref, "primary"), "utf8");
   fs.writeFileSync(secondaryTmpPath, renderPdfDocumentHtml(cv, cssHref, "secondary"), "utf8");
