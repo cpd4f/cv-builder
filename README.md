@@ -126,16 +126,20 @@ Optional/config:
 
 - Reads each `data/cv/*.json` file.
 - Generates an HTML document with the same layout model as print rendering.
-- Calls `npx vivliostyle build` to output `dist/<slug>.pdf`.
+- Calls `npx vivliostyle build` to output `dist/<slug>.pdf` (primary five-block layout) and `dist/<slug>.secondary.pdf` (single-column secondary layout).
 
 ### Output
 
 - PDFs are written to `dist/` (e.g., `dist/coleman-davis.pdf`).
+- A recap report is also written to `dist/<slug>.pdf-recap.md` so you can quickly review how the builder paginated and sectioned each CV.
+- The secondary layout recap is written to `dist/<slug>.secondary.pdf-recap.md`.
 
 ### Important notes
 
 - This environment may fail during Playwright Chromium download if external mirrors return 403.
 - Script-level parse/runtime checks can still be verified with `node --check scripts/build-cv-pdf.js`.
+- Set `CV_PDF_RECAP_ONLY=1` to generate only the recap file without invoking Vivliostyle (useful in restricted CI or local environments).
+- Set `CV_PDF_LAYOUTS=primary|secondary|both` (default: `both`) to control which PDF layout(s) are generated.
 
 ---
 
@@ -248,4 +252,3 @@ This repo is designed for static hosting (e.g., GitHub Pages). Ensure the follow
 - `data/cv/*.json`
 - `dist/*.pdf`
 - `cv.html`, `cv-print.html`, `cv-embed.html`, `cv-embed.js`, `cv-render.js`, `cv-print.css`
-

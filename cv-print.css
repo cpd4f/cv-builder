@@ -73,6 +73,21 @@ body {
   margin-top: 5mm;
 }
 
+.layout-secondary .secondary-container {
+  display: block;
+}
+
+.layout-secondary .header-container,
+.layout-secondary .secondary-main,
+.layout-secondary .footer {
+  grid-column: auto;
+  grid-row: auto;
+}
+
+.layout-secondary .secondary-main {
+  margin-top: 6mm;
+}
+
 
 .print-page {
   break-after: page;
