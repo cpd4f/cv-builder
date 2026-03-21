@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       EXPECTED_ISSUE_AUTHOR: cpd4f
+      AI_FEEDBACK_ENABLED: ${{ vars.AI_FEEDBACK_ENABLED || 'true' }}
 
     steps:
       - name: Check guard conditions (issue runs)
@@ -23,6 +24,8 @@ jobs:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
           ISSUE_AUTHOR_URL: ${{ github.event.issue.user.html_url }}
+          EVENT_ACTOR: ${{ github.actor }}
+          AI_FEEDBACK_ENABLED: ${{ env.AI_FEEDBACK_ENABLED }}
         run: |
           normalize_user() {
             local value
@@ -40,6 +43,13 @@ jobs:
 
           title_ok=false
           author_ok=false
+          actor_ok=false
+          feature_enabled=false
+
+          ai_feedback_toggle="$(printf '%s' "$AI_FEEDBACK_ENABLED" | tr '[:upper:]' '[:lower:]')"
+          if [[ "$ai_feedback_toggle" == "true" || "$ai_feedback_toggle" == "1" || "$ai_feedback_toggle" == "yes" || "$ai_feedback_toggle" == "on" ]]; then
+            feature_enabled=true
+          fi
 
           issue_title_upper="$(printf '%s' "$ISSUE_TITLE" | tr '[:lower:]' '[:upper:]')"
           if [[ "$issue_title_upper" == CV_UPDATE* ]]; then
@@ -50,16 +60,28 @@ jobs:
             author_ok=true
           fi
 
-          if [[ "$title_ok" == true && "$author_ok" == true ]]; then
+          actor_normalized="$(normalize_user "$EVENT_ACTOR")"
+          if [[ "$actor_normalized" == "$expected" ]]; then
+            actor_ok=true
+          fi
+
+          if [[ "$feature_enabled" == true && "$title_ok" == true && "$author_ok" == true && "$actor_ok" == true ]]; then
             echo "should_run=true" >> "$GITHUB_OUTPUT"
           else
             echo "should_run=false" >> "$GITHUB_OUTPUT"
-            echo "Skipping AI feedback automation: guard did not pass."
+            echo "Skipping AI feedback automation: guard did not pass or AI feedback is disabled."
+            echo "feature_enabled=$feature_enabled title_ok=$title_ok author_ok=$author_ok actor_ok=$actor_ok"
           fi
 
       - name: Stop early when issue guard fails
         if: github.event_name == 'issues' && steps.guard.outputs.should_run != 'true'
         run: exit 0
+
+      - name: Stop early when AI feedback is disabled (manual runs)
+        if: github.event_name == 'workflow_dispatch' && (env.AI_FEEDBACK_ENABLED != 'true' && env.AI_FEEDBACK_ENABLED != '1' && env.AI_FEEDBACK_ENABLED != 'yes' && env.AI_FEEDBACK_ENABLED != 'on')
+        run: |
+          echo "Skipping AI feedback automation: AI_FEEDBACK_ENABLED is set to '$AI_FEEDBACK_ENABLED'."
+          exit 0
 
       - name: Checkout
         uses: actions/checkout@v4
