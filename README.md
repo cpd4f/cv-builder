@@ -205,10 +205,17 @@ Workflow triggers:
 
 Behavior:
 
-1. Validates guard conditions for issue-triggered runs (title prefix + expected author).
-2. Installs dependencies.
-3. Runs `npm run ai:feedback`.
-4. Posts success/failure comment back to the triggering issue.
+1. Validates guard conditions for issue-triggered runs (title prefix + expected issue author + expected event actor).
+2. Honors feature toggle `AI_FEEDBACK_ENABLED` (GitHub Actions variable, default `true`) so AI feedback can be turned on/off without changing code.
+3. Installs dependencies.
+4. Runs `npm run ai:feedback`.
+5. Posts success/failure comment back to the triggering issue.
+
+Feature toggle setup:
+
+- Configure repository variable `AI_FEEDBACK_ENABLED` in **Settings → Secrets and variables → Actions → Variables**.
+- Truthy values (`true`, `1`, `yes`, `on`) keep AI feedback enabled.
+- Any other value disables AI feedback execution in the workflow.
 
 ---
 
